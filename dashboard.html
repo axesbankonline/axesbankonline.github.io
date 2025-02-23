@@ -25,33 +25,33 @@
     </div>
 
     <script>
-        function getQueryParams() {
-            let params = new URLSearchParams(window.location.search);
-            return {
-                userId: params.get('user'),
-                name: params.get('name'),
-                coins: parseInt(localStorage.getItem(params.get('user') + "_coins")) || 1000
-            };
+        // Ensure user is logged in
+        let userId = sessionStorage.getItem("loggedInUser");
+        let userName = sessionStorage.getItem("loggedInUserName");
+        let userCoins = parseInt(localStorage.getItem(userId + "_coins")) || 1000;
+
+        if (!userId || !userName) {
+            window.location.href = "index.html"; // Redirect to login if not logged in
         }
 
-        let { userId, name, coins } = getQueryParams();
         document.getElementById("userIdDisplay").textContent = userId.replace(/(.{4})/g, '$1 ').trim();
-        document.getElementById("userName").textContent = name;
-        document.getElementById("coinBalance").textContent = coins;
+        document.getElementById("userName").textContent = userName;
+        document.getElementById("coinBalance").textContent = userCoins;
 
         function earnCoins() {
-            coins += 100;
-            document.getElementById("coinBalance").textContent = coins;
-            localStorage.setItem(userId + "_coins", coins);
+            userCoins += 100;
+            document.getElementById("coinBalance").textContent = userCoins;
+            localStorage.setItem(userId + "_coins", userCoins);
         }
 
         function logout() {
+            sessionStorage.clear(); // Clear session data
             window.location.href = "index.html";
         }
 
         // Auto-save coins every second
         setInterval(() => {
-            localStorage.setItem(userId + "_coins", coins);
+            localStorage.setItem(userId + "_coins", userCoins);
         }, 1000);
     </script>
 </body>
