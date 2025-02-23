@@ -28,17 +28,18 @@
         // Ensure user is logged in
         let userId = sessionStorage.getItem("loggedInUser");
         let userName = sessionStorage.getItem("loggedInUserName");
-        let userCoins = parseInt(localStorage.getItem(userId + "_coins")) || 1000;
-
+        
         if (!userId || !userName) {
             window.location.href = "index.html"; // Redirect to login if not logged in
+        } else {
+            let userCoins = parseInt(localStorage.getItem(userId + "_coins")) || 1000;
+            document.getElementById("userIdDisplay").textContent = userId.replace(/(.{4})/g, '$1 ').trim();
+            document.getElementById("userName").textContent = userName;
+            document.getElementById("coinBalance").textContent = userCoins;
         }
 
-        document.getElementById("userIdDisplay").textContent = userId.replace(/(.{4})/g, '$1 ').trim();
-        document.getElementById("userName").textContent = userName;
-        document.getElementById("coinBalance").textContent = userCoins;
-
         function earnCoins() {
+            let userCoins = parseInt(document.getElementById("coinBalance").textContent);
             userCoins += 100;
             document.getElementById("coinBalance").textContent = userCoins;
             localStorage.setItem(userId + "_coins", userCoins);
@@ -51,6 +52,7 @@
 
         // Auto-save coins every second
         setInterval(() => {
+            let userCoins = parseInt(document.getElementById("coinBalance").textContent);
             localStorage.setItem(userId + "_coins", userCoins);
         }, 1000);
     </script>
