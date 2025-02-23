@@ -7,22 +7,30 @@
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; }
         .top-bar { display: flex; justify-content: space-between; align-items: center; background: #007bff; padding: 10px 20px; color: white; }
-        .top-bar .left { font-size: 18px; }
-        .top-bar .center { display: flex; gap: 10px; }
-        .top-bar .center a { text-decoration: none; color: white; padding: 8px 12px; background: #0056b3; border-radius: 5px; }
-        .top-bar .right { background: rgba(135, 206, 250, 0.75); padding: 8px 15px; border-radius: 10px; font-weight: bold; }
+        .top-bar .left { display: flex; gap: 10px; }
+        .top-bar .left a { text-decoration: none; color: white; padding: 8px 12px; background: #0056b3; border-radius: 5px; }
+        .top-bar .right { font-size: 18px; }
+        .coins-container { 
+            background: rgba(135, 206, 250, 0.75); 
+            padding: 10px 20px; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            display: inline-block;
+            margin-top: 10px;
+        }
         .container { margin-top: 50px; }
     </style>
 </head>
 <body>
     <div class="top-bar">
-        <div class="left" id="credNumberDisplay"></div>
-        <div class="center">
+        <div class="left">
             <a href="earn.html">Earn Coins</a>
             <a href="dashboard.html">Home</a>
         </div>
-        <div class="right" id="coinsDisplay">Coins: 0</div>
+        <div class="right" id="credNumberDisplay"></div>
     </div>
+
+    <div class="coins-container" id="coinsDisplay">Coins: 0</div>
 
     <div class="container">
         <h2>Welcome to Your Dashboard</h2>
