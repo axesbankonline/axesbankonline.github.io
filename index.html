@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake Bank - Login</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
+        .login-container { width: 300px; margin: 100px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #218838; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Fake Bank Login</h2>
+        <input type="text" id="userId" placeholder="XXXX XXXX XXXX XXXX" maxlength="19">
+        <input type="password" id="password" placeholder="Enter Password">
+        <input type="text" id="fullName" placeholder="Full Name">
+        <button onclick="login()">Login</button>
+        <p id="message" style="color: red;"></p>
+    </div>
+    
+    <script>
+        function login() {
+            let userId = document.getElementById('userId').value.replace(/\s/g, '');
+            let password = document.getElementById('password').value;
+            let fullName = document.getElementById('fullName').value.trim().toLowerCase();
+            
+            let accounts = {
+                "4179170033006493": { "password": "fortnitebattlepass1122", "name": "john doe" },
+                "6969696969696969": { "password": "bla bla", "name": "jane smith" }
+            };
+            
+            if (accounts[userId] && accounts[userId].password === password && accounts[userId].name === fullName) {
+                let coins = localStorage.getItem(userId + "_coins");
+                if (coins === null) {
+                    coins = 1000; // Default coins if first time logging in
+                    localStorage.setItem(userId + "_coins", coins);
+                }
+                window.location.href = "dashboard.html?user=" + encodeURIComponent(userId) + "&name=" + encodeURIComponent(fullName) + "&coins=" + encodeURIComponent(coins);
+            } else {
+                document.getElementById('message').innerText = "Invalid credentials or missing details!";
+            }
+        }
+    </script>
+</body>
+</html>
