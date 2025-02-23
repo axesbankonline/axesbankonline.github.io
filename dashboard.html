@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,15 +7,17 @@
         body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; }
         .top-bar { display: flex; justify-content: space-between; align-items: center; background: #007bff; padding: 10px 20px; color: white; }
         .top-bar .left { display: flex; gap: 10px; }
-        .top-bar .left a { text-decoration: none; color: white; padding: 8px 12px; background: #0056b3; border-radius: 5px; }
+        .top-bar .left a { text-decoration: none; color: white; padding: 8px 12px; background: none; border-radius: 5px; }
         .top-bar .right { font-size: 18px; }
         .coins-container { 
+            position: absolute;
+            top: 10px;
+            right: 20px;
             background: rgba(135, 206, 250, 0.75); 
-            padding: 10px 20px; 
+            padding: 15px 30px; 
             border-radius: 10px; 
             font-weight: bold; 
-            display: inline-block;
-            margin-top: 10px;
+            font-size: 20px;
         }
         .container { margin-top: 50px; }
     </style>
@@ -28,24 +29,36 @@
             <a href="dashboard.html">Home</a>
         </div>
         <div class="right" id="credNumberDisplay"></div>
-    </div>
+    </div><div class="coins-container" id="coinsDisplay">Coins: 0</div>
 
-    <div class="coins-container" id="coinsDisplay">Coins: 0</div>
+<div class="container">
+    <h2>Welcome to Your Dashboard</h2>
+</div>
 
-    <div class="container">
-        <h2>Welcome to Your Dashboard</h2>
-    </div>
+<script>
+    let accounts = {
+        "4179170033006493": { password: "fortnitebattlepass1122", name: "Rajveer Singh Saini", coins: 1200 },
+        "1111111111111111": { password: "password123", name: "Gursimar Kaur Saini", coins: 357334 }
+    };
 
-    <script>
-        let loggedInUser = sessionStorage.getItem("loggedInUser");
-        let coins = sessionStorage.getItem("coins") || 0;
-        
-        if (!loggedInUser) {
-            window.location.href = "index.html";
-        }
-        
-        document.getElementById("credNumberDisplay").textContent = `User: ${loggedInUser}`;
-        document.getElementById("coinsDisplay").textContent = `Coins: ${coins}`;
-    </script>
+    let loggedInUser = localStorage.getItem("loggedInUser");
+    if (!loggedInUser || !accounts[loggedInUser]) {
+        window.location.href = "index.html";
+    }
+
+    const coinsDisplay = document.getElementById("coinsDisplay");
+    
+    // Load user's coins
+    let userAccount = accounts[loggedInUser];
+    coinsDisplay.textContent = `Coins: ${userAccount.coins}`;
+
+    // Save coins every second
+    setInterval(() => {
+        userAccount.coins = parseInt(coinsDisplay.textContent.replace("Coins: ", ""), 10);
+    }, 1000);
+
+    document.getElementById("credNumberDisplay").textContent = `User: ${loggedInUser}`;
+</script>
+
 </body>
 </html>
