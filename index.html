@@ -1,64 +1,48 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Bank - Dashboard</title>
+    <title>Fake Bank - Login</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; background: #007bff; padding: 10px 20px; color: white; }
-        .top-bar .left { display: flex; gap: 10px; }
-        .top-bar .left a { text-decoration: none; color: white; padding: 8px 12px; background: none; border-radius: 5px; }
-        .top-bar .right { font-size: 18px; }
-        .coins-container { 
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            background: rgba(135, 206, 250, 0.75); 
-            padding: 15px 30px; 
-            border-radius: 10px; 
-            font-weight: bold; 
-            font-size: 20px;
-        }
-        .container { margin-top: 50px; }
+        .login-container { margin-top: 100px; background: white; padding: 20px; border-radius: 10px; display: inline-block; }
+        input { display: block; width: 100%; margin: 10px 0; padding: 8px; }
+        button { background: #007bff; color: white; border: none; padding: 10px; cursor: pointer; width: 100%; }
+        button:hover { background: #0056b3; }
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        <div class="left">
-            <a href="earn.html">Earn Coins</a>
-            <a href="dashboard.html">Home</a>
-        </div>
-        <div class="right" id="credNumberDisplay"></div>
-    </div><div class="coins-container" id="coinsDisplay">Coins: 0</div>
 
-<div class="container">
-    <h2>Welcome to Your Dashboard</h2>
-</div>
+    <div class="login-container">
+        <h2>Login to Fake Bank</h2>
+        <input type="text" id="credNumber" placeholder="Cred Number (xxxx xxxx xxxx xxxx)">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <p id="error" style="color: red;"></p>
+    </div>
 
-<script>
-    let accounts = {
-        "4179170033006493": { password: "fortnitebattlepass1122", name: "Rajveer Singh Saini", coins: 1200 },
-        "1111111111111111": { password: "password123", name: "Gursimar Kaur Saini", coins: 357334 }
-    };
+    <script>
+        // Load accounts from localStorage or set defaults
+        let accounts = JSON.parse(localStorage.getItem("accounts")) || {
+            "4179170033006493": { password: "fortnitebattlepass1122", name: "Rajveer Singh Saini", coins: 1200 },
+            "1111111111111111": { password: "password123", name: "Gursimar Kaur Saini", coins: 357334 }
+        };
 
-    let loggedInUser = localStorage.getItem("loggedInUser");
-    if (!loggedInUser || !accounts[loggedInUser]) {
-        window.location.href = "index.html";
-    }
+        function login() {
+            let credNumber = document.getElementById("credNumber").value.trim();
+            let password = document.getElementById("password").value.trim();
+            let errorMsg = document.getElementById("error");
 
-    const coinsDisplay = document.getElementById("coinsDisplay");
-    
-    // Load user's coins
-    let userAccount = accounts[loggedInUser];
-    coinsDisplay.textContent = `Coins: ${userAccount.coins}`;
-
-    // Save coins every second
-    setInterval(() => {
-        userAccount.coins = parseInt(coinsDisplay.textContent.replace("Coins: ", ""), 10);
-    }, 1000);
-
-    document.getElementById("credNumberDisplay").textContent = `User: ${loggedInUser}`;
-</script>
+            if (accounts[credNumber] && accounts[credNumber].password === password) {
+                localStorage.setItem("loggedInUser", credNumber);
+                localStorage.setItem("accounts", JSON.stringify(accounts)); // Save accounts
+                window.location.href = "dashboard.html";
+            } else {
+                errorMsg.textContent = "Invalid credentials!";
+            }
+        }
+    </script>
 
 </body>
 </html>
