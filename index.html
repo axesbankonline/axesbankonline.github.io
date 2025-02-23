@@ -34,8 +34,8 @@
             };
             
             if (accounts[userId] && accounts[userId].password === password && accounts[userId].name === fullName) {
-                let coins = localStorage.getItem(userId + "_coins");
-                if (coins === null) {
+                let coins = parseInt(localStorage.getItem(userId + "_coins"));
+                if (isNaN(coins)) {
                     coins = 1000; // Default coins if first time logging in
                     localStorage.setItem(userId + "_coins", coins);
                 }
