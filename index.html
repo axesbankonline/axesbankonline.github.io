@@ -25,16 +25,16 @@
 
     <script>
         let accounts = {
-            "4179170033006493": { password: "fortnitebattlepass1122", name: "User1" },
-            "6969696969696969": { password: "bla bla", name: "User2" }
+            "4179170033006493": { password: "fortnitebattlepass1122", name: "Rajveer Singh Saini" },
+            "2435093874509098": { password: "password123", name: "Gursimar Kaur Saini" }
         };
 
         function login() {
             let credNumber = document.getElementById("credNumber").value.replace(/\s+/g, '');
-            let userName = document.getElementById("userName").value;
+            let userName = document.getElementById("userName").value.trim();
             let password = document.getElementById("password").value;
 
-            if (accounts[credNumber] && accounts[credNumber].password === password) {
+            if (accounts[credNumber] && accounts[credNumber].password === password && accounts[credNumber].name === userName) {
                 sessionStorage.setItem("loggedInUser", credNumber);
                 sessionStorage.setItem("loggedInUserName", userName);
                 window.location.href = "dashboard.html";
