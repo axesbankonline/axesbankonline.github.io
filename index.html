@@ -1,47 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Bank - Login</title>
+    <title>Fake Bank - Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
-        .login-container { width: 400px; margin: 100px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        h2 { color: #333; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        button { padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; }
-        button:hover { background: #0056b3; }
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background: #007bff; padding: 10px 20px; color: white; }
+        .top-bar .left { display: flex; gap: 10px; }
+        .top-bar .left a { text-decoration: none; color: white; padding: 8px 12px; background: none; border-radius: 5px; }
+        .top-bar .right { font-size: 18px; }
+        .coins-container { 
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background: rgba(135, 206, 250, 0.75); 
+            padding: 15px 30px; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            font-size: 20px;
+        }
+        .container { margin-top: 50px; }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>Fake Bank - Login</h2>
-        <input type="text" id="credNumber" placeholder="Enter User ID (xxxx xxxx xxxx xxxx)">
-        <input type="text" id="userName" placeholder="Enter Name">
-        <input type="password" id="password" placeholder="Enter Password">
-        <button onclick="login()">Login</button>
-        <p id="errorMessage" style="color: red;"></p>
-    </div>
+    <div class="top-bar">
+        <div class="left">
+            <a href="earn.html">Earn Coins</a>
+            <a href="dashboard.html">Home</a>
+        </div>
+        <div class="right" id="credNumberDisplay"></div>
+    </div><div class="coins-container" id="coinsDisplay">Coins: 0</div>
 
-    <script>
-        let accounts = {
-            "4179170033006493": { password: "fortnitebattlepass1122", name: "Rajveer Singh Saini" },
-            "1111111111111111": { password: "password123", name: "Gursimar Kaur Saini" }
-        };
+<div class="container">
+    <h2>Welcome to Your Dashboard</h2>
+</div>
 
-        function login() {
-            let credNumber = document.getElementById("credNumber").value.replace(/\s+/g, '');
-            let userName = document.getElementById("userName").value.trim();
-            let password = document.getElementById("password").value;
+<script>
+    let accounts = {
+        "4179170033006493": { password: "fortnitebattlepass1122", name: "Rajveer Singh Saini", coins: 1200 },
+        "1111111111111111": { password: "password123", name: "Gursimar Kaur Saini", coins: 357334 }
+    };
 
-            if (accounts[credNumber] && accounts[credNumber].password === password && accounts[credNumber].name === userName) {
-                sessionStorage.setItem("loggedInUser", credNumber);
-                sessionStorage.setItem("loggedInUserName", userName);
-                window.location.href = "dashboard.html";
-            } else {
-                document.getElementById("errorMessage").textContent = "Invalid credentials!";
-            }
-        }
-    </script>
+    let loggedInUser = localStorage.getItem("loggedInUser");
+    if (!loggedInUser || !accounts[loggedInUser]) {
+        window.location.href = "index.html";
+    }
+
+    const coinsDisplay = document.getElementById("coinsDisplay");
+    
+    // Load user's coins
+    let userAccount = accounts[loggedInUser];
+    coinsDisplay.textContent = `Coins: ${userAccount.coins}`;
+
+    // Save coins every second
+    setInterval(() => {
+        userAccount.coins = parseInt(coinsDisplay.textContent.replace("Coins: ", ""), 10);
+    }, 1000);
+
+    document.getElementById("credNumberDisplay").textContent = `User: ${loggedInUser}`;
+</script>
+
 </body>
 </html>
