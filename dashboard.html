@@ -30,7 +30,7 @@
             return {
                 userId: params.get('user'),
                 name: params.get('name'),
-                coins: parseInt(params.get('coins')) || 1000
+                coins: parseInt(localStorage.getItem(params.get('user') + "_coins")) || 1000
             };
         }
 
@@ -48,6 +48,11 @@
         function logout() {
             window.location.href = "index.html";
         }
+
+        // Auto-save coins every second
+        setInterval(() => {
+            localStorage.setItem(userId + "_coins", coins);
+        }, 1000);
     </script>
 </body>
 </html>
