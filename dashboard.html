@@ -36,29 +36,16 @@
 </div>
 
 <script>
-    let accounts = {
-        "4179170033006493": { password: "fortnitebattlepass1122", name: "Rajveer Singh Saini", coins: 1200 },
-        "1111111111111111": { password: "password123", name: "Gursimar Kaur Saini", coins: 357334 }
-    };
-
+    let accounts = JSON.parse(localStorage.getItem("accounts")) || {};
     let loggedInUser = localStorage.getItem("loggedInUser");
+
+    // Redirect to login page if user is not logged in
     if (!loggedInUser || !accounts[loggedInUser]) {
         window.location.href = "index.html";
     }
 
-    const coinsDisplay = document.getElementById("coinsDisplay");
-    
-    // Load user's coins
-    let userAccount = accounts[loggedInUser];
-    coinsDisplay.textContent = `Coins: ${userAccount.coins}`;
-
-    // Save coins every second
-    setInterval(() => {
-        userAccount.coins = parseInt(coinsDisplay.textContent.replace("Coins: ", ""), 10);
-    }, 1000);
-
     document.getElementById("credNumberDisplay").textContent = `User: ${loggedInUser}`;
+    document.getElementById("coinsDisplay").textContent = `Coins: ${accounts[loggedInUser].coins}`;
 </script>
-
 </body>
 </html>
