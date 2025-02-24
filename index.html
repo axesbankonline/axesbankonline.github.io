@@ -3,17 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Bank - Login</title>
+    <title>Login - Axes Bank</title>
+</head>
+<body>
+    <h2>Login to Axes Bank</h2>
+    
+    <label for="userId">User ID:</label>
+    <input type="text" id="userId" required>
+    <br><br>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" required>
+    <br><br>
+
+    <button id="loginButton">Login</button>
+
+    <p id="errorMessage" style="color: red;"></p>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
+        // ✅ Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
             authDomain: "bankdata-fe769.firebaseapp.com",
             databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "bankdata-fe769",
-            storageBucket: "bankdata-fe769.firebasestorage.app",
+            storageBucket: "bankdata-fe769.appspot.com",
             messagingSenderId: "967507656753",
             appId: "1:967507656753:web:562c1383dca78d56471510",
             measurementId: "G-9E5XE77RVB"
@@ -23,42 +40,37 @@
         const database = getDatabase(app);
 
         function loginUser() {
-            let credNumber = document.getElementById("credInput").value;
-            let password = document.getElementById("passInput").value;
+            const userId = document.getElementById("userId").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const errorMessage = document.getElementById("errorMessage");
 
-            if (credNumber.length !== 16 || password === "") {
-                alert("Invalid credentials!");
+            if (!userId || !password) {
+                errorMessage.innerText = "Please enter your User ID and Password.";
                 return;
             }
 
-            // Fetch user data from Firebase
-            get(child(ref(database), "users/" + credNumber)).then((snapshot) => {
-                if (snapshot.exists()) {
-                    let userData = snapshot.val();
-                    if (userData.password === password) {
-                        // Store login in localStorage
-                        localStorage.setItem("loggedInUser", credNumber);
-                        alert("Login successful!");
-                        window.location.href = "dashboard.html";
+            const userRef = ref(database, `users/${userId}`);
+            get(userRef)
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const userData = snapshot.val();
+                        if (userData.password === password) {
+                            localStorage.setItem("loggedInUser", userId);
+                            window.location.href = "dashboard.html";
+                        } else {
+                            errorMessage.innerText = "Incorrect password.";
+                        }
                     } else {
-                        alert("Incorrect password!");
+                        errorMessage.innerText = "User not found.";
                     }
-                } else {
-                    alert("User does not exist!");
-                }
-            }).catch((error) => {
-                console.error(error);
-            });
+                })
+                .catch((error) => {
+                    console.error("Error logging in:", error);
+                    errorMessage.innerText = "Error logging in. Please try again.";
+                });
         }
 
-        // Attach function to window to make it global
-        window.loginUser = loginUser;
+        document.getElementById("loginButton").onclick = loginUser;
     </script>
-</head>
-<body>
-    <h2>Login to Fake Bank</h2>
-    <input type="text" id="credInput" placeholder="Enter 16-digit Cred Number">
-    <input type="password" id="passInput" placeholder="Enter Password">
-    <button onclick="loginUser()">Login</button>
 </body>
 </html>
