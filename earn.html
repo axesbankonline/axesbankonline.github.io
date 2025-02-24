@@ -30,12 +30,16 @@
     </div>
 
     <script>
-        let accounts = JSON.parse(localStorage.getItem("accounts")) || {};
-        let loggedInUser = localStorage.getItem("loggedInUser");
+    let accounts = JSON.parse(localStorage.getItem("accounts")) || {};
+    let loggedInUser = localStorage.getItem("loggedInUser");
 
-        if (!loggedInUser || !accounts[loggedInUser]) {
-            window.location.href = "index.html"; // Redirect if not logged in
-        }
+    // Redirect to login page if user is not logged in
+    if (!loggedInUser || !accounts[loggedInUser]) {
+        window.location.href = "index.html";
+    }
+
+
+    updateCoinsDisplay(); // Load coins on page load
 
         const emojis = ["🍒", "🍋", "🍉", "⭐", "💎"];
         let spinButton = document.getElementById("spinButton");
