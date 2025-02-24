@@ -11,7 +11,6 @@
         .slot { width: 60px; height: 60px; border: 2px solid black; display: flex; align-items: center; justify-content: center; background: lightgray; border-radius: 10px; }
         button { background: #007bff; color: white; border: none; padding: 10px; cursor: pointer; font-size: 16px; margin-top: 10px; }
         button:disabled { background: gray; cursor: not-allowed; }
-        button:hover:not(:disabled) { background: #0056b3; }
     </style>
 </head>
 <body>
@@ -26,78 +25,29 @@
         <button id="spinButton" onclick="spinSlots()">Spin</button>
         <p id="result"></p>
         <p><strong>Your Coins:</strong> <span id="coinsDisplay">0</span></p>
-        <button onclick="goHome()">Back to Dashboard</button>
+        <button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
     </div>
 
     <script>
-    let accounts = JSON.parse(localStorage.getItem("accounts")) || {};
-    let loggedInUser = localStorage.getItem("loggedInUser");
+        let accounts = JSON.parse(localStorage.getItem("accounts")) || {};
+        let loggedInUser = localStorage.getItem("loggedInUser");
 
-    // Redirect to login page if user is not logged in
-    if (!loggedInUser || !accounts[loggedInUser]) {
-        window.location.href = "index.html";
-    }
-
-
-    updateCoinsDisplay(); // Load coins on page load
-
-        const emojis = ["🍒", "🍋", "🍉", "⭐", "💎"];
-        let spinButton = document.getElementById("spinButton");
-        let coinsDisplay = document.getElementById("coinsDisplay");
+        if (!loggedInUser || !accounts[loggedInUser]) {
+            window.location.href = "index.html"; // Redirect if not logged in
+        }
 
         function updateCoinsDisplay() {
-            coinsDisplay.textContent = accounts[loggedInUser].coins;
-            localStorage.setItem("accounts", JSON.stringify(accounts)); // Save to localStorage
+            document.getElementById("coinsDisplay").textContent = accounts[loggedInUser].coins;
+            localStorage.setItem("accounts", JSON.stringify(accounts));
         }
 
         function spinSlots() {
-            // Disable button during spin
-            spinButton.disabled = true;
-
-            let slot1 = document.getElementById("slot1");
-            let slot2 = document.getElementById("slot2");
-            let slot3 = document.getElementById("slot3");
-            let result = document.getElementById("result");
-
-            // Randomly select emojis
-            let spin1 = emojis[Math.floor(Math.random() * emojis.length)];
-            let spin2 = emojis[Math.floor(Math.random() * emojis.length)];
-            let spin3 = emojis[Math.floor(Math.random() * emojis.length)];
-
-            // Animate slots spinning
-            slot1.textContent = "⏳";
-            slot2.textContent = "⏳";
-            slot3.textContent = "⏳";
-
-            setTimeout(() => {
-                slot1.textContent = spin1;
-                slot2.textContent = spin2;
-                slot3.textContent = spin3;
-
-                if (spin1 === spin2 && spin2 === spin3) {
-                    accounts[loggedInUser].coins += 100;
-                    result.textContent = "🎉 Jackpot! You won 100 coins! 🎉";
-                } else {
-                    let earned = Math.floor(Math.random() * 41) + 10; // 10-50 coins
-                    accounts[loggedInUser].coins += earned;
-                    result.textContent = `You won ${earned} coins!`;
-                }
-                
-                updateCoinsDisplay();
-
-                // Re-enable button after 3 seconds
-                setTimeout(() => {
-                    spinButton.disabled = false;
-                }, 3000);
-
-            }, 1000);
+            document.getElementById("result").textContent = "You won 50 coins!";
+            accounts[loggedInUser].coins += 50;
+            updateCoinsDisplay();
         }
 
-        function goHome() {
-            window.location.href = "dashboard.html";
-        }
-
-        updateCoinsDisplay(); // Load coins on page load
+        updateCoinsDisplay();
     </script>
 
 </body>
