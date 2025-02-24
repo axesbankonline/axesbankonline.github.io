@@ -1,64 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bank - Login</title>
+    <title>Fake Bank - Login</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; padding: 20px; }
-        .container { background: white; padding: 20px; border-radius: 10px; display: inline-block; }
-        input { margin: 5px; padding: 8px; width: 80%; }
-        button { background: #007bff; color: white; border: none; padding: 10px; cursor: pointer; width: 85%; }
-        button:hover { background: #0056b3; }
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
+        .container { max-width: 400px; margin: 100px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; }
     </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
-</head>
-<body>
-
-    
-    <div class="container">
-        <h2>Login to Your Account</h2>
-        <input type="text" id="credNumber" placeholder="Cred Number (xxxx xxxx xxxx xxxx)"><br>
-        <input type="password" id="password" placeholder="Password"><br>
-        <button onclick="login()">Login</button>
-        <p id="message"></p>
-    </div>
-
-    <script>
-          const firebaseConfig = {
-              
-              apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-              authDomain: "bankdata-fe769.firebaseapp.com",
-              databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-              projectId: "bankdata-fe769",
-              storageBucket: "bankdata-fe769.firebasestorage.app",
-              messagingSenderId: "967507656753",
-              appId: "1:967507656753:web:562c1383dca78d56471510",
-              measurementId: "G-9E5XE77RVB"
-  };
-        let accounts = JSON.parse(localStorage.getItem("accounts")) || {
-            "4179170033006493": { password: "fortnitebattlepass1122", name: "Rajveer Singh Saini", coins: 1200 },
-            "6038455044000035": { password: "password", name: "Gursimar Kaur Saini", coins: 357334 }
+        const firebaseConfig = {
+            apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+            authDomain: "bankdata-fe769.firebaseapp.com",
+            databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "bankdata-fe769",
+            storageBucket: "bankdata-fe769.firebasestorage.app",
+            messagingSenderId: "967507656753",
+            appId: "1:967507656753:web:562c1383dca78d56471510",
+            measurementId: "G-9E5XE77RVB"
         };
 
-        function login() {
-            let credNumber = document.getElementById("credNumber").value.trim();
-            let password = document.getElementById("password").value.trim();
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-            if (accounts[credNumber] && accounts[credNumber].password === password) {
-                localStorage.setItem("loggedInUser", credNumber);
-                localStorage.setItem("accounts", JSON.stringify(accounts));
-                window.location.href = "dashboard.html"; // Redirect to dashboard
-            } else {
-                document.getElementById("message").textContent = "Invalid credentials!";
-            }
+        function loginUser() {
+            let credNumber = document.getElementById("credNumber").value;
+            let password = document.getElementById("password").value;
+
+            get(child(ref(db), "users/" + credNumber)).then(snapshot => {
+                if (snapshot.exists() && snapshot.val().password === password) {
+                    localStorage.setItem("loggedInUser", credNumber);
+                    window.location.href = "dashboard.html";
+                } else {
+                    alert("Invalid credentials!");
+                }
+            }).catch(error => console.error(error));
         }
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
     </script>
-
+</head>
+<body>
+    <div class="container">
+        <h2>Login</h2>
+        <input type="text" id="credNumber" placeholder="Cred Number (xxxx xxxx xxxx xxxx)" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="loginUser()">Login</button>
+    </div>
 </body>
 </html>
