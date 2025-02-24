@@ -1,10 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="style.css">
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Axes Bank</title>
+<style>
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background: url('image.jpg') no-repeat center center fixed;
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+    color: white;
+}
+
+/* Top Bar */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Cred Number */
+.cred-number {
+    font-size: 18px;
+}
+
+/* Settings Button */
+.settings {
+    cursor: pointer;
+    font-size: 20px;
+    transition: transform 0.3s ease;
+}
+
+.settings:hover {
+    transform: rotate(90deg);
+}
+
+/* Dropdown Menu */
+.dropdown {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    display: none;
+}
+
+.dropdown button {
+    background: red;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.dropdown button:hover {
+    background: darkred;
+}
+
+/* Main Container */
+.container {
+    width: 60%;
+    max-width: 600px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 30px;
+    margin: 100px auto;
+    border-radius: 10px;
+    text-align: center;
+    backdrop-filter: blur(5px);
+}
+
+h1 {
+    font-size: 24px;
+}
+
+/* Balance */
+.balance {
+    font-size: 20px;
+    margin: 20px 0;
+}
+
+/* Buttons */
+.button {
+    background: royalblue;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    font-size: 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px;
+    transition: all 0.3s ease;
+}
+
+.button:hover {
+    background: dodgerblue;
+    transform: scale(1.05);
+}
+</style>
 </head>
 <body>
     <h2>Welcome to Your Dashboard</h2>
