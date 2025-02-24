@@ -7,6 +7,7 @@
     <title>Login - Axes Bank</title>
 </head>
 <body>
+<div class="login-container">
     <h2>Login to Axes Bank</h2>
     
     <label for="userId">User ID:</label>
@@ -17,7 +18,9 @@
     <input type="password" id="password" required>
     <br><br>
 
-    <button id="loginButton">Login</button>
+    <button id="loginButton" onclick="loginUser()">Login</button>
+</div>
+
 
     <p id="errorMessage" style="color: red;"></p>
 
