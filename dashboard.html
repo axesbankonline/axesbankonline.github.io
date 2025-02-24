@@ -1,73 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Axes Bank</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="dashboard.js"></script>
 </head>
 <body>
-    <h2>Welcome to Your Dashboard</h2>
+    <!-- Top Bar -->
+    <div class="topbar">
+        <div class="cred-number" id="credNumber">Loading...</div>
+        <div class="settings" onclick="toggleDropdown()">⚙️</div>
+        <div class="dropdown" id="dropdownMenu">
+            <button onclick="logout()">Logout</button>
+        </div>
+    </div>
 
-    <p id="userName"></p>
-    <p id="coinsDisplay">Coins: Loading...</p>
+    <!-- Main Container -->
+    <div class="container">
+        <h1 id="welcomeMessage">Welcome, User</h1>
+        <div class="balance">Balance: <span id="moneyBalance">$0</span></div>
+        <button class="button" onclick="location.href='transfer.html'">Transactions</button>
+        <button class="button" onclick="window.location.href='mailto:axesbankonline@gmail.com'">Support</button>
+    </div>
 
-    <button id="logoutButton">Logout</button>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-
-        // ✅ Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-            authDomain: "bankdata-fe769.firebaseapp.com",
-            databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "bankdata-fe769",
-            storageBucket: "bankdata-fe769.appspot.com",
-            messagingSenderId: "967507656753",
-            appId: "1:967507656753:web:562c1383dca78d56471510",
-            measurementId: "G-9E5XE77RVB"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
-        function loadDashboard() {
-            const userId = localStorage.getItem("loggedInUser");
-
-            if (!userId) {
-                alert("You are not logged in!");
-                window.location.href = "index.html";
-                return;
-            }
-
-            const userRef = ref(database, `users/${userId}`);
-            get(userRef)
-                .then((snapshot) => {
-                    if (snapshot.exists()) {
-                        const userData = snapshot.val();
-                        document.getElementById("userName").innerText = `Hello, ${userData.name}`;
-                        document.getElementById("coinsDisplay").innerText = `Coins: ${userData.coins}`;
-                    } else {
-                        alert("User data not found!");
-                        window.location.href = "index.html";
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error loading dashboard:", error);
-                    alert("Error loading data.");
-                });
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById("dropdownMenu");
+            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
         }
 
-        function logoutUser() {
-            localStorage.removeItem("loggedInUser");
+        function logout() {
+            localStorage.removeItem("userId");
             window.location.href = "index.html";
         }
-
-        document.getElementById("logoutButton").onclick = logoutUser;
-
-        window.onload = loadDashboard;
     </script>
 </body>
 </html>
