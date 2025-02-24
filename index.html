@@ -5,25 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fake Bank - Login</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; }
-        .login-container { margin-top: 100px; background: white; padding: 20px; border-radius: 10px; display: inline-block; }
-        input { display: block; width: 100%; margin: 10px 0; padding: 8px; }
-        button { background: #007bff; color: white; border: none; padding: 10px; cursor: pointer; width: 100%; }
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 10px; display: inline-block; }
+        input { margin: 5px; padding: 8px; width: 80%; }
+        button { background: #007bff; color: white; border: none; padding: 10px; cursor: pointer; width: 85%; }
         button:hover { background: #0056b3; }
     </style>
 </head>
 <body>
 
-    <div class="login-container">
-        <h2>Login to Fake Bank</h2>
-        <input type="text" id="credNumber" placeholder="Cred Number (xxxx xxxx xxxx xxxx)">
-        <input type="password" id="password" placeholder="Password">
+    <div class="container">
+        <h2>Login to Your Account</h2>
+        <input type="text" id="credNumber" placeholder="Cred Number (xxxx xxxx xxxx xxxx)"><br>
+        <input type="password" id="password" placeholder="Password"><br>
         <button onclick="login()">Login</button>
-        <p id="error" style="color: red;"></p>
+        <p id="message"></p>
     </div>
 
     <script>
-        // Load accounts from localStorage or set defaults
         let accounts = JSON.parse(localStorage.getItem("accounts")) || {
             "4179170033006493": { password: "fortnitebattlepass1122", name: "Rajveer Singh Saini", coins: 1200 },
             "1111111111111111": { password: "password123", name: "Gursimar Kaur Saini", coins: 357334 }
@@ -32,14 +31,13 @@
         function login() {
             let credNumber = document.getElementById("credNumber").value.trim();
             let password = document.getElementById("password").value.trim();
-            let errorMsg = document.getElementById("error");
 
             if (accounts[credNumber] && accounts[credNumber].password === password) {
                 localStorage.setItem("loggedInUser", credNumber);
-                localStorage.setItem("accounts", JSON.stringify(accounts)); // Save accounts
-                window.location.href = "dashboard.html";
+                localStorage.setItem("accounts", JSON.stringify(accounts));
+                window.location.href = "dashboard.html"; // Redirect to dashboard
             } else {
-                errorMsg.textContent = "Invalid credentials!";
+                document.getElementById("message").textContent = "Invalid credentials!";
             }
         }
     </script>
