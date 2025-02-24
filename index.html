@@ -4,11 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fake Bank - Login</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
-        .container { max-width: 400px; margin: 100px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        input, button { width: 100%; padding: 10px; margin: 10px 0; }
-    </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
         import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
@@ -25,29 +20,45 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        const database = getDatabase(app);
 
         function loginUser() {
-            let credNumber = document.getElementById("credNumber").value;
-            let password = document.getElementById("password").value;
+            let credNumber = document.getElementById("credInput").value;
+            let password = document.getElementById("passInput").value;
 
-            get(child(ref(db), "users/" + credNumber)).then(snapshot => {
-                if (snapshot.exists() && snapshot.val().password === password) {
-                    localStorage.setItem("loggedInUser", credNumber);
-                    window.location.href = "dashboard.html";
+            if (credNumber.length !== 16 || password === "") {
+                alert("Invalid credentials!");
+                return;
+            }
+
+            // Fetch user data from Firebase
+            get(child(ref(database), "users/" + credNumber)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    let userData = snapshot.val();
+                    if (userData.password === password) {
+                        // Store login in localStorage
+                        localStorage.setItem("loggedInUser", credNumber);
+                        alert("Login successful!");
+                        window.location.href = "dashboard.html";
+                    } else {
+                        alert("Incorrect password!");
+                    }
                 } else {
-                    alert("Invalid credentials!");
+                    alert("User does not exist!");
                 }
-            }).catch(error => console.error(error));
+            }).catch((error) => {
+                console.error(error);
+            });
         }
+
+        // Attach function to window to make it global
+        window.loginUser = loginUser;
     </script>
 </head>
 <body>
-    <div class="container">
-        <h2>Login</h2>
-        <input type="text" id="credNumber" placeholder="Cred Number (xxxx xxxx xxxx xxxx)" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button onclick="loginUser()">Login</button>
-    </div>
+    <h2>Login to Fake Bank</h2>
+    <input type="text" id="credInput" placeholder="Enter 16-digit Cred Number">
+    <input type="password" id="passInput" placeholder="Enter Password">
+    <button onclick="loginUser()">Login</button>
 </body>
 </html>
