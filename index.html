@@ -44,6 +44,9 @@
                 document.getElementById("message").textContent = "Invalid credentials!";
             }
         }
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
     </script>
 
 </body>
