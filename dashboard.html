@@ -3,54 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Bank - Dashboard</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; background: #007bff; padding: 10px 20px; color: white; }
-        .top-bar .left a { text-decoration: none; color: white; padding: 8px 12px; }
-        .coins-container { 
-            background: rgba(135, 206, 250, 0.75); 
-            padding: 10px 20px; 
-            border-radius: 10px; 
-            font-weight: bold; 
-            position: absolute; 
-            top: 10px; 
-            right: 10px;
-        }
-        .container { margin-top: 50px; }
-    </style>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-
-        const firebaseConfig = { /* Use the same config from index.html */ };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        let loggedInUser = localStorage.getItem("loggedInUser");
-        if (!loggedInUser) window.location.href = "index.html";
-
-        function loadDashboard() {
-            get(child(ref(db), "users/" + loggedInUser)).then(snapshot => {
-                if (snapshot.exists()) {
-                    document.getElementById("credNumberDisplay").textContent = `User: ${loggedInUser}`;
-                    document.getElementById("coinsDisplay").textContent = `Coins: ${snapshot.val().coins}`;
-                }
-            }).catch(error => console.error(error));
-        }
-
-        loadDashboard();
-    </script>
+    <title>Dashboard - Axes Bank</title>
 </head>
 <body>
-    <div class="top-bar">
-        <div class="left">
-            <a href="earn.html">Earn Coins</a>
-            <a href="dashboard.html">Home</a>
-        </div>
-        <div class="right" id="credNumberDisplay"></div>
-    </div>
-    <div class="coins-container" id="coinsDisplay">Coins: 0</div>
-    <div class="container"><h2>Welcome to Your Dashboard</h2></div>
+    <h2>Welcome to Your Dashboard</h2>
+
+    <p id="userName"></p>
+    <p id="coinsDisplay">Coins: Loading...</p>
+
+    <button id="logoutButton">Logout</button>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        // ✅ Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+            authDomain: "bankdata-fe769.firebaseapp.com",
+            databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "bankdata-fe769",
+            storageBucket: "bankdata-fe769.appspot.com",
+            messagingSenderId: "967507656753",
+            appId: "1:967507656753:web:562c1383dca78d56471510",
+            measurementId: "G-9E5XE77RVB"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        function loadDashboard() {
+            const userId = localStorage.getItem("loggedInUser");
+
+            if (!userId) {
+                alert("You are not logged in!");
+                window.location.href = "index.html";
+                return;
+            }
+
+            const userRef = ref(database, `users/${userId}`);
+            get(userRef)
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const userData = snapshot.val();
+                        document.getElementById("userName").innerText = `Hello, ${userData.name}`;
+                        document.getElementById("coinsDisplay").innerText = `Coins: ${userData.coins}`;
+                    } else {
+                        alert("User data not found!");
+                        window.location.href = "index.html";
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error loading dashboard:", error);
+                    alert("Error loading data.");
+                });
+        }
+
+        function logoutUser() {
+            localStorage.removeItem("loggedInUser");
+            window.location.href = "index.html";
+        }
+
+        document.getElementById("logoutButton").onclick = logoutUser;
+
+        window.onload = loadDashboard;
+    </script>
 </body>
 </html>
