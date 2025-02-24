@@ -10,7 +10,8 @@
         .slot-machine { font-size: 40px; display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
         .slot { width: 60px; height: 60px; border: 2px solid black; display: flex; align-items: center; justify-content: center; background: lightgray; border-radius: 10px; }
         button { background: #007bff; color: white; border: none; padding: 10px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        button:hover { background: #0056b3; }
+        button:disabled { background: gray; cursor: not-allowed; }
+        button:hover:not(:disabled) { background: #0056b3; }
     </style>
 </head>
 <body>
@@ -22,7 +23,7 @@
             <div class="slot" id="slot2">❓</div>
             <div class="slot" id="slot3">❓</div>
         </div>
-        <button onclick="spinSlots()">Spin</button>
+        <button id="spinButton" onclick="spinSlots()">Spin</button>
         <p id="result"></p>
         <p><strong>Your Coins:</strong> <span id="coinsDisplay">0</span></p>
         <button onclick="goHome()">Back to Dashboard</button>
@@ -37,6 +38,7 @@
         }
 
         const emojis = ["🍒", "🍋", "🍉", "⭐", "💎"];
+        let spinButton = document.getElementById("spinButton");
         let coinsDisplay = document.getElementById("coinsDisplay");
 
         function updateCoinsDisplay() {
@@ -45,6 +47,9 @@
         }
 
         function spinSlots() {
+            // Disable button during spin
+            spinButton.disabled = true;
+
             let slot1 = document.getElementById("slot1");
             let slot2 = document.getElementById("slot2");
             let slot3 = document.getElementById("slot3");
@@ -75,6 +80,12 @@
                 }
                 
                 updateCoinsDisplay();
+
+                // Re-enable button after 3 seconds
+                setTimeout(() => {
+                    spinButton.disabled = false;
+                }, 3000);
+
             }, 1000);
         }
 
