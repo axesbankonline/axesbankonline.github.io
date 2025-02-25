@@ -23,7 +23,7 @@
             background: var(--background);
             color: var(--text);
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             min-height: 100vh;
         }
@@ -99,7 +99,7 @@
         .container {
             margin-top: 120px;
             width: 90%;
-            max-width: 1000px; /* Bigger container */
+            max-width: 800px;
             background: rgba(45, 45, 45, 0.9);
             padding: 40px;
             border-radius: 24px;
@@ -109,62 +109,20 @@
             margin-right: auto;
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
-            display: flex; /* Split into two columns */
-            gap: 40px; /* Space between columns */
         }
 
-        /* Left Column: Buttons */
-        .left-column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        /* Right Column: Updates */
-        .right-column {
-            flex: 1;
-        }
-
-        /* Coins Display Positioned Top Right */
-        #coinsDisplay {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 1.2rem;
-            color: var(--secondary);
-            padding: 12px 20px;
-            background: rgba(67, 181, 129, 0.1);
-            border-radius: 8px;
-            border: 1px solid rgba(67, 181, 129, 0.2);
-        }
-
-        /* User Info Section */
-        .user-info {
-            background: var(--surface);
-            padding: 30px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .user-info p {
-            margin: 15px 0;
-            font-size: 1.1rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .highlight {
+        /* Hello Text Outside Container */
+        .hello-text {
+            margin-top: 100px;
+            font-size: 2rem;
             color: var(--primary);
-            font-weight: 700;
-            font-size: 1.5rem;
-            margin-bottom: 30px; /* Added space under Hello text */
+            text-align: center;
         }
 
         /* Button Grid */
         .button-grid {
             display: flex;
-            flex-direction: column; /* Buttons in a vertical line */
+            flex-direction: column;
             gap: 15px;
         }
 
@@ -190,11 +148,12 @@
             box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
         }
 
-        /* Vertical Separator */
+        /* Separator Line */
         .separator {
-            width: 1px;
-            height: 100%;
+            width: 100%;
+            height: 1px;
             background: rgba(255, 255, 255, 0.1);
+            margin: 30px 0;
         }
 
         /* Updates Section */
@@ -236,18 +195,10 @@
             .container {
                 width: 95%;
                 padding: 25px;
-                flex-direction: column; /* Stack columns on small screens */
             }
 
-            .separator {
-                width: 100%;
-                height: 1px;
-                margin: 20px 0;
-            }
-
-            #coinsDisplay {
-                font-size: 1rem;
-                padding: 10px 15px;
+            .hello-text {
+                font-size: 1.5rem;
             }
         }
     </style>
@@ -265,37 +216,32 @@
         </div>
     </div>
 
+    <!-- Hello Text Outside Container -->
+    <div class="hello-text" id="userGreeting">Hello, [User]</div>
+
+    <!-- Main Container -->
     <div class="container">
         <!-- Coins Display Moved to Top Right -->
         <p id="coinsDisplay">Coins: Loading...</p>
 
-        <!-- Left Column: Buttons -->
-        <div class="left-column">
-            <div class="user-info">
-                <p id="userName" class="highlight"></p>
-            </div>
-
-            <!-- Button Grid -->
-            <div class="button-grid">
-                <a href="transactions.html" class="action-button">Transactions</a>
-                <a href="earn.html" class="action-button">Earn</a>
-                <a href="mailto:axesbankonline@gmail.com" class="action-button">Support</a>
-                <a href="help.html" class="action-button">Help</a>
-            </div>
+        <!-- Button Grid -->
+        <div class="button-grid">
+            <a href="transactions.html" class="action-button">Transactions</a>
+            <a href="earn.html" class="action-button">Earn</a>
+            <a href="mailto:axesbankonline@gmail.com" class="action-button">Support</a>
+            <a href="help.html" class="action-button">Help</a>
         </div>
 
-        <!-- Vertical Separator -->
+        <!-- Separator Line -->
         <div class="separator"></div>
 
-        <!-- Right Column: Updates -->
-        <div class="right-column">
-            <div class="updates">
-                <h2>Updates: (2.3)</h2>
-                <ul>
-                    <li>New UI</li>
-                    <li>Better Support</li>
-                </ul>
-            </div>
+        <!-- Updates Section -->
+        <div class="updates">
+            <h2>Updates: (2.3)</h2>
+            <ul>
+                <li>New UI</li>
+                <li>Better Support</li>
+            </ul>
         </div>
     </div>
 
@@ -332,7 +278,7 @@
                 .then((snapshot) => {
                     if (snapshot.exists()) {
                         const userData = snapshot.val();
-                        document.getElementById("userName").innerText = `Hello, ${userData.name}`;
+                        document.getElementById("userGreeting").innerText = `Hello, ${userData.name}`;
                         document.getElementById("coinsDisplay").innerText = `Coins: ${userData.coins}`;
                     } else {
                         alert("User data not found!");
