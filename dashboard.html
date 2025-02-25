@@ -5,38 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Axes Bank</title>
     <style>
-        /* Modern Color Scheme */
+        /* Dark Theme Variables */
         :root {
-            --primary: #2a2a72;
-            --secondary: #009ffd;
-            --accent: #7fd8be;
-            --background: #f6f5f5;
+            --primary: #7289da;
+            --secondary: #43b581;
+            --accent: #ff73fa;
+            --background: #1a1a1a;
+            --surface: #2d2d2d;
+            --text: #ffffff;
         }
 
-        /* Modern Font */
+        /* Base Styles */
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             margin: 0;
             padding: 0;
             background: var(--background);
-            color: #333;
+            color: var(--text);
         }
 
-        /* Glassmorphism Top Bar */
+        /* Dark Top Bar */
         .topbar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 80px;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(45, 45, 45, 0.95);
             backdrop-filter: blur(10px);
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 40px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         /* Logo Section */
@@ -51,12 +54,12 @@
             width: 50px;
             border-radius: 12px;
             object-fit: cover;
+            filter: grayscale(20%);
         }
 
         .bank-name {
             font-size: 1.5rem;
             font-weight: 700;
-            color: var(--primary);
             background: linear-gradient(to right, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -72,8 +75,8 @@
             padding: 12px 24px;
             border: none;
             border-radius: 8px;
-            background: rgba(42, 42, 114, 0.1);
-            color: var(--primary);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -84,44 +87,44 @@
 
         .nav-button:hover {
             background: var(--primary);
-            color: white;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(42, 42, 114, 0.2);
+            box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
         }
 
-        /* Main Content */
+        /* Main Content Container */
         .container {
             margin-top: 120px;
             width: 90%;
             max-width: 800px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(45, 45, 45, 0.9);
             padding: 40px;
             border-radius: 24px;
             backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             margin-left: auto;
             margin-right: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         h1 {
-            color: var(--primary);
+            color: var(--text);
             font-size: 2.5rem;
             margin-bottom: 30px;
         }
 
         /* User Info Cards */
         .user-info {
-            background: white;
+            background: var(--surface);
             padding: 30px;
             border-radius: 16px;
             margin-bottom: 30px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .user-info p {
             margin: 15px 0;
             font-size: 1.1rem;
-            color: #666;
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .highlight {
@@ -135,10 +138,11 @@
             font-size: 1.5rem;
             color: var(--secondary);
             padding: 20px;
-            background: rgba(127, 216, 190, 0.1);
+            background: rgba(67, 181, 129, 0.1);
             border-radius: 12px;
             display: inline-block;
             margin: 20px 0;
+            border: 1px solid rgba(67, 181, 129, 0.2);
         }
 
         /* Responsive Design */
@@ -181,7 +185,7 @@
     </div>
 
     <script type="module">
-        // Existing Firebase code remains the same
+        // Existing Firebase code remains unchanged
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
