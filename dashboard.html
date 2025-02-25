@@ -104,12 +104,20 @@
             margin-left: auto;
             margin-right: auto;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
         }
 
-        h1 {
-            color: var(--text);
-            font-size: 2.5rem;
-            margin-bottom: 30px;
+        /* Coins Display Positioned Top Right */
+        #coinsDisplay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.2rem;
+            color: var(--secondary);
+            padding: 12px 20px;
+            background: rgba(67, 181, 129, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(67, 181, 129, 0.2);
         }
 
         /* User Info Cards */
@@ -130,19 +138,7 @@
         .highlight {
             color: var(--primary);
             font-weight: 700;
-            font-size: 1.2rem;
-        }
-
-        /* Coins Display */
-        #coinsDisplay {
             font-size: 1.5rem;
-            color: var(--secondary);
-            padding: 20px;
-            background: rgba(67, 181, 129, 0.1);
-            border-radius: 12px;
-            display: inline-block;
-            margin: 20px 0;
-            border: 1px solid rgba(67, 181, 129, 0.2);
         }
 
         /* Responsive Design */
@@ -159,6 +155,11 @@
             .container {
                 width: 95%;
                 padding: 25px;
+            }
+
+            #coinsDisplay {
+                font-size: 1rem;
+                padding: 10px 15px;
             }
         }
     </style>
@@ -177,10 +178,12 @@
     </div>
 
     <div class="container">
-        <h1>Welcome to Your Dashboard</h1>
+        <!-- Coins Display Moved to Top Right -->
+        <p id="coinsDisplay">Coins: Loading...</p>
+
+        <!-- User Info Section -->
         <div class="user-info">
             <p id="userName" class="highlight"></p>
-            <p id="coinsDisplay">Coins: Loading...</p>
         </div>
     </div>
 
