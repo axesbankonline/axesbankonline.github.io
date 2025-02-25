@@ -95,22 +95,6 @@
             box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
         }
 
-        /* Main Content Container */
-        .container {
-            margin-top: 120px;
-            width: 90%;
-            max-width: 800px;
-            background: rgba(45, 45, 45, 0.9);
-            padding: 40px;
-            border-radius: 24px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            margin-left: auto;
-            margin-right: auto;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-        }
-
         /* Hello Text Outside Container */
         .hello-text {
             margin-top: 100px;
@@ -119,10 +103,53 @@
             text-align: center;
         }
 
+        /* Main Container */
+        .container {
+            margin-top: 20px;
+            width: 90%;
+            max-width: 1000px;
+            background: rgba(45, 45, 45, 0.9);
+            padding: 40px;
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; /* Split into two columns */
+            gap: 40px; /* Space between columns */
+        }
+
+        /* Left Column: Buttons */
+        .left-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Right Column: Updates */
+        .right-column {
+            flex: 1;
+        }
+
+        /* Coins Display Positioned Top Right */
+        #coinsDisplay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.2rem;
+            color: var(--secondary);
+            padding: 12px 20px;
+            background: rgba(67, 181, 129, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(67, 181, 129, 0.2);
+        }
+
         /* Button Grid */
         .button-grid {
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Buttons in a vertical line */
             gap: 15px;
         }
 
@@ -148,12 +175,11 @@
             box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
         }
 
-        /* Separator Line */
+        /* Vertical Separator */
         .separator {
-            width: 100%;
-            height: 1px;
+            width: 1px;
+            height: 100%;
             background: rgba(255, 255, 255, 0.1);
-            margin: 30px 0;
         }
 
         /* Updates Section */
@@ -195,6 +221,13 @@
             .container {
                 width: 95%;
                 padding: 25px;
+                flex-direction: column; /* Stack columns on small screens */
+            }
+
+            .separator {
+                width: 100%;
+                height: 1px;
+                margin: 20px 0;
             }
 
             .hello-text {
@@ -221,27 +254,28 @@
 
     <!-- Main Container -->
     <div class="container">
-        <!-- Coins Display Moved to Top Right -->
-        <p id="coinsDisplay">Coins: Loading...</p>
-
-        <!-- Button Grid -->
-        <div class="button-grid">
-            <a href="transactions.html" class="action-button">Transactions</a>
-            <a href="earn.html" class="action-button">Earn</a>
-            <a href="mailto:axesbankonline@gmail.com" class="action-button">Support</a>
-            <a href="help.html" class="action-button">Help</a>
+        <!-- Left Column: Buttons -->
+        <div class="left-column">
+            <div class="button-grid">
+                <a href="transactions.html" class="action-button">Transactions</a>
+                <a href="earn.html" class="action-button">Earn</a>
+                <a href="mailto:axesbankonline@gmail.com" class="action-button">Support</a>
+                <a href="help.html" class="action-button">Help</a>
+            </div>
         </div>
 
-        <!-- Separator Line -->
+        <!-- Vertical Separator -->
         <div class="separator"></div>
 
-        <!-- Updates Section -->
-        <div class="updates">
-            <h2>Updates: (2.3)</h2>
-            <ul>
-                <li>New UI</li>
-                <li>Better Support</li>
-            </ul>
+        <!-- Right Column: Updates -->
+        <div class="right-column">
+            <div class="updates">
+                <h2>Updates: (2.3)</h2>
+                <ul>
+                    <li>New UI</li>
+                    <li>Better Support</li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -279,7 +313,6 @@
                     if (snapshot.exists()) {
                         const userData = snapshot.val();
                         document.getElementById("userGreeting").innerText = `Hello, ${userData.name}`;
-                        document.getElementById("coinsDisplay").innerText = `Coins: ${userData.coins}`;
                     } else {
                         alert("User data not found!");
                         window.location.href = "index.html";
