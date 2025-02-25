@@ -118,6 +118,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex; /* Split into two columns */
             gap: 40px; /* Space between columns */
+            position: relative; /* For positioning the coins container */
         }
 
         /* Left Column: Buttons */
@@ -254,6 +255,9 @@
 
     <!-- Main Container -->
     <div class="container">
+        <!-- Coins Display at Top Right -->
+        <p id="coinsDisplay">Coins: Loading...</p>
+
         <!-- Left Column: Buttons -->
         <div class="left-column">
             <div class="button-grid">
@@ -313,6 +317,7 @@
                     if (snapshot.exists()) {
                         const userData = snapshot.val();
                         document.getElementById("userGreeting").innerText = `Hello, ${userData.name}`;
+                        document.getElementById("coinsDisplay").innerText = `Coins: ${userData.coins}`;
                     } else {
                         alert("User data not found!");
                         window.location.href = "index.html";
