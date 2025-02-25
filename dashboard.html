@@ -109,6 +109,21 @@
             margin-right: auto;
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
+            display: flex; /* Split into two columns */
+            gap: 40px; /* Space between columns */
+        }
+
+        /* Left Column: Buttons */
+        .left-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Right Column: Updates */
+        .right-column {
+            flex: 1;
         }
 
         /* Coins Display Positioned Top Right */
@@ -151,7 +166,6 @@
             display: flex;
             flex-direction: column; /* Buttons in a vertical line */
             gap: 15px;
-            margin-top: 20px;
         }
 
         .action-button {
@@ -176,12 +190,11 @@
             box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
         }
 
-        /* Separator */
+        /* Vertical Separator */
         .separator {
-            width: 100%;
-            height: 1px;
+            width: 1px;
+            height: 100%;
             background: rgba(255, 255, 255, 0.1);
-            margin: 30px 0;
         }
 
         /* Updates Section */
@@ -223,6 +236,13 @@
             .container {
                 width: 95%;
                 padding: 25px;
+                flex-direction: column; /* Stack columns on small screens */
+            }
+
+            .separator {
+                width: 100%;
+                height: 1px;
+                margin: 20px 0;
             }
 
             #coinsDisplay {
@@ -249,9 +269,11 @@
         <!-- Coins Display Moved to Top Right -->
         <p id="coinsDisplay">Coins: Loading...</p>
 
-        <!-- User Info Section -->
-        <div class="user-info">
-            <p id="userName" class="highlight"></p>
+        <!-- Left Column: Buttons -->
+        <div class="left-column">
+            <div class="user-info">
+                <p id="userName" class="highlight"></p>
+            </div>
 
             <!-- Button Grid -->
             <div class="button-grid">
@@ -262,18 +284,18 @@
             </div>
         </div>
 
-        <!-- Separator -->
+        <!-- Vertical Separator -->
         <div class="separator"></div>
 
-        <!-- Updates Section -->
-        <div class="updates">
-            <h2>Updates: (3.6)</h2>
-            <ul>
-                <li>New UI</li>
-                <li>Firebase Database</li>
-                <li>Better Support</li>
-                <li>Transactions</li>
-            </ul>
+        <!-- Right Column: Updates -->
+        <div class="right-column">
+            <div class="updates">
+                <h2>Updates: (2.3)</h2>
+                <ul>
+                    <li>New UI</li>
+                    <li>Better Support</li>
+                </ul>
+            </div>
         </div>
     </div>
 
