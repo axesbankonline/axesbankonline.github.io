@@ -22,6 +22,10 @@
             padding: 0;
             background: var(--background);
             color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
         /* Dark Top Bar */
@@ -95,7 +99,7 @@
         .container {
             margin-top: 120px;
             width: 90%;
-            max-width: 800px;
+            max-width: 1000px; /* Bigger container */
             background: rgba(45, 45, 45, 0.9);
             padding: 40px;
             border-radius: 24px;
@@ -144,14 +148,14 @@
 
         /* Button Grid */
         .button-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            display: flex;
+            flex-direction: column; /* Buttons in a vertical line */
+            gap: 15px;
             margin-top: 20px;
         }
 
         .action-button {
-            padding: 20px;
+            padding: 15px;
             border: none;
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.1);
@@ -170,6 +174,39 @@
             background: var(--primary);
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
+        }
+
+        /* Separator */
+        .separator {
+            width: 100%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 30px 0;
+        }
+
+        /* Updates Section */
+        .updates {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .updates h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .updates ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .updates li {
+            margin: 10px 0;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
         }
 
         /* Responsive Design */
@@ -191,10 +228,6 @@
             #coinsDisplay {
                 font-size: 1rem;
                 padding: 10px 15px;
-            }
-
-            .button-grid {
-                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -222,11 +255,25 @@
 
             <!-- Button Grid -->
             <div class="button-grid">
-                <button class="action-button">Transactions</button>
-                <button class="action-button">Earn</button>
-                <button class="action-button">Support</button>
-                <button class="action-button">Help</button>
+                <a href="transactions.html" class="action-button">Transactions</a>
+                <a href="earn.html" class="action-button">Earn</a>
+                <a href="mailto:axesbankonline@gmail.com" class="action-button">Support</a>
+                <a href="help.html" class="action-button">Help</a>
             </div>
+        </div>
+
+        <!-- Separator -->
+        <div class="separator"></div>
+
+        <!-- Updates Section -->
+        <div class="updates">
+            <h2>Updates: (3.6)</h2>
+            <ul>
+                <li>New UI</li>
+                <li>Firebase Database</li>
+                <li>Better Support</li>
+                <li>Transactions</li>
+            </ul>
         </div>
     </div>
 
