@@ -1,129 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Axes Bank</title>
-<style>
-/* General Styles */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    color: white;
-}
+    <style>
+        /* Modern Color Scheme */
+        :root {
+            --primary: #2a2a72;
+            --secondary: #009ffd;
+            --accent: #7fd8be;
+            --background: #f6f5f5;
+        }
 
-/* Top Bar */
-.topbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 60px;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-}
+        /* Modern Font */
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--background);
+            color: #333;
+        }
 
-/* Cred Number */
-.cred-number {
-    font-size: 18px;
-}
+        /* Glassmorphism Top Bar */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
 
-/* Settings Button */
-.settings {
-    cursor: pointer;
-    font-size: 20px;
-    transition: transform 0.3s ease;
-}
+        /* Logo Section */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
 
-.settings:hover {
-    transform: rotate(90deg);
-}
+        .logo-img {
+            height: 50px;
+            width: 50px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
 
-/* Dropdown Menu */
-.dropdown {
-    position: absolute;
-    top: 50px;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 10px;
-    border-radius: 5px;
-    display: none;
-}
+        .bank-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-.dropdown button {
-    background: red;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    cursor: pointer;
-    width: 100%;
-}
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            gap: 20px;
+        }
 
-.dropdown button:hover {
-    background: darkred;
-}
+        .nav-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(42, 42, 114, 0.1);
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-/* Main Container */
-.container {
-    width: 60%;
-    max-width: 600px;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 30px;
-    margin: 100px auto;
-    border-radius: 10px;
-    text-align: center;
-    backdrop-filter: blur(5px);
-}
+        .nav-button:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42, 42, 114, 0.2);
+        }
 
-h1 {
-    font-size: 24px;
-}
+        /* Main Content */
+        .container {
+            margin-top: 120px;
+            width: 90%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-left: auto;
+            margin-right: auto;
+        }
 
-/* Balance */
-.balance {
-    font-size: 20px;
-    margin: 20px 0;
-}
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
 
-/* Buttons */
-.button {
-    background: royalblue;
-    border: none;
-    color: white;
-    padding: 12px 20px;
-    font-size: 18px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 10px;
-    transition: all 0.3s ease;
-}
+        /* User Info Cards */
+        .user-info {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        }
 
-.button:hover {
-    background: dodgerblue;
-    transform: scale(1.05);
-}
-</style>
+        .user-info p {
+            margin: 15px 0;
+            font-size: 1.1rem;
+            color: #666;
+        }
 
+        .highlight {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        /* Coins Display */
+        #coinsDisplay {
+            font-size: 1.5rem;
+            color: var(--secondary);
+            padding: 20px;
+            background: rgba(127, 216, 190, 0.1);
+            border-radius: 12px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .topbar {
+                padding: 0 20px;
+            }
+            
+            .nav-button {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .container {
+                width: 95%;
+                padding: 25px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h2>Welcome to Your Dashboard</h2>
+    <div class="topbar">
+        <div class="logo-container">
+            <img src="https://via.placeholder.com/50" alt="Bank Logo" class="logo-img">
+            <span class="bank-name">Axes Bank</span>
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-button">Profile</button>
+            <button class="nav-button">Settings</button>
+            <button class="nav-button" id="logoutButton">Logout</button>
+        </div>
+    </div>
 
-    <p id="userName"></p>
-    <p id="coinsDisplay">Coins: Loading...</p>
-
-    <button id="logoutButton">Logout</button>
+    <div class="container">
+        <h1>Welcome to Your Dashboard</h1>
+        <div class="user-info">
+            <p id="userName" class="highlight"></p>
+            <p id="coinsDisplay">Coins: Loading...</p>
+        </div>
+    </div>
 
     <script type="module">
+        // Existing Firebase code remains the same
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
-        // ✅ Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
             authDomain: "bankdata-fe769.firebaseapp.com",
