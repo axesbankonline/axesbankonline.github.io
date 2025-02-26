@@ -197,9 +197,9 @@ body {
             <div class="info-item">
                 <div class="info-label">Password:</div>
                 <div class="info-value">
-                    <input type="password" id="password" class="password-input" readonly>
-                    <button type="button" onclick="togglePassword()">👁️</button>
-                </div>
+                 <input type="password" id="password" class="password-input">
+                 <button type="button" id="togglePassword">👁️</button>
+              </div>
             </div>
         </div>
     </div>
@@ -253,11 +253,15 @@ function loadProfile() {
     });
 }
 
+document.getElementById("togglePassword").addEventListener("click", function () {
+    const passwordField = document.getElementById("password");
+    if (passwordField.type === "password") {
+        passwordField.type = "text";
+    } else {
+        passwordField.type = "password";
+    }
+});
 
-        function togglePassword() {
-            const passwordField = document.getElementById("password");
-            passwordField.type = passwordField.type === "password" ? "text" : "password";
-        }
 
         // Logout Function
         document.getElementById("logoutButton").addEventListener("click", () => {
