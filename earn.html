@@ -42,11 +42,20 @@
             box-shadow: none;
             cursor: not-allowed;
         }
+        input {
+            padding: 10px;
+            font-size: 18px;
+            width: 100px;
+            text-align: center;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>🎰 Slot Machine</h2>
+        <p>💰 Enter your bet amount:</p>
+        <input type="number" id="betAmount" value="10" min="1">
         <div>
             <span class="slot" id="slot1">0</span>
             <span class="slot" id="slot2">0</span>
@@ -56,40 +65,28 @@
         <p id="message"></p>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
     <script>
-        // ✅ Firebase Configuration (Replace with your actual credentials)
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-            projectId: "YOUR_PROJECT",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-        // ✅ Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // ✅ Get logged-in user from local storage
-        let loggedInUser = localStorage.getItem("loggedInUser");
-        if (!loggedInUser) {
-            window.location.href = "index.html";
-        }
+        let userBalance = 1000; // Fake balance (Replace with real database value)
 
         document.getElementById("spinButton").addEventListener("click", spin);
 
         function spin() {
+            let betAmount = parseInt(document.getElementById("betAmount").value);
+            if (isNaN(betAmount) || betAmount <= 0) {
+                document.getElementById("message").textContent = "❌ Invalid bet amount!";
+                return;
+            }
+
+            if (userBalance < betAmount) {
+                document.getElementById("message").textContent = "❌ Not enough money!";
+                return;
+            }
+
             document.getElementById("spinButton").disabled = true;
             document.getElementById("message").textContent = "Spinning... 🎲";
 
             let slots = [document.getElementById("slot1"), document.getElementById("slot2"), document.getElementById("slot3")];
 
-            let result = [];
             let interval = setInterval(() => {
                 for (let i = 0; i < 3; i++) {
                     let randomNum = Math.floor(Math.random() * 5);
@@ -101,34 +98,32 @@
                 clearInterval(interval);
 
                 // ✅ Final slot results
+                let result = [];
                 for (let i = 0; i < 3; i++) {
                     result[i] = Math.floor(Math.random() * 5);
                     slots[i].textContent = result[i];
                 }
 
-                // ✅ Check for a win
-                if (result[0] === result[1] && result[1] === result[2]) {
-                    document.getElementById("message").textContent = "🎉 You won 100 coins!";
-                    updateCoins(100);
+                // ✅ Decide outcome based on probability
+                let chance = Math.random() * 100;
+                let reward = 0;
+
+                if (chance < 60) {
+                    reward = betAmount * 5;
+                    document.getElementById("message").textContent = `🎉 You won $${reward}!`;
+                } else if (chance < 90) {
+                    reward = 0;
+                    document.getElementById("message").textContent = "😢 You lost!";
                 } else {
-                    document.getElementById("message").textContent = "😢 Try again!";
+                    reward = betAmount;
+                    document.getElementById("message").textContent = "🔄 You got your money back!";
                 }
+
+                userBalance += reward - betAmount;
+                document.getElementById("message").textContent += ` (Balance: $${userBalance})`;
 
                 document.getElementById("spinButton").disabled = false;
             }, 3000);
-        }
-
-        function updateCoins(amount) {
-            let userRef = db.ref("users/" + loggedInUser);
-
-            userRef.once("value", (snapshot) => {
-                if (snapshot.exists()) {
-                    let currentCoins = snapshot.val().coins || 0;
-                    userRef.update({ coins: currentCoins + amount }).then(() => {
-                        console.log("Coins updated!");
-                    });
-                }
-            });
         }
     </script>
 </body>
