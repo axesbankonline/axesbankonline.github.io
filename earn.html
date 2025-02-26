@@ -11,33 +11,6 @@
         .slot { font-size: 40px; margin: 20px; display: inline-block; width: 60px; }
         button { padding: 10px 20px; font-size: 18px; cursor: pointer; }
     </style>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-
-        const firebaseConfig = { /* Use the same config from index.html */ };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        let loggedInUser = localStorage.getItem("loggedInUser");
-        if (!loggedInUser) window.location.href = "index.html";
-
-        function spin() {
-            document.getElementById("spinButton").disabled = true;
-            setTimeout(() => document.getElementById("spinButton").disabled = false, 3000);
-
-            let result = [Math.floor(Math.random() * 5), Math.floor(Math.random() * 5), Math.floor(Math.random() * 5)];
-            document.getElementById("slot1").textContent = result[0];
-            document.getElementById("slot2").textContent = result[1];
-            document.getElementById("slot3").textContent = result[2];
-
-            if (result[0] === result[1] && result[1] === result[2]) {
-                update(ref(db, "users/" + loggedInUser), { coins: 100 }).then(() => {
-                    alert("You won 100 coins!");
-                });
-            }
-        }
-    </script>
 </head>
 <body>
     <div class="container">
@@ -49,5 +22,43 @@
         </div>
         <button id="spinButton" onclick="spin()">Spin</button>
     </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        const firebaseConfig = { /* Use the same config from index.html */ };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let loggedInUser = localStorage.getItem("loggedInUser");
+        if (!loggedInUser) window.location.href = "index.html";
+
+        // ✅ Make spin() global
+        window.spin = function() {
+            document.getElementById("spinButton").disabled = true;
+            setTimeout(() => document.getElementById("spinButton").disabled = false, 3000);
+
+            let result = [Math.floor(Math.random() * 5), Math.floor(Math.random() * 5), Math.floor(Math.random() * 5)];
+            document.getElementById("slot1").textContent = result[0];
+            document.getElementById("slot2").textContent = result[1];
+            document.getElementById("slot3").textContent = result[2];
+
+            if (result[0] === result[1] && result[1] === result[2]) {
+                const userRef = ref(db, "users/" + loggedInUser);
+
+                get(userRef).then(snapshot => {
+                    if (snapshot.exists()) {
+                        let currentCoins = snapshot.val().coins || 0;
+                        update(userRef, { coins: currentCoins + 100 }).then(() => {
+                            alert("You won 100 coins!");
+                        });
+                    } else {
+                        alert("User not found in database.");
+                    }
+                }).catch(error => console.error("Database error:", error));
+            }
+        };
+    </script>
 </body>
 </html>
