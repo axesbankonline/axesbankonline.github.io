@@ -1,55 +1,87 @@
-/* General Styles */
+/* Dark Theme */
+:root {
+    --primary: #7289da;
+    --background: #1a1a1a;
+    --surface: #2d2d2d;
+    --text: #ffffff;
+    --error: #ff5f5f;
+}
+
+/* Base Styles */
 body {
-    font-family: Arial, sans-serif;
-    background: url('image.jpg') no-repeat center center fixed;
-    background-size: cover;
+    font-family: 'Segoe UI', system-ui, sans-serif;
     margin: 0;
     padding: 0;
+    background: var(--background);
+    color: var(--text);
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    color: white;
 }
 
 /* Login Container */
 .login-container {
-    background: rgba(21, 21, 21, 0.6); /* 60% transparency */
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5);
+    background: var(--surface);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
     text-align: center;
-    width: 350px;
+    width: 320px;
+}
+
+h1 {
+    margin-bottom: 5px;
+    font-size: 2rem;
+    background: linear-gradient(to right, var(--primary), #43b581);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.login-subtitle {
+    font-size: 1rem;
+    opacity: 0.8;
+    margin-bottom: 20px;
 }
 
 /* Input Fields */
 input {
-    width: 90%;
-    padding: 10px;
+    width: 100%;
+    padding: 12px;
     margin: 10px 0;
-    border: 1px solid #555;
-    background: #222;
-    color: white;
-    border-radius: 5px;
-    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    font-size: 1rem;
+}
+
+input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
 }
 
 /* Login Button */
 button {
     width: 100%;
-    background-color: royalblue;
-    color: white;
-    border: none;
     padding: 12px;
-    border-radius: 5px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    color: var(--text);
+    font-size: 1.1rem;
+    font-weight: bold;
     cursor: pointer;
-    font-size: 16px;
     transition: 0.3s;
-    box-shadow: 0px 0px 5px royalblue;
 }
 
 button:hover {
-    background-color: #4169e1;
-    box-shadow: 0px 0px 15px royalblue;
+    background: #5b6eae;
 }
 
+/* Error Message */
+#error-message {
+    margin-top: 10px;
+    color: var(--error);
+    font-size: 0.9rem;
+}
