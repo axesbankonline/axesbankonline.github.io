@@ -1,81 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Bank - Earn Coins</title>
+    <title>Fake Bank - Slot Machine</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
-        .container { margin-top: 50px; }
-        .slot { font-size: 40px; margin: 20px; display: inline-block; width: 60px; }
-        button { padding: 10px 20px; font-size: 18px; cursor: pointer; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: white;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .slot {
+            font-size: 50px;
+            margin: 20px;
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            background: black;
+            color: yellow;
+            border-radius: 10px;
+            box-shadow: 0 0 10px yellow;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 20px;
+            margin-top: 20px;
+            background-color: yellow;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 10px yellow;
+        }
+        button:disabled {
+            background: gray;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Slot Machine</h2>
+        <h2>🎰 Slot Machine</h2>
         <div>
             <span class="slot" id="slot1">0</span>
             <span class="slot" id="slot2">0</span>
             <span class="slot" id="slot3">0</span>
         </div>
         <button id="spinButton">Spin</button>
+        <p id="message"></p>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <script>
-        // ✅ Firebase initialization (Ensure you add your config here)
-const firebaseConfig = {
-  apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-  authDomain: "bankdata-fe769.firebaseapp.com",
-  databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "bankdata-fe769",
-  storageBucket: "bankdata-fe769.firebasestorage.app",
-  messagingSenderId: "967507656753",
-  appId: "1:967507656753:web:562c1383dca78d56471510",
-  measurementId: "G-9E5XE77RVB"
-};
-        
-        // ✅ Load Firebase
-        const app = firebase.initializeApp(firebaseConfig);
+        // ✅ Firebase Configuration (Replace with your actual credentials)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // ✅ Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // ✅ Get logged-in user from local storage
         let loggedInUser = localStorage.getItem("loggedInUser");
-        if (!loggedInUser) window.location.href = "index.html";
+        if (!loggedInUser) {
+            window.location.href = "index.html";
+        }
 
         document.getElementById("spinButton").addEventListener("click", spin);
 
         function spin() {
-            console.log("Spin button clicked!"); // ✅ Debugging
-
             document.getElementById("spinButton").disabled = true;
-            setTimeout(() => document.getElementById("spinButton").disabled = false, 3000);
+            document.getElementById("message").textContent = "Spinning... 🎲";
 
-            let result = [Math.floor(Math.random() * 5), Math.floor(Math.random() * 5), Math.floor(Math.random() * 5)];
-            document.getElementById("slot1").textContent = result[0];
-            document.getElementById("slot2").textContent = result[1];
-            document.getElementById("slot3").textContent = result[2];
+            let slots = [document.getElementById("slot1"), document.getElementById("slot2"), document.getElementById("slot3")];
 
-            if (result[0] === result[1] && result[1] === result[2]) {
-                console.log("Winning match! Fetching user data...");
-                const userRef = db.ref("users/" + loggedInUser);
+            let result = [];
+            let interval = setInterval(() => {
+                for (let i = 0; i < 3; i++) {
+                    let randomNum = Math.floor(Math.random() * 5);
+                    slots[i].textContent = randomNum;
+                }
+            }, 100);
 
-                userRef.once("value", (snapshot) => {
-                    if (snapshot.exists()) {
-                        let currentCoins = snapshot.val().coins || 0;
-                        userRef.update({ coins: currentCoins + 100 }).then(() => {
-                            alert("You won 100 coins!");
-                        });
-                    } else {
-                        alert("User not found in database.");
-                    }
-                }).catch(error => console.error("Database error:", error));
-            }
+            setTimeout(() => {
+                clearInterval(interval);
+
+                // ✅ Final slot results
+                for (let i = 0; i < 3; i++) {
+                    result[i] = Math.floor(Math.random() * 5);
+                    slots[i].textContent = result[i];
+                }
+
+                // ✅ Check for a win
+                if (result[0] === result[1] && result[1] === result[2]) {
+                    document.getElementById("message").textContent = "🎉 You won 100 coins!";
+                    updateCoins(100);
+                } else {
+                    document.getElementById("message").textContent = "😢 Try again!";
+                }
+
+                document.getElementById("spinButton").disabled = false;
+            }, 3000);
+        }
+
+        function updateCoins(amount) {
+            let userRef = db.ref("users/" + loggedInUser);
+
+            userRef.once("value", (snapshot) => {
+                if (snapshot.exists()) {
+                    let currentCoins = snapshot.val().coins || 0;
+                    userRef.update({ coins: currentCoins + amount }).then(() => {
+                        console.log("Coins updated!");
+                    });
+                }
+            });
         }
     </script>
-
-    <!-- ✅ Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </body>
 </html>
