@@ -34,7 +34,21 @@
             align-items: center;
             gap: 8px;
         }
-        
+
+            .nav-button {
+            padding: 12px 24px;
+            border: none;
+            visibility: false;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 /* Base Styles */
 body {
     font-family: 'Segoe UI', system-ui, sans-serif;
@@ -177,8 +191,9 @@ body {
         </div>
         <div class="nav-buttons">
             <button class="nav-button" onclick="window.location.href='dashboard.html'">Dashboard</button>
-            <button class="nav-button" onclick="window.location.href='settings.html'">Settings</button>
             <button class="nav-button" id="logoutButton">Logout</button>
+            <button  class="nav-button2" ></button>
+            <button class="nav-button2" ></button>
         </div>
     </div>
 
