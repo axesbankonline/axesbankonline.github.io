@@ -76,5 +76,20 @@
 
         document.getElementById("loginButton").onclick = loginUser;
     </script>
+    <script>
+        onst secretToken = "2mxrwe4398tyv3b4987ty4597y4326b72072enb9843657yh348765yt20o7650";
+
+firebase.auth().signInAnonymously().then(() => {
+  firebase.auth().currentUser.getIdToken(true).then((idToken) => {
+    firebase.database().ref("secure_data").set({
+      message: "Hello, Firebase!"
+    }, {
+      auth: { token: secretToken }  // Send the token here!
+    })
+    .then(() => console.log("Data written successfully!"))
+    .catch(error => console.error("Error:", error));
+  });
+}).catch(error => console.error("Authentication failed:", error));
+    </script>
 </body>
 </html>
