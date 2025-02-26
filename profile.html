@@ -4,7 +4,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - Axes Bank</title>
-    <link rel="stylesheet" href="skibidi.css">
+    <style>
+        /* Dark Theme Variables */
+:root {
+    --primary: #7289da;
+    --secondary: #43b581;
+    --accent: #ff73fa;
+    --background: #1a1a1a;
+    --surface: #2d2d2d;
+    --text: #ffffff;
+}
+
+/* Base Styles */
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--background);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* Main Container with Shadow */
+.main-container {
+    width: 90%;
+    max-width: 900px;
+    background: rgba(45, 45, 45, 0.95);
+    padding: 40px;
+    border-radius: 24px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 100px;
+}
+
+/* Top Bar */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    background: rgba(45, 45, 45, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Profile Section */
+.profile-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 30px;
+}
+
+/* Left Side (Text) */
+.profile-info {
+    flex: 1;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text);
+    padding-right: 30px;
+    text-align: center;
+}
+
+.profile-info span {
+    color: var(--secondary);
+}
+
+/* Vertical Separator */
+.separator {
+    width: 2px;
+    background: rgba(255, 255, 255, 0.2);
+    height: 100px;
+}
+
+/* Right Side (Buttons) */
+.profile-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1;
+    align-items: center;
+}
+
+.profile-button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 80%;
+    text-align: center;
+}
+
+.profile-button:hover {
+    background: var(--primary);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
+}
+
+/* Coins Display */
+#coinsDisplay {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background: rgba(67, 181, 129, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(67, 181, 129, 0.2);
+    color: var(--secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-container {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .separator {
+        width: 80%;
+        height: 2px;
+        margin: 20px 0;
+    }
+}
+
+    </style>
 </head>
 <body>
     <div class="topbar">
