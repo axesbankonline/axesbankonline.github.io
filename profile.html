@@ -82,19 +82,6 @@ function loadProfile() {
     });
 }
 
-            const userRef = ref(database, `users/${userId}`);
-            get(userRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    document.getElementById("userName").textContent = userData.name;
-                    document.getElementById("credNumber").textContent = userData.credNumber;
-                    document.getElementById("password").value = userData.password; // 🔥 FIX: Set password input value
-                }
-            }).catch(error => {
-                console.error("Error loading profile:", error);
-            });
-        }
-
         function togglePassword() {
             const passwordField = document.getElementById("password");
             passwordField.type = passwordField.type === "password" ? "text" : "password";
