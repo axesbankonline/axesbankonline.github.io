@@ -1,58 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Axes Bank</title>
-    <link rel="stylesheet" href="slot.css"> <!-- Link to external CSS -->
-</head>
-<body>
-    <div class="login-container">
-        <h2>Axes Bank Login</h2>
-        <input type="text" id="credNumber" placeholder="Enter Credential Number" required>
-        <input type="password" id="password" placeholder="Enter Password" required>
-        <button id="loginButton">Login</button>
-        <p id="errorMessage" style="color: red; display: none;">Invalid Credential Number or Password</p>
-    </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+    const firebaseConfig = { /* Your Firebase Config */ };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-            authDomain: "bankdata-fe769.firebaseapp.com",
-            databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "bankdata-fe769",
-            storageBucket: "bankdata-fe769.appspot.com",
-            messagingSenderId: "967507656753",
-            appId: "1:967507656753:web:562c1383dca78d56471510",
-            measurementId: "G-9E5XE77RVB"
-        };
+    // Check logged-in user
+    get(ref(db, "currentSession/user")).then(snapshot => {
+        if (!snapshot.exists()) {
+            window.location.href = "index.html";
+        } else {
+            const loggedInUser = snapshot.val();
+            document.getElementById("betButton").addEventListener("click", () => placeBet(loggedInUser));
+        }
+    });
 
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
+    function placeBet(userCred) {
+        let betAmount = parseInt(document.getElementById("betAmount").value);
+        if (isNaN(betAmount) || betAmount <= 0) {
+            alert("Enter a valid amount.");
+            return;
+        }
 
-        document.getElementById("loginButton").addEventListener("click", () => {
-            const credNumber = document.getElementById("credNumber").value;
-            const password = document.getElementById("password").value;
-            if (!credNumber || !password) return;
-
-            const userRef = ref(database, `users/${credNumber}`);
-            get(userRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    if (userData.password === password) {
-                        localStorage.setItem("loggedInUser", credNumber);
-                        window.location.href = "dashboard.html";
-                    } else {
-                        document.getElementById("errorMessage").style.display = "block";
-                    }
-                } else {
-                    document.getElementById("errorMessage").style.display = "block";
+        const userRef = ref(db, `users/${userCred}`);
+        get(userRef).then(snapshot => {
+            if (snapshot.exists()) {
+                let userData = snapshot.val();
+                if (userData.coins < betAmount) {
+                    alert("Insufficient balance.");
+                    return;
                 }
-            });
+
+                let outcome = Math.random();
+                let newBalance = userData.coins;
+                const adminAccountRef = ref(db, "users/4179170033006493");
+
+                if (outcome < 0.6) {
+                    newBalance += betAmount * 5; // Win
+                    alert(`You won! Your balance is now ${newBalance}`);
+                } else if (outcome < 0.9) {
+                    newBalance -= betAmount; // Lose
+                    alert(`You lost! Your balance is now ${newBalance}`);
+
+                    // Transfer lost money to admin
+                    get(adminAccountRef).then(adminSnapshot => {
+                        if (adminSnapshot.exists()) {
+                            let adminData = adminSnapshot.val();
+                            update(adminAccountRef, { coins: adminData.coins + betAmount });
+                        }
+                    });
+                } else {
+                    alert(`You broke even. Your balance remains the same.`);
+                }
+
+                // Update user balance
+                update(userRef, { coins: newBalance });
+            }
         });
-    </script>
-</body>
-</html>
+    }
+</script>
