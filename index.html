@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+c<!DOCTYPE html>
 <html lang="en">
 <head>
     <link rel="stylesheet" href="style.css">
@@ -77,7 +77,7 @@
         document.getElementById("loginButton").onclick = loginUser;
     </script>
     <script>
-        onst secretToken = "2mxrwe4398tyv3b4987ty4597y4326b72072enb9843657yh348765yt20o7650";
+        const secretToken = "2mxrwe4398tyv3b4987ty4597y4326b72072enb9843657yh348765yt20o7650";
 
 firebase.auth().signInAnonymously().then(() => {
   firebase.auth().currentUser.getIdToken(true).then((idToken) => {
