@@ -1,39 +1,31 @@
-c<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
-
-    <link rel="stylesheet" href="style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Axes Bank</title>
+    <link rel="stylesheet" href="style.css"> <!-- External CSS -->
 </head>
 <body>
-<div class="login-container">
-    <h2>Login to Axes Bank</h2>
-    
-    <label for="userId">User ID:</label>
-    <input type="text" id="userId" required>
-    <br><br>
+    <div class="login-container">
+        <h1>Axes Bank</h1>
+        <p class="login-subtitle">Secure Login</p>
 
-    <label for="password">Password:</label>
-    <input type="password" id="password" required>
-    <br><br>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
 
-    <button id="loginButton" onclick="loginUser()">Login</button>
-</div>
-
-
-    <p id="errorMessage" style="color: red;"></p>
+        <p id="error-message"></p>
+    </div>
 
     <script type="module">
- import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { getDatabase } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        // Firebase Integration
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
-        // ✅ Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
             authDomain: "bankdata-fe769.firebaseapp.com",
@@ -46,55 +38,34 @@ c<!DOCTYPE html>
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const database = getDatabase(app);
 
-        function loginUser() {
-            const userId = document.getElementById("userId").value.trim();
-            const password = document.getElementById("password").value.trim();
-            const errorMessage = document.getElementById("errorMessage");
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const errorMessage = document.getElementById("error-message");
 
-            if (!userId || !password) {
-                errorMessage.innerText = "Please enter your User ID and Password.";
-                return;
-            }
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    const userId = user.uid;
 
-            const userRef = ref(database, `users/${userId}`);
-            get(userRef)
-                .then((snapshot) => {
-                    if (snapshot.exists()) {
-                        const userData = snapshot.val();
-                        if (userData.password === password) {
+                    // Check if the user exists in the database
+                    get(ref(database, `users/${userId}`)).then((snapshot) => {
+                        if (snapshot.exists()) {
                             localStorage.setItem("loggedInUser", userId);
                             window.location.href = "dashboard.html";
                         } else {
-                            errorMessage.innerText = "Incorrect password.";
+                            errorMessage.textContent = "User data not found.";
                         }
-                    } else {
-                        errorMessage.innerText = "User not found.";
-                    }
+                    });
                 })
                 .catch((error) => {
-                    console.error("Error logging in:", error);
-                    errorMessage.innerText = "Error logging in. Please try again.";
+                    errorMessage.textContent = "Invalid email or password.";
                 });
-        }
-
-        document.getElementById("loginButton").onclick = loginUser;
-        
-                const secretToken = "2mxrwe4398tyv3b4987ty4597y4326b72072enb9843657yh348765yt20o7650";
-
-firebase.auth().signInAnonymously().then(() => {
-  firebase.auth().currentUser.getIdToken(true).then((idToken) => {
-    firebase.database().ref("secure_data").set({
-      message: "Hello, Firebase!"
-    }, {
-      auth: { token: secretToken }  // Send the token here!
-    })
-    .then(() => console.log("Data written successfully!"))
-    .catch(error => console.error("Error:", error));
-  });
-}).catch(error => console.error("Authentication failed:", error));
+        });
     </script>
-
 </body>
 </html>
