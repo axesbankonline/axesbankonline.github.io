@@ -4,14 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Axes Bank</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link to external CSS -->
+    <style>
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background: url('image.jpg') no-repeat center center fixed;
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+}
+
+/* Login Container */
+.login-container {
+    background: rgba(0, 0, 0, 0.4); /* Reduced opacity for a lighter effect */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    width: 350px;
+}
+
+/* Input Fields */
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #555;
+    background: #222;
+    color: white;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Login Button */
+button {
+    width: 100%;
+    background-color: royalblue;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+    box-shadow: 0px 0px 5px royalblue;
+}
+
+button:hover {
+    background-color: #4169e1;
+    box-shadow: 0px 0px 15px royalblue;
+}
+
+</style>
 </head>
 <body>
     <div class="login-container">
         <h2>Axes Bank Login</h2>
-        <input type="text" id="credNumber" placeholder="Enter Credential Number" required>
-        <input type="password" id="password" placeholder="Enter Password" required>
-        <button id="loginButton">Login</button>
+        <input type="text" class="input" id="credNumber" placeholder="Enter Credential Number" required>
+        <input type="password" class="input" id="password" placeholder="Enter Password" required>
+        <button class="button" id="loginButton">Login</button>
         <p id="errorMessage" style="color: red; display: none;">Invalid Credential Number or Password</p>
     </div>
 
