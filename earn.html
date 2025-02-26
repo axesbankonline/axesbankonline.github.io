@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earn - Axes Bank</title>
+    <title>Earn Coins - Axes Bank</title>
     <style>
-        /* Dark Theme Variables */
+        /* Copy the same CSS from dashboard.html */
         :root {
             --primary: #7289da;
             --secondary: #43b581;
@@ -15,7 +15,6 @@
             --text: #ffffff;
         }
 
-        /* Base Styles */
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             margin: 0;
@@ -28,7 +27,6 @@
             min-height: 100vh;
         }
 
-        /* Top Bar */
         .topbar {
             position: fixed;
             top: 0;
@@ -43,12 +41,21 @@
             padding: 0 40px;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .logo-container {
             display: flex;
             align-items: center;
             gap: 15px;
+        }
+
+        .logo-img {
+            height: 50px;
+            width: 50px;
+            border-radius: 12px;
+            object-fit: cover;
+            filter: grayscale(20%);
         }
 
         .bank-name {
@@ -72,68 +79,221 @@
             color: var(--text);
             font-weight: 600;
             cursor: pointer;
-            transition: 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .nav-button:hover {
             background: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
         }
 
         .container {
             margin-top: 120px;
             width: 90%;
-            max-width: 800px;
-            background: var(--surface);
+            max-width: 1000px;
+            background: rgba(45, 45, 45, 0.9);
             padding: 40px;
-            border-radius: 16px;
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            text-align: center;
         }
 
-        .earn-methods {
+        /* Earn Section Styling */
+        .earn-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .task-card {
+            background: var(--surface);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .task-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .task-header {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
 
-        .earn-card {
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            transition: 0.3s;
-            cursor: pointer;
+        .task-title {
+            color: var(--primary);
+            font-size: 1.2rem;
+            font-weight: 600;
         }
 
-        .earn-card:hover {
+        .task-coins {
+            background: rgba(67, 181, 129, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: var(--secondary);
+        }
+
+        .task-description {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        .task-button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
             background: var(--primary);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .task-button:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--secondary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
         }
     </style>
 </head>
 <body>
     <div class="topbar">
         <div class="logo-container">
+            <img src="https://via.placeholder.com/50" alt="Bank Logo" class="logo-img">
             <span class="bank-name">Axes Bank</span>
         </div>
         <div class="nav-buttons">
-            <button class="nav-button" onclick="window.location.href='dashboard.html';">Dashboard</button>
+            <button class="nav-button" onclick="window.location.href='dashboard.html'">Dashboard</button>
+            <button class="nav-button" onclick="window.location.href='profile.html'">Profile</button>
             <button class="nav-button" id="logoutButton">Logout</button>
         </div>
     </div>
 
     <div class="container">
         <h1>Earn Coins</h1>
-        <div class="earn-methods">
-            <div class="earn-card">Complete Surveys</div>
-            <div class="earn-card">Refer a Friend</div>
-            <div class="earn-card">Daily Check-in</div>
+        <div class="earn-section">
+            <!-- Daily Check-in -->
+            <div class="task-card">
+                <div class="task-header">
+                    <div class="task-title">Daily Check-in</div>
+                    <div class="task-coins">+50 Coins</div>
+                </div>
+                <div class="task-description">
+                    Claim your daily reward! Come back every day to get more coins.
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <button class="task-button" onclick="claimDaily()" id="dailyButton">Claim Daily Reward</button>
+            </div>
+
+            <!-- Complete Transactions -->
+            <div class="task-card">
+                <div class="task-header">
+                    <div class="task-title">Complete Transactions</div>
+                    <div class="task-coins">+100 Coins</div>
+                </div>
+                <div class="task-description">
+                    Complete 5 transactions to earn bonus coins (3/5 completed)
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 60%"></div>
+                </div>
+                <button class="task-button" onclick="claimTransactions()">Claim Reward</button>
+            </div>
+
+            <!-- Refer Friends -->
+            <div class="task-card">
+                <div class="task-header">
+                    <div class="task-title">Refer Friends</div>
+                    <div class="task-coins">+200 Coins</div>
+                </div>
+                <div class="task-description">
+                    Share your referral code and earn coins when friends sign up.
+                </div>
+                <div class="referral-code">
+                    <input type="text" value="AXES-1234" readonly>
+                    <button class="task-button" onclick="copyReferral()">Copy Code</button>
+                </div>
+            </div>
+
+            <!-- Watch Ads -->
+            <div class="task-card">
+                <div class="task-header">
+                    <div class="task-title">Watch Video</div>
+                    <div class="task-coins">+30 Coins</div>
+                </div>
+                <div class="task-description">
+                    Watch a short video to earn coins (max 3x daily)
+                </div>
+                <button class="task-button" onclick="watchAd()">Watch Now</button>
+            </div>
         </div>
     </div>
 
-    <script>
-        document.getElementById("logoutButton").addEventListener("click", () => {
-            localStorage.removeItem("loggedInUser");
-            window.location.href = "index.html";
-        });
+    <script type="module">
+        // Firebase integration
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+            authDomain: "bankdata-fe769.firebaseapp.com",
+            databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "bankdata-fe769",
+            storageBucket: "bankdata-fe769.appspot.com",
+            messagingSenderId: "967507656753",
+            appId: "1:967507656753:web:562c1383dca78d56471510",
+            measurementId: "G-9E5XE77RVB"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Example claim function
+        async function claimDaily() {
+            const userId = localStorage.getItem('loggedInUser');
+            if (!userId) return;
+
+            const userRef = ref(database, `users/${userId}`);
+            
+            try {
+                await update(userRef, {
+                    coins: 50 // Increment instead in real implementation
+                });
+                document.getElementById('dailyButton').disabled = true;
+                document.getElementById('dailyButton').textContent = 'Claimed!';
+            } catch (error) {
+                console.error("Claim error:", error);
+            }
+        }
+
+        // Add similar functions for other tasks
+        function copyReferral() {
+            navigator.clipboard.writeText('AXES-1234');
+            alert('Referral code copied!');
+        }
+
+        // Add remaining functionality
     </script>
 </body>
 </html>
