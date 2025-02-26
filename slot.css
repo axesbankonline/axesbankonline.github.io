@@ -1,0 +1,85 @@
+       body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: white;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .slot {
+            font-size: 50px;
+            margin: 20px;
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            background: black;
+            color: yellow;
+            border-radius: 10px;
+            box-shadow: 0 0 10px yellow;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 20px;
+            margin-top: 20px;
+            background-color: yellow;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 10px yellow;
+        }
+        button:disabled {
+            background: gray;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        input {
+            padding: 10px;
+            font-size: 18px;
+            width: 100px;
+            text-align: center;
+            margin-top: 10px;
+        }       body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: white;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .slot {
+            font-size: 50px;
+            margin: 20px;
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            background: black;
+            color: yellow;
+            border-radius: 10px;
+            box-shadow: 0 0 10px yellow;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 20px;
+            margin-top: 20px;
+            background-color: yellow;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 10px yellow;
+        }
+        button:disabled {
+            background: gray;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        input {
+            padding: 10px;
+            font-size: 18px;
+            width: 100px;
+            text-align: center;
+            margin-top: 10px;
+        }
