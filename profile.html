@@ -62,12 +62,25 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        function loadProfile() {
-            const userId = localStorage.getItem("userId"); // 🔥 FIX: Changed from "loggedInUser" to "userId"
-            if (!userId) {
-                window.location.href = "index.html";
-                return;
-            }
+function loadProfile() {
+    const userId = localStorage.getItem("loggedInUser"); // Use the same key as login page
+    if (!userId) {
+        window.location.href = "index.html";
+        return;
+    }
+
+    const userRef = ref(database, `users/${userId}`);
+    get(userRef).then((snapshot) => {
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            document.getElementById("userName").textContent = userData.name;
+            document.getElementById("credNumber").textContent = userData.credNumber;
+            document.getElementById("password").value = userData.password; // Show password correctly
+        }
+    }).catch(error => {
+        console.error("Error loading profile:", error);
+    });
+}
 
             const userRef = ref(database, `users/${userId}`);
             get(userRef).then((snapshot) => {
