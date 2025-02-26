@@ -63,8 +63,10 @@
         const database = getDatabase(app);
 
 function loadProfile() {
-    const userId = localStorage.getItem("loggedInUser"); // Use the same key as login page
+    const userId = localStorage.getItem("loggedInUser");
+    
     if (!userId) {
+        console.warn("No logged-in user found. Redirecting...");
         window.location.href = "index.html";
         return;
     }
@@ -73,14 +75,21 @@ function loadProfile() {
     get(userRef).then((snapshot) => {
         if (snapshot.exists()) {
             const userData = snapshot.val();
+            console.log("User found:", userData);
+
             document.getElementById("userName").textContent = userData.name;
-            document.getElementById("credNumber").textContent = userData.credNumber;
-            document.getElementById("password").value = userData.password; // Show password correctly
+            document.getElementById("credNumber").textContent = userId;
+            document.getElementById("password").value = userData.password;
+        } else {
+            console.warn("User data not found. Redirecting...");
+            window.location.href = "index.html";
         }
     }).catch(error => {
         console.error("Error loading profile:", error);
+        window.location.href = "index.html";
     });
 }
+
 
         function togglePassword() {
             const passwordField = document.getElementById("password");
