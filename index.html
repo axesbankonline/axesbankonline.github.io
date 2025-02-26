@@ -29,8 +29,9 @@ c<!DOCTYPE html>
     <p id="errorMessage" style="color: red;"></p>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getDatabase } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
         // ✅ Firebase Configuration
         const firebaseConfig = {
