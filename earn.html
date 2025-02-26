@@ -1,62 +1,139 @@
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earn - Axes Bank</title>
+    <style>
+        /* Dark Theme Variables */
+        :root {
+            --primary: #7289da;
+            --secondary: #43b581;
+            --accent: #ff73fa;
+            --background: #1a1a1a;
+            --surface: #2d2d2d;
+            --text: #ffffff;
+        }
 
-    const firebaseConfig = { /* Your Firebase Config */ };
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+        /* Base Styles */
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--background);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-    // Check logged-in user
-    get(ref(db, "currentSession/user")).then(snapshot => {
-        if (!snapshot.exists()) {
+        /* Top Bar */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: rgba(45, 45, 45, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .bank-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .nav-button:hover {
+            background: var(--primary);
+        }
+
+        .container {
+            margin-top: 120px;
+            width: 90%;
+            max-width: 800px;
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .earn-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .earn-card {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .earn-card:hover {
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="logo-container">
+            <span class="bank-name">Axes Bank</span>
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-button" onclick="window.location.href='dashboard.html';">Dashboard</button>
+            <button class="nav-button" id="logoutButton">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Earn Coins</h1>
+        <div class="earn-methods">
+            <div class="earn-card">Complete Surveys</div>
+            <div class="earn-card">Refer a Friend</div>
+            <div class="earn-card">Daily Check-in</div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("logoutButton").addEventListener("click", () => {
+            localStorage.removeItem("loggedInUser");
             window.location.href = "index.html";
-        } else {
-            const loggedInUser = snapshot.val();
-            document.getElementById("betButton").addEventListener("click", () => placeBet(loggedInUser));
-        }
-    });
-
-    function placeBet(userCred) {
-        let betAmount = parseInt(document.getElementById("betAmount").value);
-        if (isNaN(betAmount) || betAmount <= 0) {
-            alert("Enter a valid amount.");
-            return;
-        }
-
-        const userRef = ref(db, `users/${userCred}`);
-        get(userRef).then(snapshot => {
-            if (snapshot.exists()) {
-                let userData = snapshot.val();
-                if (userData.coins < betAmount) {
-                    alert("Insufficient balance.");
-                    return;
-                }
-
-                let outcome = Math.random();
-                let newBalance = userData.coins;
-                const adminAccountRef = ref(db, "users/4179170033006493");
-
-                if (outcome < 0.6) {
-                    newBalance += betAmount * 5; // Win
-                    alert(`You won! Your balance is now ${newBalance}`);
-                } else if (outcome < 0.9) {
-                    newBalance -= betAmount; // Lose
-                    alert(`You lost! Your balance is now ${newBalance}`);
-
-                    // Transfer lost money to admin
-                    get(adminAccountRef).then(adminSnapshot => {
-                        if (adminSnapshot.exists()) {
-                            let adminData = adminSnapshot.val();
-                            update(adminAccountRef, { coins: adminData.coins + betAmount });
-                        }
-                    });
-                } else {
-                    alert(`You broke even. Your balance remains the same.`);
-                }
-
-                // Update user balance
-                update(userRef, { coins: newBalance });
-            }
         });
-    }
-</script>
+    </script>
+</body>
+</html>
