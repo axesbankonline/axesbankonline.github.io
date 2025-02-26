@@ -20,22 +20,34 @@
             <span class="slot" id="slot2">0</span>
             <span class="slot" id="slot3">0</span>
         </div>
-        <button id="spinButton" onclick="spin()">Spin</button>
+        <button id="spinButton">Spin</button>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-
-        const firebaseConfig = { /* Use the same config from index.html */ };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+    <script>
+        // ✅ Firebase initialization (Ensure you add your config here)
+const firebaseConfig = {
+  apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+  authDomain: "bankdata-fe769.firebaseapp.com",
+  databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "bankdata-fe769",
+  storageBucket: "bankdata-fe769.firebasestorage.app",
+  messagingSenderId: "967507656753",
+  appId: "1:967507656753:web:562c1383dca78d56471510",
+  measurementId: "G-9E5XE77RVB"
+};
+        
+        // ✅ Load Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
         let loggedInUser = localStorage.getItem("loggedInUser");
         if (!loggedInUser) window.location.href = "index.html";
 
-        // ✅ Make spin() global
-        window.spin = function() {
+        document.getElementById("spinButton").addEventListener("click", spin);
+
+        function spin() {
+            console.log("Spin button clicked!"); // ✅ Debugging
+
             document.getElementById("spinButton").disabled = true;
             setTimeout(() => document.getElementById("spinButton").disabled = false, 3000);
 
@@ -45,12 +57,13 @@
             document.getElementById("slot3").textContent = result[2];
 
             if (result[0] === result[1] && result[1] === result[2]) {
-                const userRef = ref(db, "users/" + loggedInUser);
+                console.log("Winning match! Fetching user data...");
+                const userRef = db.ref("users/" + loggedInUser);
 
-                get(userRef).then(snapshot => {
+                userRef.once("value", (snapshot) => {
                     if (snapshot.exists()) {
                         let currentCoins = snapshot.val().coins || 0;
-                        update(userRef, { coins: currentCoins + 100 }).then(() => {
+                        userRef.update({ coins: currentCoins + 100 }).then(() => {
                             alert("You won 100 coins!");
                         });
                     } else {
@@ -58,7 +71,11 @@
                     }
                 }).catch(error => console.error("Database error:", error));
             }
-        };
+        }
     </script>
+
+    <!-- ✅ Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </body>
 </html>
