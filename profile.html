@@ -4,138 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - Axes Bank</title>
-    <style>
-        /* Copy the same CSS from dashboard.html */
-        :root {
-            --primary: #7289da;
-            --secondary: #43b581;
-            --accent: #ff73fa;
-            --background: #1a1a1a;
-            --surface: #2d2d2d;
-            --text: #ffffff;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: var(--background);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 80px;
-            background: rgba(45, 45, 45, 0.95);
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 40px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo-img {
-            height: 50px;
-            width: 50px;
-            border-radius: 12px;
-            object-fit: cover;
-            filter: grayscale(20%);
-        }
-
-        .bank-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 20px;
-        }
-
-        .nav-button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .nav-button:hover {
-            background: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
-        }
-
-        .container {
-            margin-top: 120px;
-            width: 90%;
-            max-width: 800px;
-            background: rgba(45, 45, 45, 0.9);
-            padding: 40px;
-            border-radius: 24px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .profile-info {
-            background: var(--surface);
-            padding: 30px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .info-item {
-            margin: 20px 0;
-            font-size: 1.1rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .info-label {
-            color: var(--primary);
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .info-value {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
-            border-radius: 8px;
-            word-break: break-all;
-        }
-
-        #password {
-            -webkit-text-security: disc;
-        }
-
-        .toggle-password {
-            margin-left: 10px;
-            cursor: pointer;
-            color: var(--secondary);
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="topbar">
@@ -165,7 +34,7 @@
             <div class="info-item">
                 <div class="info-label">Password</div>
                 <div class="info-value">
-                    <span id="password">••••••••</span>
+                    <input type="password" id="password" class="password-input" readonly>
                     <span class="toggle-password" onclick="togglePassword()">👁️</span>
                 </div>
             </div>
@@ -173,10 +42,11 @@
     </div>
 
     <script type="module">
-        // Firebase integration
+        // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
             authDomain: "bankdata-fe769.firebaseapp.com",
@@ -188,11 +58,12 @@
             measurementId: "G-9E5XE77RVB"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
         function loadProfile() {
-            const userId = localStorage.getItem("loggedInUser");
+            const userId = localStorage.getItem("userId"); // 🔥 FIX: Changed from "loggedInUser" to "userId"
             if (!userId) {
                 window.location.href = "index.html";
                 return;
@@ -204,25 +75,25 @@
                     const userData = snapshot.val();
                     document.getElementById("userName").textContent = userData.name;
                     document.getElementById("credNumber").textContent = userData.credNumber;
-                    document.getElementById("password").textContent = userData.password;
+                    document.getElementById("password").value = userData.password; // 🔥 FIX: Set password input value
                 }
+            }).catch(error => {
+                console.error("Error loading profile:", error);
             });
         }
 
         function togglePassword() {
             const passwordField = document.getElementById("password");
-            const isHidden = passwordField.style.webkitTextSecurity === "disc";
-            
-            passwordField.style.webkitTextSecurity = isHidden ? "none" : "disc";
-            passwordField.parentElement.querySelector('.toggle-password').textContent = 
-                isHidden ? "👁️🗨️" : "👁️";
+            passwordField.type = passwordField.type === "password" ? "text" : "password";
         }
 
+        // Logout Function
         document.getElementById("logoutButton").addEventListener("click", () => {
-            localStorage.removeItem("loggedInUser");
+            localStorage.removeItem("userId");
             window.location.href = "index.html";
         });
 
+        // Load Profile on Page Load
         window.onload = loadProfile;
     </script>
 </body>
