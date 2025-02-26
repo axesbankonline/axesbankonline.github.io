@@ -10,8 +10,9 @@
     <div class="login-container">
         <h2>Axes Bank Login</h2>
         <input type="text" id="credNumber" placeholder="Enter Credential Number" required>
+        <input type="password" id="password" placeholder="Enter Password" required>
         <button id="loginButton">Login</button>
-        <p id="errorMessage" style="color: red; display: none;">Invalid Credential Number</p>
+        <p id="errorMessage" style="color: red; display: none;">Invalid Credential Number or Password</p>
     </div>
 
     <script type="module">
@@ -34,13 +35,19 @@
 
         document.getElementById("loginButton").addEventListener("click", () => {
             const credNumber = document.getElementById("credNumber").value;
-            if (!credNumber) return;
+            const password = document.getElementById("password").value;
+            if (!credNumber || !password) return;
 
             const userRef = ref(database, `users/${credNumber}`);
             get(userRef).then((snapshot) => {
                 if (snapshot.exists()) {
-                    localStorage.setItem("loggedInUser", credNumber);
-                    window.location.href = "dashboard.html";
+                    const userData = snapshot.val();
+                    if (userData.password === password) {
+                        localStorage.setItem("loggedInUser", credNumber);
+                        window.location.href = "dashboard.html";
+                    } else {
+                        document.getElementById("errorMessage").style.display = "block";
+                    }
                 } else {
                     document.getElementById("errorMessage").style.display = "block";
                 }
