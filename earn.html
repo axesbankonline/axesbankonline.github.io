@@ -3,128 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Bank - Slot Machine</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #222;
-            color: white;
-        }
-        .container {
-            margin-top: 50px;
-        }
-        .slot {
-            font-size: 50px;
-            margin: 20px;
-            display: inline-block;
-            width: 80px;
-            height: 80px;
-            line-height: 80px;
-            background: black;
-            color: yellow;
-            border-radius: 10px;
-            box-shadow: 0 0 10px yellow;
-        }
-        button {
-            padding: 12px 24px;
-            font-size: 20px;
-            margin-top: 20px;
-            background-color: yellow;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 0 10px yellow;
-        }
-        button:disabled {
-            background: gray;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-        input {
-            padding: 10px;
-            font-size: 18px;
-            width: 100px;
-            text-align: center;
-            margin-top: 10px;
-        }
-    </style>
+    <title>Login - Axes Bank</title>
+    <link rel="stylesheet" href="style.css"> <!-- Link to external CSS -->
 </head>
 <body>
-    <div class="container">
-        <h2>🎰 Slot Machine</h2>
-        <p>💰 Enter your bet amount:</p>
-        <input type="number" id="betAmount" value="10" min="1">
-        <div>
-            <span class="slot" id="slot1">0</span>
-            <span class="slot" id="slot2">0</span>
-            <span class="slot" id="slot3">0</span>
-        </div>
-        <button id="spinButton">Spin</button>
-        <p id="message"></p>
+    <div class="login-container">
+        <h2>Axes Bank Login</h2>
+        <input type="text" id="credNumber" placeholder="Enter Credential Number" required>
+        <input type="password" id="password" placeholder="Enter Password" required>
+        <button id="loginButton">Login</button>
+        <p id="errorMessage" style="color: red; display: none;">Invalid Credential Number or Password</p>
     </div>
 
-    <script>
-        let userBalance = 1000; // Fake balance (Replace with real database value)
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
-        document.getElementById("spinButton").addEventListener("click", spin);
+        const firebaseConfig = {
+            apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+            authDomain: "bankdata-fe769.firebaseapp.com",
+            databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "bankdata-fe769",
+            storageBucket: "bankdata-fe769.appspot.com",
+            messagingSenderId: "967507656753",
+            appId: "1:967507656753:web:562c1383dca78d56471510",
+            measurementId: "G-9E5XE77RVB"
+        };
 
-        function spin() {
-            let betAmount = parseInt(document.getElementById("betAmount").value);
-            if (isNaN(betAmount) || betAmount <= 0) {
-                document.getElementById("message").textContent = "❌ Invalid bet amount!";
-                return;
-            }
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
-            if (userBalance < betAmount) {
-                document.getElementById("message").textContent = "❌ Not enough money!";
-                return;
-            }
+        document.getElementById("loginButton").addEventListener("click", () => {
+            const credNumber = document.getElementById("credNumber").value;
+            const password = document.getElementById("password").value;
+            if (!credNumber || !password) return;
 
-            document.getElementById("spinButton").disabled = true;
-            document.getElementById("message").textContent = "Spinning... 🎲";
-
-            let slots = [document.getElementById("slot1"), document.getElementById("slot2"), document.getElementById("slot3")];
-
-            let interval = setInterval(() => {
-                for (let i = 0; i < 3; i++) {
-                    let randomNum = Math.floor(Math.random() * 5);
-                    slots[i].textContent = randomNum;
-                }
-            }, 100);
-
-            setTimeout(() => {
-                clearInterval(interval);
-
-                // ✅ Final slot results
-                let result = [];
-                for (let i = 0; i < 3; i++) {
-                    result[i] = Math.floor(Math.random() * 5);
-                    slots[i].textContent = result[i];
-                }
-
-                // ✅ Decide outcome based on probability
-                let chance = Math.random() * 100;
-                let reward = 0;
-
-                if (chance < 60) {
-                    reward = betAmount * 5;
-                    document.getElementById("message").textContent = `🎉 You won $${reward}!`;
-                } else if (chance < 90) {
-                    reward = 0;
-                    document.getElementById("message").textContent = "😢 You lost!";
+            const userRef = ref(database, `users/${credNumber}`);
+            get(userRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.password === password) {
+                        localStorage.setItem("loggedInUser", credNumber);
+                        window.location.href = "dashboard.html";
+                    } else {
+                        document.getElementById("errorMessage").style.display = "block";
+                    }
                 } else {
-                    reward = betAmount;
-                    document.getElementById("message").textContent = "🔄 You got your money back!";
+                    document.getElementById("errorMessage").style.display = "block";
                 }
-
-                userBalance += reward - betAmount;
-                document.getElementById("message").textContent += ` (Balance: $${userBalance})`;
-
-                document.getElementById("spinButton").disabled = false;
-            }, 3000);
-        }
+            });
+        });
     </script>
 </body>
 </html>
