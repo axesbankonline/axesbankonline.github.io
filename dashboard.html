@@ -3,195 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Axes Bank</title>
+    <title>Earn Coins - Axes Bank</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        /* Dark Theme Variables */
-        :root {
-            --primary: #7289da;
-            --secondary: #43b581;
-            --accent: #ff73fa;
-            --background: #1a1a1a;
-            --surface: #2d2d2d;
-            --text: #ffffff;
-        }
-
-        /* Base Styles */
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: var(--background);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        /* Dark Top Bar */
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 80px;
-            background: rgba(45, 45, 45, 0.95);
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 40px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Logo Section */
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo-img {
-            height: 50px;
-            width: 50px;
+        /* Snake Game Styles */
+        .game-container {
+            width: 400px;
+            height: 400px;
+            background: var(--surface);
+            position: relative;
+            margin-top: 120px;
             border-radius: 12px;
-            object-fit: cover;
-            filter: grayscale(20%);
-        }
-
-        .bank-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Navigation Buttons */
-        .nav-buttons {
-            display: flex;
-            gap: 20px;
-        }
-
-        .nav-button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .nav-button2 {
-            padding: 12px 24px;
-            border: none;
-            visibility: hidden;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .nav-button:hover {
-            background: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
+            overflow: hidden;
         }
         
-
-
-        /* Main Container */
-        .container {
-            margin-top: 120px;
-            width: 90%;
-            max-width: 1000px;
-            background: rgba(45, 45, 45, 0.9);
-            padding: 40px;
-            border-radius: 24px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            display: flex;
-            gap: 40px;
-            position: relative;
+        .snake, .coin {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
         }
 
-        /* Columns */
-        .left-column, .right-column {
-            flex: 1;
-            padding: 20px;
-        }
-
-        /* Button Grid */
-        .button-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .action-button {
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: left;
-            padding-left: 20px;
-        }
-
-        .action-button:hover {
+        .snake {
             background: var(--primary);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
         }
 
-        /* Vertical Separator */
-        .separator {
-            width: 1px;
-            background: rgba(255, 255, 255, 0.3);
-            margin: 20px 0;
+        .coin {
+            background: var(--accent);
         }
 
-        /* Updates Section */
-        .updates {
-            background: var(--surface);
-            padding: 20px;
-            border-radius: 16px;
-        }
-
-        .updates h2 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
-
-        .updates ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        .updates li {
-            margin: 10px 0;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-        }
-
-        /* Coins Display */
         #coinsDisplay {
             position: absolute;
             top: 20px;
@@ -199,23 +39,7 @@
             padding: 10px 20px;
             background: rgba(67, 181, 129, 0.1);
             border-radius: 8px;
-            border: 1px solid rgba(67, 181, 129, 0.2);
             color: var(--secondary);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-                margin-top: 100px;
-                padding: 20px;
-            }
-            
-            .separator {
-                width: 100%;
-                height: 1px;
-                margin: 20px 0;
-            }
         }
     </style>
 </head>
@@ -225,48 +49,19 @@
             <span class="bank-name">Axes Bank</span>
         </div>
         <div class="nav-buttons">
-            <button class="nav-button" onclick="window.location.href='profile.html';">Profile</button>
+            <button class="nav-button" onclick="window.location.href='dashboard.html';">Dashboard</button>
             <button class="nav-button" id="logoutButton">Logout</button>
-            <button  class="nav-button2" ></button>
-            <button class="nav-button2" ></button>
         </div>
     </div>
 
     <div class="container">
-        <!-- Coins Display -->
         <div id="coinsDisplay">Coins: Loading...</div>
-
-        <!-- Left Column (Buttons) -->
-        <div class="left-column">
-            <div class="button-grid">
-                <a href="transactions.html" class="action-button">Transactions</a>
-                <a href="earn.html" class="action-button">Earn</a>
-                <a href="mailto:axesbankonline@gmail.com" class="action-button">Support</a>
-                <a href="help.html" class="action-button">Help</a>
-            </div>
-        </div>
-
-        <!-- Vertical Separator -->
-        <div class="separator"></div>
-
-        <!-- Right Column (Updates) -->
-        <div class="right-column">
-            <div class="updates">
-                <h2>Updates: (3.6)</h2>
-                <ul>
-                    <li>New UI Design</li>
-                    <li>Enhanced Security Features</li>
-                    <li>Firebase Support</li>
-                    
-                </ul>
-            </div>
-        </div>
+        <div class="game-container" id="gameContainer"></div>
     </div>
 
     <script type="module">
-        // Firebase integration remains the same
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
@@ -275,35 +70,117 @@
             projectId: "bankdata-fe769",
             storageBucket: "bankdata-fe769.appspot.com",
             messagingSenderId: "967507656753",
-            appId: "1:967507656753:web:562c1383dca78d56471510",
-            measurementId: "G-9E5XE77RVB"
+            appId: "1:967507656753:web:562c1383dca78d56471510"
         };
 
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
+        let userId = localStorage.getItem("loggedInUser");
+        let userCoins = 0;
 
-        function loadDashboard() {
-            const userId = localStorage.getItem("loggedInUser");
+        function loadUserData() {
             if (!userId) {
                 window.location.href = "index.html";
                 return;
             }
 
             const userRef = ref(database, `users/${userId}`);
-            get(userRef).then((snapshot) => {
+            get(userRef).then(snapshot => {
                 if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    document.getElementById("coinsDisplay").textContent = `Coins: ${userData.coins}`;
+                    userCoins = snapshot.val().coins;
+                    document.getElementById("coinsDisplay").textContent = `Coins: ${userCoins}`;
                 }
             });
         }
+
+        function updateCoins(amount) {
+            userCoins += amount;
+            document.getElementById("coinsDisplay").textContent = `Coins: ${userCoins}`;
+            set(ref(database, `users/${userId}/coins`), userCoins);
+        }
+
+        window.onload = () => {
+            loadUserData();
+            startGame();
+        };
 
         document.getElementById("logoutButton").addEventListener("click", () => {
             localStorage.removeItem("loggedInUser");
             window.location.href = "index.html";
         });
 
-        window.onload = loadDashboard;
+        // Snake Game Code
+        let snake = [{ x: 200, y: 200 }];
+        let direction = { x: 20, y: 0 };
+        let coin = { x: 100, y: 100 };
+        let gameContainer = document.getElementById("gameContainer");
+
+        function drawGame() {
+            gameContainer.innerHTML = "";
+            
+            snake.forEach((segment, index) => {
+                let snakeElement = document.createElement("div");
+                snakeElement.classList.add("snake");
+                snakeElement.style.left = segment.x + "px";
+                snakeElement.style.top = segment.y + "px";
+                gameContainer.appendChild(snakeElement);
+            });
+
+            let coinElement = document.createElement("div");
+            coinElement.classList.add("coin");
+            coinElement.style.left = coin.x + "px";
+            coinElement.style.top = coin.y + "px";
+            gameContainer.appendChild(coinElement);
+        }
+
+        function moveSnake() {
+            let newHead = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+            if (newHead.x === coin.x && newHead.y === coin.y) {
+                updateCoins(15);
+                placeCoin();
+            } else {
+                snake.pop();
+            }
+
+            snake.unshift(newHead);
+
+            if (newHead.x < 0 || newHead.x >= 400 || newHead.y < 0 || newHead.y >= 400) {
+                alert("Game Over!");
+                snake = [{ x: 200, y: 200 }];
+                direction = { x: 20, y: 0 };
+            }
+        }
+
+        function placeCoin() {
+            coin.x = Math.floor(Math.random() * 20) * 20;
+            coin.y = Math.floor(Math.random() * 20) * 20;
+        }
+
+        function handleKeyPress(event) {
+            switch (event.key) {
+                case "ArrowUp":
+                    if (direction.y === 0) direction = { x: 0, y: -20 };
+                    break;
+                case "ArrowDown":
+                    if (direction.y === 0) direction = { x: 0, y: 20 };
+                    break;
+                case "ArrowLeft":
+                    if (direction.x === 0) direction = { x: -20, y: 0 };
+                    break;
+                case "ArrowRight":
+                    if (direction.x === 0) direction = { x: 20, y: 0 };
+                    break;
+            }
+        }
+
+        function startGame() {
+            document.addEventListener("keydown", handleKeyPress);
+            setInterval(() => {
+                moveSnake();
+                drawGame();
+            }, 150);
+        }
     </script>
 </body>
 </html>
