@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Earn Coins - Axes Bank</title>
     <style>
-        /* Copy the same CSS from dashboard.html */
-        :root {
+                :root {
             --primary: #7289da;
             --secondary: #43b581;
             --accent: #ff73fa;
@@ -188,75 +187,72 @@
         </div>
     </div>
 
-<!-- Keep the same CSS and topbar from previous code -->
-<!-- Modify only the container section -->
+    <div class="container">
+        <h1>Earn Coins</h1>
+        <div class="earn-section">
+            <!-- Daily Check-in -->
+            <div class="task-card">
+                <div class="task-header">
+                    <div class="task-title">Daily Check-in</div>
+                    <div class="task-coins">+50 Coins</div>
+                </div>
+                <div class="task-description">
+                    Claim your daily reward! Come back every day to get more coins.
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <button class="task-button" id="dailyButton">Claim Daily Reward</button>
+            </div>
 
-<div class="container">
-    <h1>Earn Coins</h1>
-    <div class="earn-section">
-        <!-- Daily Check-in -->
-        <div class="task-card">
-            <div class="task-header">
-                <div class="task-title">Daily Check-in</div>
-                <div class="task-coins">+50 Coins</div>
+            <!-- Savings Goal Challenge -->
+            <div class="task-card">
+                <div class="task-header">
+                    <div class="task-title">Savings Challenge</div>
+                    <div class="task-coins">+300 Coins</div>
+                </div>
+                <div class="task-description">
+                    Save ₹5000 this month to earn bonus coins
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="savingsProgress" style="width: 0%"></div>
+                </div>
+                <button class="task-button" id="savingsButton">Update Savings</button>
             </div>
-            <div class="task-description">
-                Claim your daily reward! Come back every day to get more coins.
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 0%"></div>
-            </div>
-            <button class="task-button" onclick="claimDaily()" id="dailyButton">Claim Daily Reward</button>
-        </div>
 
-        <!-- Savings Goal Challenge -->
-<div class="task-card">
-    <div class="task-header">
-        <div class="task-title">Savings Challenge</div>
-        <div class="task-coins">+300 Coins</div>
-    </div>
-    <div class="task-description">
-        Save ₹5000 this month to earn bonus coins
-    </div>
-    <div class="progress-bar">
-        <div class="progress-fill" id="savingsProgress" style="width: 0%"></div>
-    </div>
-    <button class="task-button" onclick="trackSavings()">Update Savings</button>
-</div>
+            <!-- Financial Education Quiz -->
+            <div class="task-card">
+                <div class="task-header">
+                    <div class="task-title">Financial Quiz</div>
+                    <div class="task-coins">+150 Coins</div>
+                </div>
+                <div class="task-description">
+                    Complete our financial literacy quiz to earn coins
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 30%"></div>
+                </div>
+                <button class="task-button" id="quizButton">Start Quiz</button>
+            </div>
 
-        <!-- Financial Education Quiz -->
-        <div class="task-card">
-            <div class="task-header">
-                <div class="task-title">Financial Quiz</div>
-                <div class="task-coins">+150 Coins</div>
+            <!-- Budgeting Task -->
+            <div class="task-card">
+                <div class="task-header">
+                    <div class="task-title">Budgeting Task</div>
+                    <div class="task-coins">+200 Coins</div>
+                </div>
+                <div class="task-description">
+                    Create and maintain a budget for 2 weeks
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 45%"></div>
+                </div>
+                <button class="task-button" id="budgetButton">View Budget</button>
             </div>
-            <div class="task-description">
-                Complete our financial literacy quiz to earn coins
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 30%"></div>
-            </div>
-            <button class="task-button" onclick="startQuiz()">Start Quiz</button>
-        </div>
-
-        <!-- Budgeting Task -->
-        <div class="task-card">
-            <div class="task-header">
-                <div class="task-title">Budgeting Task</div>
-                <div class="task-coins">+200 Coins</div>
-            </div>
-            <div class="task-description">
-                Create and maintain a budget for 2 weeks
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 45%"></div>
-            </div>
-            <button class="task-button" onclick="viewBudget()">View Budget</button>
         </div>
     </div>
-</div>
+
     <script type="module">
-        // Firebase integration
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
         import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
@@ -274,27 +270,19 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        const userId = localStorage.getItem('loggedInUser');
+        if (!userId) window.location.href = 'index.html';
 
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-
-    let userId = localStorage.getItem('loggedInUser');
-    let userRef = ref(database, `users/${userId}/tasks`);
-
-    // Daily Check-in System
-    async function claimDaily() {
-        const dailyButton = document.getElementById('dailyButton');
-        const now = new Date().toISOString();
-        
-        try {
-            const snapshot = await get(ref(database, `users/${userId}/tasks/daily`));
+        // Daily Check-in
+        document.getElementById('dailyButton').addEventListener('click', async () => {
+            const now = new Date().toISOString();
+            const dailyRef = ref(database, `users/${userId}/tasks/daily`);
+            const snapshot = await get(dailyRef);
             const lastClaim = snapshot.exists() ? snapshot.val().lastClaim : null;
-            
+
             if (!lastClaim || isNewDay(lastClaim)) {
                 await update(ref(database, `users/${userId}`), {
-                    'coins': 50, // Increment by 50 coins
+                    'coins': 50, // Increment coins
                     'tasks/daily': {
                         lastClaim: now,
                         streak: (snapshot.exists() ? snapshot.val().streak : 0) + 1
@@ -305,140 +293,82 @@
             } else {
                 showToast('Come back tomorrow!');
             }
-        } catch (error) {
-            console.error("Daily claim error:", error);
-        }
-    }
+        });
 
-    function isNewDay(lastClaim) {
-        const lastDate = new Date(lastClaim);
-        const currentDate = new Date();
-        return lastDate.getDate() !== currentDate.getDate() || 
-               lastDate.getMonth() !== currentDate.getMonth() || 
-               lastDate.getFullYear() !== currentDate.getFullYear();
-    }
+        // Savings Challenge
+        document.getElementById('savingsButton').addEventListener('click', async () => {
+            const amount = prompt("Enter your current savings amount:");
+            if (!amount || isNaN(amount)) return;
 
-    // Savings Challenge System
-    async function trackSavings() {
-        const amount = prompt("Enter your current savings amount:");
-        if (!amount || isNaN(amount)) return;
-
-        try {
             await update(ref(database, `users/${userId}/tasks/savings`), {
                 current: parseFloat(amount)
             });
             checkSavingsGoal();
             showToast('Savings updated!');
-        } catch (error) {
-            console.error("Savings update error:", error);
-        }
-    }
+        });
 
-    async function checkSavingsGoal() {
-        const savingsRef = ref(database, `users/${userId}/tasks/savings`);
-        const snapshot = await get(savingsRef);
-        
-        if (snapshot.exists()) {
-            const { goal = 5000, current = 0 } = snapshot.val();
-            const progress = (current / goal) * 100;
+        // Quiz System (Placeholder)
+        document.getElementById('quizButton').addEventListener('click', () => {
+            alert('Quiz feature coming soon!');
+        });
+
+        // Budget System (Placeholder)
+        document.getElementById('budgetButton').addEventListener('click', () => {
+            alert('Budget feature coming soon!');
+        });
+
+        // Helper Functions
+        function isNewDay(lastClaim) {
+            const lastDate = new Date(lastClaim);
+            const currentDate = new Date();
+            return lastDate.getDate() !== currentDate.getDate() || 
+                   lastDate.getMonth() !== currentDate.getMonth() || 
+                   lastDate.getFullYear() !== currentDate.getFullYear();
+        }
+
+        async function checkSavingsGoal() {
+            const savingsRef = ref(database, `users/${userId}/tasks/savings`);
+            const snapshot = await get(savingsRef);
             
-            // Update progress bar
-            document.querySelector('#savingsProgress').style.width = `${Math.min(progress, 100)}%`;
-            
-            if (current >= goal && !snapshot.val().completed) {
-                await update(ref(database, `users/${userId}`), {
-                    'coins': 300, // Increment coins
-                    'tasks/savings/completed': true
-                });
-                showToast('Savings goal achieved! +300 Coins');
+            if (snapshot.exists()) {
+                const { goal = 5000, current = 0 } = snapshot.val();
+                const progress = (current / goal) * 100;
+                document.querySelector('#savingsProgress').style.width = `${Math.min(progress, 100)}%`;
+                
+                if (current >= goal && !snapshot.val().completed) {
+                    await update(ref(database, `users/${userId}`), {
+                        'coins': 300, // Increment coins
+                        'tasks/savings/completed': true
+                    });
+                    showToast('Savings goal achieved! +300 Coins');
+                }
             }
         }
-    }
 
-    // UI Updates
-    async function updateDailyUI() {
-        const dailyRef = ref(database, `users/${userId}/tasks/daily`);
-        const snapshot = await get(dailyRef);
-        
-        if (snapshot.exists()) {
-            const { streak } = snapshot.val();
-            document.getElementById('dailyButton').disabled = true;
-            document.getElementById('dailyButton').textContent = `Streak: ${streak} days`;
-        }
-    }
-
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => toast.remove(), 3000);
-    }
-
-    // Initialize
-    window.onload = async () => {
-        // Load daily status
-        const dailySnapshot = await get(ref(database, `users/${userId}/tasks/daily`));
-        if (dailySnapshot.exists()) {
-            updateDailyUI();
-        }
-
-        // Load savings progress
-        checkSavingsGoal();
-    };
-
-    // Add CSS for toast
-    const style = document.createElement('style');
-    style.textContent = `
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--secondary);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            animation: slideIn 0.3s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from { bottom: -50px; }
-            to { bottom: 20px; }
-        }
-    `;
-    document.head.appendChild(style);
-
-
-        
-        
-        // Example claim function
-        async function claimDaily() {
-            const userId = localStorage.getItem('loggedInUser');
-            if (!userId) return;
-
-            const userRef = ref(database, `users/${userId}`);
+        async function updateDailyUI() {
+            const dailyRef = ref(database, `users/${userId}/tasks/daily`);
+            const snapshot = await get(dailyRef);
             
-            try {
-                await update(userRef, {
-                    coins: 50 // Increment instead in real implementation
-                });
+            if (snapshot.exists()) {
+                const { streak } = snapshot.val();
                 document.getElementById('dailyButton').disabled = true;
-                document.getElementById('dailyButton').textContent = 'Claimed!';
-            } catch (error) {
-                console.error("Claim error:", error);
+                document.getElementById('dailyButton').textContent = `Streak: ${streak} days`;
             }
         }
 
-        // Add similar functions for other tasks
-        function copyReferral() {
-            navigator.clipboard.writeText('AXES-1234');
-            alert('Referral code copied!');
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
 
-        // Add remaining functionality
+        // Initialize
+        window.onload = async () => {
+            await updateDailyUI();
+            await checkSavingsGoal();
+        };
     </script>
 </body>
 </html>
