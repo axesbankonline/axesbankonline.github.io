@@ -15,6 +15,7 @@
             margin-top: 120px;
             border-radius: 12px;
             overflow: hidden;
+            border: 2px solid var(--primary);
         }
         
         .snake, .coin {
@@ -110,15 +111,16 @@
         });
 
         // Snake Game Code
-        let snake = [{ x: 200, y: 200 }];
+        let snake = [{ x: 180, y: 180 }];
         let direction = { x: 20, y: 0 };
         let coin = { x: 100, y: 100 };
         let gameContainer = document.getElementById("gameContainer");
+        let gameInterval;
 
         function drawGame() {
             gameContainer.innerHTML = "";
             
-            snake.forEach((segment, index) => {
+            snake.forEach((segment) => {
                 let snakeElement = document.createElement("div");
                 snakeElement.classList.add("snake");
                 snakeElement.style.left = segment.x + "px";
@@ -145,10 +147,11 @@
 
             snake.unshift(newHead);
 
+            // Game over if the snake hits the wall
             if (newHead.x < 0 || newHead.x >= 400 || newHead.y < 0 || newHead.y >= 400) {
-                alert("Game Over!");
-                snake = [{ x: 200, y: 200 }];
-                direction = { x: 20, y: 0 };
+                clearInterval(gameInterval);
+                alert("Game Over! Restarting...");
+                resetGame();
             }
         }
 
@@ -174,12 +177,25 @@
             }
         }
 
-        function startGame() {
-            document.addEventListener("keydown", handleKeyPress);
-            setInterval(() => {
+        function resetGame() {
+            snake = [{ x: 180, y: 180 }];
+            direction = { x: 20, y: 0 };
+            placeCoin();
+            gameInterval = setInterval(() => {
                 moveSnake();
                 drawGame();
             }, 150);
+        }
+
+        function startGame() {
+            document.addEventListener("keydown", handleKeyPress);
+            drawGame();
+            setTimeout(() => {
+                gameInterval = setInterval(() => {
+                    moveSnake();
+                    drawGame();
+                }, 150);
+            }, 500);
         }
     </script>
 </body>
