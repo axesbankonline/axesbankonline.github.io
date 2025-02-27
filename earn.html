@@ -177,15 +177,14 @@
             }
         }
 
-        function resetGame() {
-            snake = [{ x: 180, y: 180 }];
-            direction = { x: 20, y: 0 };
-            placeCoin();
-            gameInterval = setInterval(() => {
-                moveSnake();
-                drawGame();
-            }, 150);
-        }
+    function resetGame() {
+    snake = [{ x: 200, y: 200 }];  // Center the snake at (200,200)
+    direction = { x: 0, y: 0 };     // Prevent movement until keypress
+    clearInterval(gameInterval);
+    placeCoin();  
+    drawGame();  
+}
+
 
         function startGame() {
             document.addEventListener("keydown", handleKeyPress);
