@@ -188,68 +188,73 @@
         </div>
     </div>
 
-    <div class="container">
-        <h1>Earn Coins</h1>
-        <div class="earn-section">
-            <!-- Daily Check-in -->
-            <div class="task-card">
-                <div class="task-header">
-                    <div class="task-title">Daily Check-in</div>
-                    <div class="task-coins">+50 Coins</div>
-                </div>
-                <div class="task-description">
-                    Claim your daily reward! Come back every day to get more coins.
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 0%"></div>
-                </div>
-                <button class="task-button" onclick="claimDaily()" id="dailyButton">Claim Daily Reward</button>
-            </div>
+<!-- Keep the same CSS and topbar from previous code -->
+<!-- Modify only the container section -->
 
-            <!-- Complete Transactions -->
-            <div class="task-card">
-                <div class="task-header">
-                    <div class="task-title">Complete Transactions</div>
-                    <div class="task-coins">+100 Coins</div>
-                </div>
-                <div class="task-description">
-                    Complete 5 transactions to earn bonus coins (3/5 completed)
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 60%"></div>
-                </div>
-                <button class="task-button" onclick="claimTransactions()">Claim Reward</button>
+<div class="container">
+    <h1>Earn Coins</h1>
+    <div class="earn-section">
+        <!-- Daily Check-in -->
+        <div class="task-card">
+            <div class="task-header">
+                <div class="task-title">Daily Check-in</div>
+                <div class="task-coins">+50 Coins</div>
             </div>
+            <div class="task-description">
+                Claim your daily reward! Come back every day to get more coins.
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+            </div>
+            <button class="task-button" onclick="claimDaily()" id="dailyButton">Claim Daily Reward</button>
+        </div>
 
-            <!-- Refer Friends -->
-            <div class="task-card">
-                <div class="task-header">
-                    <div class="task-title">Refer Friends</div>
-                    <div class="task-coins">+200 Coins</div>
-                </div>
-                <div class="task-description">
-                    Share your referral code and earn coins when friends sign up.
-                </div>
-                <div class="referral-code">
-                    <input type="text" value="AXES-1234" readonly>
-                    <button class="task-button" onclick="copyReferral()">Copy Code</button>
-                </div>
+        <!-- Savings Goal Challenge -->
+        <div class="task-card">
+            <div class="task-header">
+                <div class="task-title">Savings Challenge</div>
+                <div class="task-coins">+300 Coins</div>
             </div>
+            <div class="task-description">
+                Save ₹5000 this month to earn bonus coins (Current: ₹3200/5000)
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 64%"></div>
+            </div>
+            <button class="task-button" onclick="trackSavings()">Track Progress</button>
+        </div>
 
-            <!-- Watch Ads -->
-            <div class="task-card">
-                <div class="task-header">
-                    <div class="task-title">Watch Video</div>
-                    <div class="task-coins">+30 Coins</div>
-                </div>
-                <div class="task-description">
-                    Watch a short video to earn coins (max 3x daily)
-                </div>
-                <button class="task-button" onclick="watchAd()">Watch Now</button>
+        <!-- Financial Education Quiz -->
+        <div class="task-card">
+            <div class="task-header">
+                <div class="task-title">Financial Quiz</div>
+                <div class="task-coins">+150 Coins</div>
             </div>
+            <div class="task-description">
+                Complete our financial literacy quiz to earn coins
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 30%"></div>
+            </div>
+            <button class="task-button" onclick="startQuiz()">Start Quiz</button>
+        </div>
+
+        <!-- Budgeting Task -->
+        <div class="task-card">
+            <div class="task-header">
+                <div class="task-title">Budgeting Task</div>
+                <div class="task-coins">+200 Coins</div>
+            </div>
+            <div class="task-description">
+                Create and maintain a budget for 2 weeks
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 45%"></div>
+            </div>
+            <button class="task-button" onclick="viewBudget()">View Budget</button>
         </div>
     </div>
-
+</div>
     <script type="module">
         // Firebase integration
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
