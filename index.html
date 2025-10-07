@@ -96,15 +96,15 @@
 
             signInWithEmailAndPassword(auth, email, password)
                   function onClick(e) {
+
+                .then((userCredential) => {
+                    // Login successful, redirect
+                    
     e.preventDefault();
     grecaptcha.enterprise.ready(async () => {
       const token = await grecaptcha.enterprise.execute('6Le3KeErAAAAAC0h2zpCJLMaKxyYgLEUhrdJ83N8', {action: 'LOGIN'});
     });
   }
-                .then((userCredential) => {
-                    // Login successful, redirect
-                    
-
  
                     window.location.href = "dashboard.html";
                 })
@@ -115,6 +115,7 @@
     </script>
 </body>
 </html>
+
 
 
 
