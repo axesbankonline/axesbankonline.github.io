@@ -286,12 +286,21 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        function loadDashboard() {
-            const userId = localStorage.getItem("loggedInUser");
-            if (!userId) {
-                window.location.href = "index.html";
-                return;
-            }
+function loadDashboard() {
+    const userId = localStorage.getItem("loggedInUser");
+    if (!userId) {
+        window.location.href = "index.html";
+        return;
+    }
+    // FIX: Use backticks for template literal
+    const userRef = ref(database, `users/${userId}`);
+    get(userRef).then((snapshot) => {
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            document.getElementById("coinsDisplay").textContent = `Coins: ${userData.coins}`;
+        }
+    });
+}
 
             const userRef = ref(database, users/${userId});
             get(userRef).then((snapshot) => {
@@ -311,4 +320,5 @@
     </script>
 </body>
 </html>
+
 
