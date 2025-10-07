@@ -226,12 +226,12 @@
                     get(userRef).then(snapshot => {
                         if (snapshot.exists()) {
                             const userData = snapshot.val();
-                            document.getElementById("coinsDisplay").textContent = `Coins: ${userData.coins}`;
+                            document.getElementById("coinsDisplay").textContent = `Money: ${userData.coins}`;
                         } else {
-                            document.getElementById("coinsDisplay").textContent = "Coins: 0";
+                            document.getElementById("coinsDisplay").textContent = "Money: 0";
                         }
                     }).catch(error => {
-                        document.getElementById("coinsDisplay").textContent = "Coins: Error";
+                        document.getElementById("coinsDisplay").textContent = "Money: Error";
                     });
                 }
             });
@@ -247,4 +247,5 @@
     </script>
 </body>
 </html>
+
 
