@@ -267,58 +267,53 @@
         </div>
     </div>
 
-    <script type="module">
-        // Firebase integration remains the same
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-            authDomain: "bankdata-fe769.firebaseapp.com",
-            databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "bankdata-fe769",
-            storageBucket: "bankdata-fe769.appspot.com",
-            messagingSenderId: "967507656753",
-            appId: "1:967507656753:web:562c1383dca78d56471510",
-            measurementId: "G-9E5XE77RVB"
-        };
+const firebaseConfig = {
+    apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+    authDomain: "bankdata-fe769.firebaseapp.com",
+    databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "bankdata-fe769",
+    storageBucket: "bankdata-fe769.appspot.com",
+    messagingSenderId: "967507656753",
+    appId: "1:967507656753:web:562c1383dca78d56471510"
+};
 
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
 
-function loadDashboard() {
-    const userId = localStorage.getItem("loggedInUser");
+let userId = localStorage.getItem("loggedInUser");
+
+function loadUserData() {
     if (!userId) {
         window.location.href = "index.html";
         return;
     }
-    // FIX: Use backticks for template literal
     const userRef = ref(database, `users/${userId}`);
-    get(userRef).then((snapshot) => {
+    get(userRef).then(snapshot => {
         if (snapshot.exists()) {
             const userData = snapshot.val();
             document.getElementById("coinsDisplay").textContent = `Coins: ${userData.coins}`;
+        } else {
+            document.getElementById("coinsDisplay").textContent = "Coins: 0";
         }
+    }).catch(error => {
+        document.getElementById("coinsDisplay").textContent = "Coins: Error";
+        console.error(error);
     });
 }
 
-            const userRef = ref(database, users/${userId});
-            get(userRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    document.getElementById("coinsDisplay").textContent = Coins: ${userData.coins};
-                }
-            });
-        }
+document.getElementById("logoutButton").addEventListener("click", () => {
+    localStorage.removeItem("loggedInUser");
+    window.location.href = "index.html";
+});
 
-        document.getElementById("logoutButton").addEventListener("click", () => {
-            localStorage.removeItem("loggedInUser");
-            window.location.href = "index.html";
-        });
-
-        window.onload = loadDashboard;
-    </script>
+window.onload = loadUserData;
+</script>
 </body>
 </html>
+
 
 
