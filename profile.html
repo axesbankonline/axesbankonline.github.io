@@ -5,237 +5,189 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - Axes Bank</title>
     <style>
-        /* Dark Theme Variables */
 :root {
     --primary: #7289da;
     --secondary: #43b581;
     --accent: #ff73fa;
-    --background: #1a1a1a;
-    --surface: #2d2d2d;
+    --background: #181825;
+    --surface: #22223b;
     --text: #ffffff;
+    --glow: 0 0 24px var(--primary);
 }
 
-        /* Navigation Buttons */
-        .nav-buttons {
-            display: flex;
-            gap: 20px;
-        }
-
-        .nav-button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-            .nav-button2 {
-            padding: 12px 24px;
-            border: none;
-
-            visibility: hidden;
-
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
- 
-            
-            }
-
-                .nav-button:hover {
-            background: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
-        }
-/* Base Styles */
 body {
     font-family: 'Segoe UI', system-ui, sans-serif;
-    margin: 0;
-    padding: 0;
     background: var(--background);
     color: var(--text);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
+    margin: 0;
+    height: 100vh;
 }
 
-/* Main Container with Shadow */
-.main-container {
-    width: 90%;
-    max-width: 900px;
-    background: rgba(45, 45, 45, 0.95);
-    padding: 40px;
-    border-radius: 24px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 100px;
-}
-
-/* Top Bar */
 .topbar {
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     width: 100%;
     height: 80px;
     background: rgba(45, 45, 45, 0.95);
-    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(114,137,218,0.18);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 40px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    z-index: 10;
 }
 
-/* Profile Section */
-.profile-container {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 30px;
+.bank-name {
+    font-size: 2rem;
+    font-weight: 900;
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+    text-shadow: 0 4px 40px var(--primary);
 }
 
-/* Left Side (Text) */
-.profile-info {
-    flex: 1;
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--text);
-    padding-right: 30px;
-    text-align: center;
+.nav-buttons {
+    display: flex; gap: 20px;
 }
-
-.profile-info span {
-    color: var(--secondary);
-}
-
-/* Vertical Separator */
-.separator {
-    width: 2px;
-    background: rgba(255, 255, 255, 0.2);
-    height: 100px;
-}
-
-/* Right Side (Buttons) */
-.profile-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    flex: 1;
-    align-items: center;
-}
-
-.profile-button {
+.nav-button, .nav-button2 {
     padding: 12px 24px;
     border: none;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    font-weight: 700;
+    background: rgba(255,255,255,0.07);
     color: var(--text);
-    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    width: 80%;
-    text-align: center;
+    transition: background 0.2s;
 }
-
-.profile-button:hover {
+.nav-button:hover {
     background: var(--primary);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
+    box-shadow: 0 0 20px var(--primary);
 }
 
-/* Coins Display */
-#coinsDisplay {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    padding: 10px 20px;
-    background: rgba(67, 181, 129, 0.1);
-    border-radius: 8px;
-    border: 1px solid rgba(67, 181, 129, 0.2);
+.main-container {
+    width: 90vw;
+    max-width: 480px;
+    background: var(--surface);
+    border-radius: 32px;
+    margin: 140px auto 0 auto;
+    box-shadow: 0 0 64px 0 var(--primary);
+    padding: 36px 32px 32px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--accent);
+    margin-bottom: 16px;
+    text-shadow: var(--glow);
+}
+
+/* Cool glass and glowing effect */
+.profile-card {
+    background: rgba(114,137,218,0.09);
+    border-radius: 26px;
+    padding: 40px 32px 22px 32px;
+    width: 100%;
+    box-shadow: 0 0 32px 0 var(--accent);
+    backdrop-filter: blur(10px);
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    border: 2px solid var(--primary);
+}
+
+.info-label {
+    font-size: 1.14rem;
     color: var(--secondary);
 }
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .profile-container {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-
-    .separator {
-        width: 80%;
-        height: 2px;
-        margin: 20px 0;
-    }
+.info-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text);
+    background: rgba(114,137,218,0.11);
+    border-radius: 7px;
+    padding: 4px 16px;
+    box-shadow: 0 0 17px var(--primary);
+    margin-top: 4px;
 }
 
+.profile-buttons {
+    width: 100%;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+.profile-button {
+    padding: 11px 20px;
+    border: none;
+    border-radius: 9px;
+    background: var(--primary);
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1.12rem;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 12px var(--primary);
+}
+.profile-button:hover {
+    background: var(--accent);
+    box-shadow: 0 0 22px var(--accent);
+}
+
+@media (max-width: 600px) {
+    .main-container {
+        margin-top: 100px;
+        padding: 20px 2vw;
+        max-width: 98vw;
+    }
+    .profile-card {padding: 20px 4vw;}
+}
     </style>
 </head>
 <body>
     <div class="topbar">
-        <div class="logo-container">
-            
-            <span class="bank-name">Axes Bank</span>
-        </div>
+        <span class="bank-name">Axes Bank</span>
         <div class="nav-buttons">
             <button class="nav-button" onclick="window.location.href='dashboard.html'">Dashboard</button>
             <button class="nav-button" id="logoutButton">Logout</button>
-            <button  class="nav-button2" ></button>
-            <button class="nav-button2" ></button>
-
+            <button  class="nav-button2"></button>
+            <button class="nav-button2"></button>
         </div>
     </div>
 
-    <div class="container">
-        <div class="profile-info">
-            <div class="info-item">
+    <div class="main-container">
+        <div class="profile-title">Your Profile</div>
+        <div class="profile-card">
+            <div>
                 <div class="info-label">Full Name:</div>
                 <div class="info-value" id="userName">Loading...</div>
             </div>
-
-            <div class="info-item">
-                <div class="info-label">Cred Number:</div>
-                <div class="info-value" id="credNumber">Loading...</div>
+            <div>
+                <div class="info-label">Email:</div>
+                <div class="info-value" id="emailDisplay">Loading...</div>
             </div>
-
-            <div class="info-item">
-                <div class="info-label">Password:</div>
-                <div class="info-value">
-                 <input type="password" id="password" class="password-input">
-                 <button type="button" id="togglePassword">👁️</button>
-              </div>
+            <div>
+                <div class="info-label">Coins:</div>
+                <div class="info-value" id="coinsDisplay">Loading...</div>
             </div>
+        </div>
+        <div class="profile-buttons">
+            <button class="profile-button" onclick="window.location.href='earn.html'">Earn More</button>
+            <button class="profile-button" onclick="window.location.href='transactions.html'">Transactions</button>
         </div>
     </div>
 
     <script type="module">
-        // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
             authDomain: "bankdata-fe769.firebaseapp.com",
@@ -246,56 +198,45 @@ body {
             appId: "1:967507656753:web:562c1383dca78d56471510",
             measurementId: "G-9E5XE77RVB"
         };
-
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
+        const auth = getAuth();
 
-function loadProfile() {
-    const userId = localStorage.getItem("loggedInUser");
-    
-    if (!userId) {
-        console.warn("No logged-in user found. Redirecting...");
-        window.location.href = "index.html";
-        return;
-    }
+        function loadProfile() {
+            onAuthStateChanged(auth, (user) => {
+                if (!user) {
+                    window.location.href = "index.html";
+                } else {
+                    // Get info from Authentication
+                    document.getElementById("emailDisplay").textContent = user.email || "N/A";
 
-    const userRef = ref(database, `users/${userId}`);
-    get(userRef).then((snapshot) => {
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            console.log("User found:", userData);
-
-            document.getElementById("userName").textContent = userData.name;
-            document.getElementById("credNumber").textContent = userId;
-            document.getElementById("password").value = userData.password;
-        } else {
-            console.warn("User data not found. Redirecting...");
-            window.location.href = "index.html";
+                    // Get info from Database
+                    const userRef = ref(database, `users/${user.uid}`);
+                    get(userRef).then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const userData = snapshot.val();
+                            // Use 'name' if exists, fallback to email if not
+                            document.getElementById("userName").textContent = userData.name || user.email || "No Name";
+                            document.getElementById("coinsDisplay").textContent = userData.coins !== undefined ? userData.coins : 0;
+                        } else {
+                            // No profile in database
+                            document.getElementById("userName").textContent = user.email || "N/A";
+                            document.getElementById("coinsDisplay").textContent = "0";
+                        }
+                    }).catch(error => {
+                        document.getElementById("userName").textContent = "Error";
+                        document.getElementById("coinsDisplay").textContent = "Error";
+                    });
+                }
+            });
         }
-    }).catch(error => {
-        console.error("Error loading profile:", error);
-        window.location.href = "index.html";
-    });
-}
 
-document.getElementById("togglePassword").addEventListener("click", function () {
-    const passwordField = document.getElementById("password");
-    if (passwordField.type === "password") {
-        passwordField.type = "text";
-    } else {
-        passwordField.type = "password";
-    }
-});
-
-
-        // Logout Function
         document.getElementById("logoutButton").addEventListener("click", () => {
-            localStorage.removeItem("userId");
-            window.location.href = "index.html";
+            signOut(auth).then(() => {
+                window.location.href = "index.html";
+            });
         });
 
-        // Load Profile on Page Load
         window.onload = loadProfile;
     </script>
 </body>
