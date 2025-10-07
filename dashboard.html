@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Axes Bank</title>
     <style>
-        /* Dark Theme Variables */
         :root {
             --primary: #7289da;
             --secondary: #43b581;
@@ -14,12 +13,6 @@
             --surface: #2d2d2d;
             --text: #ffffff;
         }
-
-
-
-        
-
-        /* Base Styles */
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             margin: 0;
@@ -31,8 +24,6 @@
             align-items: center;
             min-height: 100vh;
         }
-
-        /* Dark Top Bar */
         .topbar {
             position: fixed;
             top: 0;
@@ -49,22 +40,11 @@
             z-index: 1000;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        /* Logo Section */
         .logo-container {
             display: flex;
             align-items: center;
             gap: 15px;
         }
-
-        .logo-img {
-            height: 50px;
-            width: 50px;
-            border-radius: 12px;
-            object-fit: cover;
-            filter: grayscale(20%);
-        }
-
         .bank-name {
             font-size: 1.5rem;
             font-weight: 700;
@@ -72,13 +52,10 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
-        /* Navigation Buttons */
         .nav-buttons {
             display: flex;
             gap: 20px;
         }
-
         .nav-button {
             padding: 12px 24px;
             border: none;
@@ -92,30 +69,11 @@
             align-items: center;
             gap: 8px;
         }
-        .nav-button2 {
-            padding: 12px 24px;
-            border: none;
-            visibility: hidden;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
         .nav-button:hover {
             background: var(--primary);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
         }
-        
-
-
-        /* Main Container */
         .container {
             margin-top: 120px;
             width: 90%;
@@ -129,20 +87,15 @@
             gap: 40px;
             position: relative;
         }
-
-        /* Columns */
         .left-column, .right-column {
             flex: 1;
             padding: 20px;
         }
-
-        /* Button Grid */
         .button-grid {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
-
         .action-button {
             padding: 15px;
             border: none;
@@ -156,46 +109,36 @@
             text-align: left;
             padding-left: 20px;
         }
-
         .action-button:hover {
             background: var(--primary);
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
         }
-
-        /* Vertical Separator */
         .separator {
             width: 1px;
             background: rgba(255, 255, 255, 0.3);
             margin: 20px 0;
         }
-
-        /* Updates Section */
         .updates {
             background: var(--surface);
             padding: 20px;
             border-radius: 16px;
         }
-
         .updates h2 {
             font-size: 1.5rem;
             margin-bottom: 15px;
             color: var(--primary);
         }
-
         .updates ul {
             list-style-type: none;
             padding: 0;
         }
-
         .updates li {
             margin: 10px 0;
             padding: 8px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
         }
-
-        /* Coins Display */
         #coinsDisplay {
             position: absolute;
             top: 20px;
@@ -206,15 +149,12 @@
             border: 1px solid rgba(67, 181, 129, 0.2);
             color: var(--secondary);
         }
-
-        /* Responsive Design */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
                 margin-top: 100px;
                 padding: 20px;
             }
-            
             .separator {
                 width: 100%;
                 height: 1px;
@@ -231,16 +171,10 @@
         <div class="nav-buttons">
             <button class="nav-button" onclick="window.location.href='profile.html';">Profile</button>
             <button class="nav-button" id="logoutButton">Logout</button>
-            <button  class="nav-button2" ></button>
-            <button class="nav-button2" ></button>
         </div>
     </div>
-
     <div class="container">
-        <!-- Coins Display -->
         <div id="coinsDisplay">Coins: Loading...</div>
-
-        <!-- Left Column (Buttons) -->
         <div class="left-column">
             <div class="button-grid">
                 <a href="transactions.html" class="action-button">Transactions</a>
@@ -249,11 +183,7 @@
                 <a href="help.html" class="action-button">Help</a>
             </div>
         </div>
-
-        <!-- Vertical Separator -->
         <div class="separator"></div>
-
-        <!-- Right Column (Updates) -->
         <div class="right-column">
             <div class="updates">
                 <h2>Updates: (3.6)</h2>
@@ -261,59 +191,59 @@
                     <li>New UI Design</li>
                     <li>Enhanced Security Features</li>
                     <li>Firebase Support</li>
-                    
                 </ul>
             </div>
         </div>
     </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+            authDomain: "bankdata-fe769.firebaseapp.com",
+            databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "bankdata-fe769",
+            storageBucket: "bankdata-fe769.appspot.com",
+            messagingSenderId: "967507656753",
+            appId: "1:967507656753:web:562c1383dca78d56471510"
+        };
 
-const firebaseConfig = {
-    apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-    authDomain: "bankdata-fe769.firebaseapp.com",
-    databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "bankdata-fe769",
-    storageBucket: "bankdata-fe769.appspot.com",
-    messagingSenderId: "967507656753",
-    appId: "1:967507656753:web:562c1383dca78d56471510"
-};
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth();
 
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
-
-let userId = localStorage.getItem("loggedInUser");
-
-function loadUserData() {
-    if (!userId) {
-        window.location.href = "index.html";
-        return;
-    }
-    const userRef = ref(database, `users/${userId}`);
-    get(userRef).then(snapshot => {
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            document.getElementById("coinsDisplay").textContent = `Coins: ${userData.coins}`;
-        } else {
-            document.getElementById("coinsDisplay").textContent = "Coins: 0";
+        function loadDashboard() {
+            onAuthStateChanged(auth, user => {
+                if (!user) {
+                    // Not authenticated, redirect to login
+                    window.location.href = "index.html";
+                } else {
+                    // User authenticated!
+                    const userId = user.uid;
+                    const userRef = ref(database, `users/${userId}`);
+                    get(userRef).then(snapshot => {
+                        if (snapshot.exists()) {
+                            const userData = snapshot.val();
+                            document.getElementById("coinsDisplay").textContent = `Coins: ${userData.coins}`;
+                        } else {
+                            document.getElementById("coinsDisplay").textContent = "Coins: 0";
+                        }
+                    }).catch(error => {
+                        document.getElementById("coinsDisplay").textContent = "Coins: Error";
+                    });
+                }
+            });
         }
-    }).catch(error => {
-        document.getElementById("coinsDisplay").textContent = "Coins: Error";
-        console.error(error);
-    });
-}
 
-document.getElementById("logoutButton").addEventListener("click", () => {
-    localStorage.removeItem("loggedInUser");
-    window.location.href = "index.html";
-});
+        document.getElementById("logoutButton").addEventListener("click", () => {
+            signOut(auth).then(() => {
+                window.location.href = "index.html";
+            });
+        });
 
-window.onload = loadUserData;
-</script>
+        window.onload = loadDashboard;
+    </script>
 </body>
 </html>
-
-
-
