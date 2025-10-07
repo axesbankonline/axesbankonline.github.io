@@ -95,15 +95,16 @@
             if (!email || !password) return;
 
             signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // Login successful, redirect
-                    
-  function onClick(e) {
+                  function onClick(e) {
     e.preventDefault();
     grecaptcha.enterprise.ready(async () => {
       const token = await grecaptcha.enterprise.execute('6Le3KeErAAAAAC0h2zpCJLMaKxyYgLEUhrdJ83N8', {action: 'LOGIN'});
     });
   }
+                .then((userCredential) => {
+                    // Login successful, redirect
+                    
+
  
                     window.location.href = "dashboard.html";
                 })
@@ -114,6 +115,7 @@
     </script>
 </body>
 </html>
+
 
 
 
