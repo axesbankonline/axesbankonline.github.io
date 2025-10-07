@@ -139,28 +139,39 @@
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
         }
-        #coinsDisplay {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background: rgba(67, 181, 129, 0.1);
-            border-radius: 8px;
-            border: 1px solid rgba(67, 181, 129, 0.2);
-            color: var(--secondary);
-        }
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-                margin-top: 100px;
-                padding: 20px;
-            }
-            .separator {
-                width: 100%;
-                height: 1px;
-                margin: 20px 0;
-            }
-        }
+#coinsDisplay {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background: rgba(67, 181, 129, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(67, 181, 129, 0.2);
+  color: var(--secondary);
+  z-index: 2;
+}
+
+/* Handles mobile: coins display moves into flow above buttons */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    margin-top: 100px;
+    padding: 20px;
+    position: relative;
+    align-items: stretch;
+  }
+  #coinsDisplay {
+    position: static;
+    width: 100%;
+    margin: 0 0 20px 0;
+    text-align: center;
+    box-sizing: border-box;
+    font-size: 1.18rem;
+    background: rgba(67,181,129,0.09);
+  }
+}
+
+        
     </style>
 </head>
 <body>
@@ -247,5 +258,6 @@
     </script>
 </body>
 </html>
+
 
 
