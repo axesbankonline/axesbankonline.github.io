@@ -1,121 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Axes Bank</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: url('image.jpg') no-repeat center center fixed;
-            background-size: cover;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: white;
-        }
-        .login-container {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            width: 350px;
-        }
-        input {
-            width: 90%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #555;
-            background: #222;
-            color: white;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        button {
-            width: 100%;
-            background-color: royalblue;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: 0.3s;
-            box-shadow: 0px 0px 5px royalblue;
-        }
-        button:hover {
-            background-color: #4169e1;
-            box-shadow: 0px 0px 15px royalblue;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Axes Bank</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: url('image.jpg') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+    }
+    .login-container {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      width: 350px;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #555;
+      background: #222;
+      color: white;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      background-color: royalblue;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+      box-shadow: 0px 0px 5px royalblue;
+    }
+    button:hover {
+      background-color: #4169e1;
+      box-shadow: 0px 0px 15px royalblue;
+    }
+  </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>Axes Bank Login</h2>
-        <input type="email" class="input" id="email" placeholder="Enter Email" required>
-        <input type="password" class="input" id="password" placeholder="Enter Password" required>
-        <button class="button" id="loginButton">Login</button>
-        <p id="errorMessage" style="color: red; display: none;">Invalid email or password</p>
-        <div id="accountRequestFooter" style="
-  position: fixed; left: 0; right: 0; bottom: 12px; text-align: center; font-size: 1rem;
-  color: #43b581; background: rgba(45,45,45,0); padding: 10px 0; z-index: 999; box-shadow: 0 2px 18px rgba(0,0,0,0.16);">
-  <a href="create.html" style="color:#7289da; text-decoration:none; font-weight:bold;">
-    Contact us to create an account
-  </a>
-</div>
-
+  <div class="login-container">
+    <h2>Axes Bank Login</h2>
+    <input type="email" id="email" placeholder="Enter Email" required>
+    <input type="password" id="password" placeholder="Enter Password" required>
+    <button id="loginButton">Login</button>
+    <p id="errorMessage" style="color: red; display: none;">Invalid email or password</p>
+    <div id="accountRequestFooter"
+         style="position: fixed; left: 0; right: 0; bottom: 12px; text-align: center; font-size: 1rem; color: #43b581;">
+      <a href="create.html" style="color:#7289da; text-decoration:none; font-weight:bold;">
+        Contact us to create an account
+      </a>
     </div>
-   
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from 
-        "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+  </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-            authDomain: "bankdata-fe769.firebaseapp.com",
-            databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "bankdata-fe769",
-            storageBucket: "bankdata-fe769.appspot.com",
-            messagingSenderId: "967507656753",
-            appId: "1:967507656753:web:562c1383dca78d56471510",
-            measurementId: "G-9E5XE77RVB"
-        };
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth();
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+      authDomain: "bankdata-fe769.firebaseapp.com",
+      databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "bankdata-fe769",
+      storageBucket: "bankdata-fe769.appspot.com",
+      messagingSenderId: "967507656753",
+      appId: "1:967507656753:web:562c1383dca78d56471510",
+      measurementId: "G-9E5XE77RVB"
+    };
 
-        document.getElementById("loginButton").addEventListener("click", () => {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            if (!email || !password) return;
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-            signInWithEmailAndPassword(auth, email, password)
-                  function onClick(e) {
+    document.getElementById("loginButton").addEventListener("click", () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const errorMsg = document.getElementById("errorMessage");
 
-                then((userCredential) => {
-                    // Login successful, redirect
-                    
+      if (!email || !password) return;
 
- 
-                    window.location.href = "dashboard.html";
-                })
-                .catch((error) => {
-                    document.getElementById("errorMessage").style.display = "block";
-                });
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // Login successful
+          window.location.href = "dashboard.html";
+        })
+        .catch((error) => {
+          // Show error message
+          console.error(error);
+          errorMsg.style.display = "block";
         });
-    </script>
+    });
+  </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
