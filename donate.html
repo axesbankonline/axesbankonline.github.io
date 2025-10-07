@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Donate - Axes Bank</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+:root {
+  --primary: #7289da;
+  --secondary: #43b581;
+  --background: #1a1a1a;
+  --surface: #2d2d2d;
+  --text: #ffffff;
+}
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: 'Segoe UI',system-ui,sans-serif;
+  margin: 0; min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.donate-container {
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+  padding: 34px 22px 24px 22px;
+  width: 90vw; max-width: 400px;
+  margin: 40px auto 0 auto;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+}
+.donate-title {
+  font-size: 1.5rem;
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+.donate-desc {
+  font-size: 1.04rem;
+  color: var(--text);
+  margin-bottom: 24px;
+}
+.upi-section {
+  margin-bottom: 22px;
+  width: 100%;
+}
+.upi-label {
+  font-weight: 700;
+  color: var(--secondary);
+  margin-bottom: 7px;
+  font-size: 1.02rem;
+}
+.upi-id-box {
+  background: rgba(255,255,255,0.07);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 1.17rem;
+  display: inline-block;
+  word-break: break-all;
+  margin-bottom: 8px;
+  border: 1px solid rgba(114,137,218,0.09);
+}
+.copy-btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 15px;
+  margin-left: 7px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.97rem;
+  transition: background 0.15s;
+}
+.copy-btn:hover { background: var(--secondary);}
+#copyStatus {
+  font-size: 0.96rem; color: #43b581; margin-left: 2px; font-weight: 600;
+}
+.qr-section {
+  margin-top: 20px;
+}
+.qr-img {
+  margin-bottom: 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(114,137,218,0.10);
+  border: 1.6px solid var(--primary);
+  background: #fff;
+  max-width: 210px;
+  width: 80vw;
+}
+@media (max-width: 600px){
+  .donate-container {padding: 12vw 3vw 6vw 3vw; max-width: 97vw;}
+  .qr-img {max-width: 90vw;}
+}
+  </style>
+</head>
+<body>
+  <div class="donate-container">
+    <div class="donate-title">Support Us</div>
+    <div class="donate-desc">You can support the project by donating using UPI!</div>
+    <div class="upi-section">
+      <div class="upi-label">Donate to UPI ID:</div>
+      <span class="upi-id-box" id="upiIdText">yourupiid@bank</span>
+      <button class="copy-btn" onclick="copyUPI()">Copy</button>
+      <span id="copyStatus"></span>
+    </div>
+    <div class="qr-section">
+      <div class="upi-label" style="margin-bottom:8px;">Or scan this QR in any UPI app:</div>
+      <img class="qr-img" id="qrImg" src="YOUR_UPI_QR_IMAGE_LINK_HERE" alt="Scan to pay UPI QR">
+    </div>
+  </div>
+  <script>
+    function copyUPI() {
+      const upiText = document.getElementById("upiIdText").textContent;
+      navigator.clipboard.writeText(upiText).then(() => {
+        document.getElementById("copyStatus").textContent = "Copied!";
+        setTimeout(() => { document.getElementById("copyStatus").textContent = ""; }, 1400);
+      });
+    }
+  </script>
+</body>
+</html>
