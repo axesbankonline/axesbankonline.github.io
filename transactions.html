@@ -111,24 +111,68 @@
     }
 
     // Accept Offer (adds coins to current user, changes ticket status)
-    function acceptOffer() {
-      const user = auth.currentUser;
-      if (!user) { showMsg("lookupMsg", "You must be signed in to accept.", true); return; }
-      const amount = lastTicketData?.amount;
-      if (!amount || !lastTicketId) { showMsg("lookupMsg", "Invalid ticket.", true); return;}
-      // Add coins
-      db.ref("users/"+user.uid+"/coins").transaction(coins => (coins||0) + amount, (err, committed, snap) => {
-        if (err || !committed) {
-          showMsg("lookupMsg", "Error adding coins to your balance.", true); return;
+ function acceptOffer() {
+    const user = auth.currentUser;
+    if (!user) { showMsg("lookupMsg", "You must be signed in to accept.", true); return; }
+    const ticketId = lastTicketId;
+    if (!ticketId || !lastTicketData) { showMsg("lookupMsg", "Invalid ticket.", true); return; }
+    const amount = lastTicketData.amount;
+    const senderUid = lastTicketData.senderUid;
+    if (user.uid === senderUid) { showMsg("lookupMsg", "You cannot accept your own ticket.", true); return; }
+
+    showMsg("lookupMsg", "Processing...", false);
+
+    const ticketRef = db.ref("tickets/" + ticketId);
+    // Re-read ticket to ensure it's still pending and data is fresh
+    ticketRef.get().then(ticketSnap => {
+      if (!ticketSnap.exists()) { showMsg("lookupMsg", "Ticket no longer exists.", true); return; }
+      const ticket = ticketSnap.val();
+      if (ticket.status !== "pending") { showMsg("lookupMsg", "This ticket is no longer available.", true); return; }
+      // Proceed: first attempt to subtract from sender's coins atomically
+      const senderCoinsRef = db.ref("users/" + senderUid + "/coins");
+      senderCoinsRef.transaction(curr => {
+        // Abort transaction by returning undefined when there are not enough coins
+        if (curr === null || curr === undefined) return; // sender has no balance node -> abort
+        if (curr < amount) return; // insufficient funds -> abort
+        return curr - amount; // subtract and commit
+      }, (err, committed, senderSnap) => {
+        if (err) {
+          showMsg("lookupMsg", "Error while checking sender's balance.", true);
+          return;
         }
-        // Update ticket status
-        db.ref("tickets/"+lastTicketId+"/status").set("accepted").then(() => {
-          showMsg("lookupMsg", "Offer accepted! " + amount + " coins added to your balance.", false);
-          document.getElementById("acceptBtn").remove();
-          lastTicketId = null; lastTicketData = null;
+        if (!committed) {
+          showMsg("lookupMsg", "Sender does not have enough coins (or transaction aborted).", true);
+          return;
+        }
+        // Sender was charged successfully. Now credit the accepter and update ticket.
+        const receiverCoinsRef = db.ref("users/" + user.uid + "/coins");
+        receiverCoinsRef.transaction(rcurr => (rcurr || 0) + amount, (rErr, rCommitted, rSnap) => {
+          if (rErr || !rCommitted) {
+            // Rare: failed to credit receiver. Attempt rollback: refund sender.
+            showMsg("lookupMsg", "Error crediting your account. Attempting to refund sender...", true);
+            // Attempt to refund sender (best-effort)
+            senderCoinsRef.transaction(s => (s || 0) + amount);
+            return;
+          }
+          // Update ticket status and metadata
+          ticketRef.update({
+            status: "accepted",
+            acceptedBy: user.uid,
+            acceptedAt: Date.now()
+          }).then(() => {
+            showMsg("lookupMsg", "Offer accepted! " + amount + " coins added to your balance.", false);
+            document.getElementById("acceptBtn")?.remove();
+            lastTicketId = null; lastTicketData = null;
+          }).catch(() => {
+            // If ticket update fails, we still have performed money moves; inform user/admins.
+            showMsg("lookupMsg", "Accepted but failed to update ticket status. Contact support.", true);
+          });
         });
       });
-    }
+    }).catch(() => {
+      showMsg("lookupMsg", "Error reading ticket. Try again.", true);
+    });
+  }
 
     // Simple Authentication (anonymous for testing)
     auth.onAuthStateChanged(user => {
