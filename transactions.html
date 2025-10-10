@@ -62,21 +62,21 @@ function createTicket() {
   const user = auth.currentUser;
   if (!user) { showMsg("createMsg", "You must be signed in!", true); return; }
   if (!amount || amount < 1) { showMsg("createMsg", "Enter a valid amount.", true); return; }
-  // First, deduct coins from the sender using transaction
-  const coinsRef = db.ref("users/"+user.uid+"/coins");
+  // Deduct coins from sender before creating ticket
+  const coinsRef = db.ref("users/" + user.uid + "/coins");
   coinsRef.transaction(coins => {
-    if (coins == null || coins < amount) return;
+    if (coins == null || coins < amount) return; // insufficient
     return coins - amount;
-  }, (err, committed, snap) => {
+  }, (err, committed) => {
     if (err || !committed) {
       showMsg("createMsg", "Insufficient funds or error deducting coins.", true);
       return;
     }
-    // Now get name and create ticket
-    const ticketId = Date.now().toString(36) + Math.floor(Math.random()*10000).toString(36);
-    db.ref("users/"+user.uid+"/name").get().then(snap2 => {
+    // Deduction succeeded, now create ticket
+    const ticketId = Date.now().toString(36) + Math.floor(Math.random() * 10000).toString(36);
+    db.ref("users/" + user.uid + "/name").get().then(snap2 => {
       const name = snap2.exists() ? snap2.val() : (user.displayName || user.email || "User");
-      db.ref("tickets/"+ticketId).set({
+      db.ref("tickets/" + ticketId).set({
         senderUid: user.uid,
         senderName: name,
         amount: amount,
@@ -90,7 +90,6 @@ function createTicket() {
     });
   });
 }
-
 
     let lastTicketData = null;
     let lastTicketId = null;
