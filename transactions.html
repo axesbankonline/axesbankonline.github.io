@@ -5,69 +5,16 @@
   <title>Send Money - Axes Bank</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-:root {
-  --primary: #7289da;
-  --secondary: #43b581;
-  --background: #1a1a1a;
-  --surface: #2d2d2d;
-  --text: #ffffff;
-}
-body {
-  background: var(--background);
-  color: var(--text);
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  margin: 0; min-height: 100vh;
-}
-.container {
-  max-width: 370px;
-  margin: 120px auto 0;
-  background: var(--surface);
-  border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.19);
-  padding: 34px 24px 24px 24px;
-  display: flex; flex-direction: column; align-items: center;
-}
-h2 {
-  color: var(--primary);
-  margin-bottom: 12px;
-}
-label { color: var(--secondary); font-weight: 600; display: block; }
-input[type="text"], input[type="number"] {
-  width: 100%; max-width: 240px; padding: 10px;
-  border-radius: 7px; border: none; margin: 7px 0 15px 0;
-  font-size: 1rem; background: #181a20; color: #fff;
-  box-shadow: 0 1px 5px #2223;
-}
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0;}
-button {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 30px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 14px;
-  transition: background 0.16s;
-}
-button:disabled {
-  background: #444a;
-  color: #fff;
-  cursor: not-allowed;
-}
-.status-msg {
-  margin-top: 16px;
-  font-size: 1rem;
-  text-align: center;
-}
-.recipient-box {
-  color: var(--secondary);
-  font-weight: 700;
-  margin-top: -10px;
-  margin-bottom: 8px;
-}
+    /* --- same as your good dark theme before --- */
+    body { background: #1a1a1a; color: #fff; font-family: 'Segoe UI',system-ui,sans-serif; margin: 0; min-height: 100vh; }
+    .container { max-width: 370px; margin: 120px auto 0; background: #2d2d2d; border-radius: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.19); padding: 34px 24px 24px 24px; display: flex; flex-direction: column; align-items: center; }
+    h2 { color: #7289da; margin-bottom: 12px;}
+    label { color: #43b581; font-weight: 600; display: block; }
+    input[type="text"], input[type="number"] { width: 100%; max-width: 240px; padding: 10px; border-radius: 7px; border: none; margin: 7px 0 15px 0; font-size: 1rem; background: #181a20; color: #fff; box-shadow: 0 1px 5px #2223;}
+    button { background: #7289da; color: #fff; border: none; border-radius: 8px; padding: 12px 30px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 14px; transition: background 0.16s; }
+    button:disabled { background: #444a; color: #fff; cursor: not-allowed; }
+    .status-msg { margin-top: 16px; font-size: 1rem; text-align: center; }
+    .recipient-box { color: #43b581; font-weight: 700; margin-top: -10px; margin-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -76,7 +23,7 @@ button:disabled {
     <form id="transForm" autocomplete="off">
       <label for="toUid">Recipient UID</label>
       <input type="text" id="toUid" required autocomplete="off" placeholder="Paste UID here" />
-      <div id="recipientBox"></div>
+      <div id="recipientBox" class="recipient-box"></div>
       <label for="amount">Amount</label>
       <input type="number" id="amount" min="1" required placeholder="How much to send?"/>
       <button type="submit" id="sendBtn" disabled>Send</button>
@@ -100,7 +47,8 @@ button:disabled {
     const database = getDatabase(app);
     const auth = getAuth();
 
-    let myUid = null, myName = "", myCoins = 0;
+    let myUid = null;
+    let ready = false;
 
     function updateRecipientBox(uid) {
       const box = document.getElementById('recipientBox');
@@ -108,7 +56,9 @@ button:disabled {
       box.textContent = "";
       sendBtn.disabled = true;
 
-      if (!uid || !myUid) return;
+      // Only run lookup when authenticated (ready)
+      if (!uid || !ready || !myUid) return;
+
       if (uid === myUid) {
         box.textContent = "You cannot send money to yourself.";
         box.style.color = "#ff4c6c";
@@ -126,6 +76,10 @@ button:disabled {
           box.style.color = "#ff4c6c";
           sendBtn.disabled = true;
         }
+      }).catch(() => {
+        box.textContent = "Error fetching recipient.";
+        box.style.color = "#ff4c6c";
+        sendBtn.disabled = true;
       });
     }
 
@@ -140,18 +94,18 @@ button:disabled {
         window.location.href = "index.html";
       } else {
         myUid = user.uid;
-        get(ref(database, `users/${myUid}`)).then(snapshot => {
-          if (snapshot.exists()) {
-            myName = snapshot.val().name || user.email;
-            myCoins = snapshot.val().coins || 0;
-          }
-        });
+        ready = true;
+        // If input box already has value, check it:
+        const toUidInput = document.getElementById('toUid');
+        if (toUidInput.value.trim()) {
+          updateRecipientBox(toUidInput.value.trim());
+        }
       }
     });
 
     document.getElementById('toUid').addEventListener('input', function() {
-      updateRecipientBox(this.value.trim());
-      showStatus("");
+      if (ready) updateRecipientBox(this.value.trim());
+      document.getElementById('statusMsg').textContent = "";
     });
 
     document.getElementById('transForm').addEventListener('submit', function(e){
@@ -160,52 +114,39 @@ button:disabled {
       const toUid = document.getElementById('toUid').value.trim();
       const amount = parseInt(document.getElementById('amount').value, 10);
 
-      if (toUid === myUid) {
-        showStatus("You cannot send money to yourself.", "#ff4c6c");
-        return;
+      if (!ready || !myUid || !toUid || toUid === myUid) {
+        showStatus("Invalid recipient.", "#ff4c6c"); return;
       }
-      if (!toUid || isNaN(amount) || amount < 1) {
-        showStatus("Enter a valid recipient UID and amount.", "#ff4c6c");
-        return;
+      if (isNaN(amount) || amount < 1) {
+        showStatus("Enter a valid amount.", "#ff4c6c"); return;
       }
-
-      // Transaction logic (atomic)
       const fromRef = ref(database, `users/${myUid}/coins`);
       const toRef = ref(database, `users/${toUid}/coins`);
 
-      // First, check both exist
       Promise.all([
         get(ref(database, `users/${myUid}`)),
         get(ref(database, `users/${toUid}`))
       ]).then(([snapFrom, snapTo]) => {
         if (!snapTo.exists()) {
-          showStatus("Recipient not found.", "#ff4c6c");
-          return;
+          showStatus("Recipient not found.", "#ff4c6c"); return;
         }
-        if (!snapFrom.exists() || (snapFrom.val().coins || 0) < amount) {
-          showStatus("Insufficient balance.", "#ff4c6c");
-          return;
+        if (!snapFrom.exists() || (snapFrom.val().coins||0) < amount) {
+          showStatus("Insufficient balance.", "#ff4c6c"); return;
         }
-        // Transaction: decrement sender, increment receiver
-        runTransaction(fromRef, (curr) => {
-          if ((curr || 0) < amount) return; // Insufficient, abort
-          return (curr || 0) - amount;
+        runTransaction(fromRef, curr => {
+          if ((curr||0) < amount) return; // Abort
+          return (curr||0) - amount;
         }).then(res1 => {
           if (!res1.committed) {
-            showStatus("Insufficient balance.", "#ff4c6c");
-            return;
+            showStatus("Insufficient balance.", "#ff4c6c"); return;
           }
-          runTransaction(toRef, (curr) => (curr || 0) + amount).then(() => {
-            showStatus("Transaction successful! Sent " + amount + " coins.", "#43b581");
+          runTransaction(toRef, curr => (curr||0)+amount).then(() => {
+            showStatus(`Sent ${amount} coins!`, "#43b581");
             document.getElementById('transForm').reset();
             document.getElementById('recipientBox').textContent = "";
             document.getElementById('sendBtn').disabled = true;
-          }).catch(()=>{
-            showStatus("Failed to credit recipient.", "#ff4c6c");
-          });
-        }).catch(()=>{
-          showStatus("Transaction failed. Try again.", "#ff4c6c");
-        });
+          }).catch(()=>showStatus("Failed to credit recipient.", "#ff4c6c"));
+        }).catch(()=>showStatus("Transaction failed. Try again.", "#ff4c6c"));
       });
     });
   </script>
