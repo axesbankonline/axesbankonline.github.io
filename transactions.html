@@ -5,7 +5,6 @@
   <title>Send Money - Axes Bank</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* --- same as your good dark theme before --- */
     body { background: #1a1a1a; color: #fff; font-family: 'Segoe UI',system-ui,sans-serif; margin: 0; min-height: 100vh; }
     .container { max-width: 370px; margin: 120px auto 0; background: #2d2d2d; border-radius: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.19); padding: 34px 24px 24px 24px; display: flex; flex-direction: column; align-items: center; }
     h2 { color: #7289da; margin-bottom: 12px;}
@@ -55,20 +54,18 @@
       const sendBtn = document.getElementById('sendBtn');
       box.textContent = "";
       sendBtn.disabled = true;
-
-      // Only run lookup when authenticated (ready)
-      if (!uid || !ready || !myUid) return;
-
+      if (!ready || !uid || !myUid) return;
       if (uid === myUid) {
         box.textContent = "You cannot send money to yourself.";
         box.style.color = "#ff4c6c";
         sendBtn.disabled = true;
         return;
       }
+      // Strictly check for recipient in users node
       get(ref(database, `users/${uid}`)).then(snapshot => {
         if (snapshot.exists()) {
-          const name = snapshot.val().name || "(No Name)";
-          box.textContent = "Recipient: " + name;
+          const user = snapshot.val();
+          box.textContent = "Recipient: " + (user.name || "(No Name)");
           box.style.color = "#43b581";
           sendBtn.disabled = false;
         } else {
@@ -76,17 +73,16 @@
           box.style.color = "#ff4c6c";
           sendBtn.disabled = true;
         }
-      }).catch(() => {
-        box.textContent = "Error fetching recipient.";
+      }).catch((e) => {
+        box.textContent = "Error fetching recipient: " + e.message;
         box.style.color = "#ff4c6c";
         sendBtn.disabled = true;
       });
     }
 
     function showStatus(msg, color="#43b581") {
-      const msgDiv = document.getElementById('statusMsg');
-      msgDiv.textContent = msg;
-      msgDiv.style.color = color;
+      document.getElementById('statusMsg').textContent = msg;
+      document.getElementById('statusMsg').style.color = color;
     }
 
     onAuthStateChanged(auth, user => {
@@ -95,11 +91,9 @@
       } else {
         myUid = user.uid;
         ready = true;
-        // If input box already has value, check it:
+        // If input box already has value, check it
         const toUidInput = document.getElementById('toUid');
-        if (toUidInput.value.trim()) {
-          updateRecipientBox(toUidInput.value.trim());
-        }
+        if (toUidInput.value.trim()) updateRecipientBox(toUidInput.value.trim());
       }
     });
 
@@ -120,9 +114,9 @@
       if (isNaN(amount) || amount < 1) {
         showStatus("Enter a valid amount.", "#ff4c6c"); return;
       }
+      // Transaction logic checks balance and recipient existence
       const fromRef = ref(database, `users/${myUid}/coins`);
       const toRef = ref(database, `users/${toUid}/coins`);
-
       Promise.all([
         get(ref(database, `users/${myUid}`)),
         get(ref(database, `users/${toUid}`))
