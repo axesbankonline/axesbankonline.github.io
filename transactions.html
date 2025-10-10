@@ -5,122 +5,131 @@
   <title>Send Money - Axes Bank</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      background: #161622;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .transact-container {
-      background: rgba(0,0,0,0.7);
-      padding: 32px 40px 32px 40px;
-      border-radius: 12px;
-      box-shadow: 0 6px 30px rgba(60,60,80,0.5);
-      width: 340px;
-      text-align: center;
-    }
-    .transact-container h2 {
-      margin-bottom: 22px;
-      font-weight: 600;
-      letter-spacing: 1px;
-    }
-    input, textarea, button {
-      width: 92%;
-      margin: 10px 0 18px 0;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      outline: none;
-    }
-    input, textarea {
-      background: #232336;
-      color: #fff;
-    }
-    button {
-      background-color: #43b581;
-      color: #fff;
-      font-weight: bold;
-      transition: background 0.2s;
-      cursor: pointer;
-    }
-    button:hover:enabled {
-      background-color: #2fa06c;
-    }
-    .error-msg {
-      color: #fd696e;
-      font-size: 0.93rem;
-      margin: -12px 0 8px 0;
-      display: none;
-    }
-    .tx-status {
-      font-weight: bold;
-      margin-top: 12px;
-      font-size: 1rem;
-    }
+    body { background: #161622; color: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .transact-container { background: rgba(0,0,0,0.7); padding: 32px 40px; border-radius: 12px; box-shadow: 0 6px 30px rgba(60,60,80,0.5); width: 340px; text-align: center; }
+    .transact-container h2 { margin-bottom: 22px; font-weight: 600; }
+    input, button { width: 92%; margin: 10px 0 18px 0; padding: 12px; border: none; border-radius: 6px; font-size: 1rem; outline: none; }
+    input { background: #232336; color: #fff; }
+    button { background-color: #43b581; color: #fff; font-weight: bold; transition: background 0.2s; cursor: pointer; }
+    button:hover:enabled { background-color: #2fa06c; }
+    .error-msg { color: #fd696e; font-size: 0.93rem; margin: -12px 0 8px 0; display: none; }
+    .tx-status { font-weight: bold; margin-top: 12px; font-size: 1rem; }
+    .recipient-label { color: #35dde5; margin-bottom: 12px; }
+    .confirm-section { margin: 15px 0 0 0; background: #232336; padding: 16px 8px; border-radius: 8px; }
   </style>
 </head>
 <body>
   <div class="transact-container">
     <h2>Send Money</h2>
     <div>
-      <input type="text" id="uid" placeholder="Recipient UID or Full Name">
-      <div class="error-msg" id="uidError">Please enter recipient UID or full name.</div>
+      <input type="text" id="uid" placeholder="Recipient UID">
+      <div class="error-msg" id="uidError">Enter a valid UID.</div>
     </div>
+    <div class="recipient-label" id="recipientName"></div>
     <div>
       <input type="number" id="amount" placeholder="Amount (₹)" min="1" step="0.01">
       <div class="error-msg" id="amountError">Enter a valid amount (above 0).</div>
     </div>
-    <div>
-      <textarea id="note" rows="2" placeholder="Note (optional)"></textarea>
-    </div>
-    <button id="sendBtn">Send Money</button>
+    <button id="sendBtn">Next</button>
     <div class="tx-status" id="txStatus"></div>
+    <div class="confirm-section" id="confirmSection" style="display: none;">
+      <div id="confirmMessage"></div>
+      <button id="confirmYes">Send</button>
+      <button id="confirmNo" style="background:#fd696e; margin-left:8px;">Cancel</button>
+    </div>
   </div>
   <script>
-    const sendBtn = document.getElementById('sendBtn');
+    // Example "database" (replace this logic with actual fetch from database)
+    const userDB = {
+      'abc123': 'Aman Sharma',
+      'xyz456': 'Priya Patel',
+      'uid999': 'Rahul Gupta'
+    };
+
+    function fetchNameByUID(uid) {
+      // Simulate API/Firebase call; replace with actual call
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if(userDB[uid]) resolve(userDB[uid]);
+          else reject('No user found');
+        }, 500);
+      });
+    }
+
     const uidInput = document.getElementById('uid');
-    const amountInput = document.getElementById('amount');
-    const noteInput = document.getElementById('note');
+    const recipientName = document.getElementById('recipientName');
     const uidError = document.getElementById('uidError');
+    const amountInput = document.getElementById('amount');
     const amountError = document.getElementById('amountError');
     const txStatus = document.getElementById('txStatus');
+    const sendBtn = document.getElementById('sendBtn');
+    const confirmSection = document.getElementById('confirmSection');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmYes = document.getElementById('confirmYes');
+    const confirmNo = document.getElementById('confirmNo');
+    let cachedName = '';
 
-    // Simple front-end validation & simulation
-    sendBtn.onclick = function() {
-      txStatus.textContent = '';
-      let valid = true;
-      if (!uidInput.value.trim()) {
-        uidError.style.display = 'block';
-        valid = false;
-      } else {
+    uidInput.onblur = async function () {
+      recipientName.textContent = '';
+      uidError.style.display = 'none';
+      cachedName = '';
+      const uid = uidInput.value.trim();
+      if (!uid) return;
+      try {
+        const name = await fetchNameByUID(uid);
+        recipientName.textContent = `Recipient: ${name}`;
+        cachedName = name;
         uidError.style.display = 'none';
+      } catch (e) {
+        recipientName.textContent = '';
+        uidError.textContent = "User not found!";
+        uidError.style.display = 'block';
+      }
+    };
+
+    sendBtn.onclick = function() {
+      amountError.style.display = 'none';
+      uidError.style.display = 'none';
+      txStatus.textContent = '';
+      // Validate
+      if (!uidInput.value.trim() || !cachedName) {
+        uidError.textContent = "Enter a valid UID and blur to resolve user!";
+        uidError.style.display = 'block';
+        return;
       }
       if (!amountInput.value || parseFloat(amountInput.value) <= 0) {
         amountError.style.display = 'block';
-        valid = false;
-      } else {
-        amountError.style.display = 'none';
+        return;
       }
-      if (!valid) return;
+      // Show confirmation prompt
+      confirmMessage.textContent = `Are you sure you want to send ₹${parseFloat(amountInput.value).toFixed(2)} to ${cachedName}?`;
+      confirmSection.style.display = 'block';
+      sendBtn.style.display = 'none';
+    };
 
+    confirmYes.onclick = function() {
+      // Simulate send (replace with real backend call!)
+      confirmSection.style.display = 'none';
+      sendBtn.style.display = 'block';
       sendBtn.disabled = true;
       sendBtn.textContent = "Sending...";
-      
-      // Simulate processing
-      setTimeout(() => {
+      setTimeout(()=>{
         sendBtn.disabled = false;
-        sendBtn.textContent = "Send Money";
-        txStatus.textContent = `₹${parseFloat(amountInput.value).toFixed(2)} sent to "${uidInput.value.trim()}" successfully!`;
+        sendBtn.textContent = "Next";
+        txStatus.textContent = `₹${parseFloat(amountInput.value).toFixed(2)} sent to "${cachedName}" successfully!`;
         txStatus.style.color = '#43b581';
-        // reset fields if you want
         amountInput.value = '';
-        noteInput.value = '';
-      }, 1400);
+        uidInput.value = '';
+        cachedName = '';
+        recipientName.textContent = '';
+      }, 1300);
+    };
+
+    confirmNo.onclick = function() {
+      confirmSection.style.display = 'none';
+      sendBtn.style.display = 'block';
+      txStatus.textContent = 'Transaction cancelled.';
+      txStatus.style.color = '#fd696e';
     };
   </script>
 </body>
