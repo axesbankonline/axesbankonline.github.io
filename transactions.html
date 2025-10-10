@@ -2,34 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Send Money - Axes Bank</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transaction Ticket System</title>
   <style>
-    body { background: #1a1a1a; color: #fff; font-family: 'Segoe UI',system-ui,sans-serif; margin: 0; min-height: 100vh; }
-    .container { max-width: 370px; margin: 120px auto 0; background: #2d2d2d; border-radius: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.19); padding: 34px 24px 24px 24px; display: flex; flex-direction: column; align-items: center; }
-    h2 { color: #7289da; margin-bottom: 12px;}
-    label { color: #43b581; font-weight: 600; display: block; }
-    input[type="text"], input[type="number"] { width: 100%; max-width: 240px; padding: 10px; border-radius: 7px; border: none; margin: 7px 0 15px 0; font-size: 1rem; background: #181a20; color: #fff; box-shadow: 0 1px 5px #2223;}
-    button { background: #7289da; color: #fff; border: none; border-radius: 8px; padding: 12px 30px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 14px; transition: background 0.16s; }
-    .status-msg { margin-top: 16px; font-size: 1rem; text-align: center; }
+    body { font-family: 'Segoe UI', Arial; background: #222; color: #fff; margin: 0; min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center;}
+    .box { background: #2d2d2d; border-radius: 14px; box-shadow:0 8px 30px #1114; padding:38px 34px; margin:28px 0;}
+    .btn { background: #7289da; color: #fff; border:none; border-radius:7px; padding:13px 36px; font-size:1.11em; margin-top:11px; cursor:pointer;}
+    h2 { color:#43b581;}
+    label { margin-top:15px; display:block; }
+    input { border-radius:5px; border:none; padding:8px; margin-top:8px; width:170px;}
+    .msg { margin-top:13px; font-size:1em; padding:4px;}
+    .info { color:#43b581;}
+    .error { color:#ff5c5c;}
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Send Money</h2>
-    <form id="transForm" autocomplete="off">
-      <label for="toUid">Recipient UID</label>
-      <input type="text" id="toUid" required autocomplete="off" placeholder="Paste UID here" />
-      <label for="amount">Amount</label>
-      <input type="number" id="amount" min="1" required placeholder="How much to send?"/>
-      <button type="submit" id="sendBtn">Send</button>
-      <div class="status-msg" id="statusMsg"></div>
-    </form>
+  <div class="box" id="createBox">
+    <h2>Create Transaction Ticket</h2>
+    <label>Offer Amount:</label>
+    <input type="number" id="offerAmount" min="1" placeholder="Coins to offer"/>
+    <button class="btn" onclick="createTicket()">Create Ticket</button>
+    <div class="msg" id="createMsg"></div>
   </div>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getDatabase, ref, get, runTransaction } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+  <div class="box" id="enterBox">
+    <h2>Enter Ticket Number</h2>
+    <label>Ticket Number:</label>
+    <input type="text" id="ticketNumber" placeholder="Paste code here"/>
+    <button class="btn" onclick="lookupTicket()">Lookup Ticket</button>
+    <div class="msg" id="lookupMsg"></div>
+  </div>
+  <!-- Firebase SDKs (Compat for quick copy/paste, adjust as needed for moduler) -->
+  <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
+  <script>
+    // Your Firebase config:
     const firebaseConfig = {
       apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
       authDomain: "bankdata-fe769.firebaseapp.com",
@@ -39,60 +45,67 @@
       messagingSenderId: "967507656753",
       appId: "1:967507656753:web:562c1383dca78d56471510"
     };
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-    const auth = getAuth();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
 
-    let myUid = null;
-
-    function showStatus(msg, color="#43b581") {
-      const msgDiv = document.getElementById('statusMsg');
-      msgDiv.textContent = msg;
-      msgDiv.style.color = color;
+    // Helper: show status message
+    function showMsg(id, msg, isError) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.className = 'msg ' + (isError ? 'error' : 'info');
     }
 
-    onAuthStateChanged(auth, user => {
+    // CREATE TICKET
+    function createTicket() {
+      showMsg("createMsg", "", false);
+      const amount = parseInt(document.getElementById("offerAmount").value, 10);
+      const user = auth.currentUser;
       if (!user) {
-        window.location.href = "index.html";
-      } else {
-        myUid = user.uid;
+        showMsg("createMsg", "You must be signed in!", true); return;
       }
-    });
-
-    document.getElementById('transForm').addEventListener('submit', function(e){
-      e.preventDefault();
-      showStatus("");
-      const toUid = document.getElementById('toUid').value.trim();
-      const amount = parseInt(document.getElementById('amount').value, 10);
-
-      if (!myUid) {
-        showStatus("Still loading, please wait...", "#ff4c6c"); return;
+      if (!amount || amount < 1) {
+        showMsg("createMsg", "Enter a valid amount.", true); return;
       }
-      if (!toUid || toUid === myUid) {
-        showStatus("Invalid recipient.", "#ff4c6c"); return;
-      }
-      if (isNaN(amount) || amount < 1) {
-        showStatus("Enter a valid amount.", "#ff4c6c"); return;
-      }
-
-      // Only modify own coins atomically (because can't write recipient's coins)
-      const fromRef = ref(database, `users/${myUid}/coins`);
-      get(ref(database, `users/${myUid}`)).then(snapFrom => {
-        if (!snapFrom.exists() || (snapFrom.val().coins||0) < amount) {
-          showStatus("Insufficient balance.", "#ff4c6c"); return;
-        }
-        runTransaction(fromRef, curr => {
-          if ((curr||0) < amount) return;
-          return (curr||0) - amount;
-        }).then(res1 => {
-          if (!res1.committed) {
-            showStatus("Insufficient balance.", "#ff4c6c"); return;
-          }
-          // Success subtract; now add directly to recipient via "update" REST API, admin, or backend server (not allowed with current rules from client)
-          showStatus(`Sent ${amount} coins to ${toUid}! (Recipient's balance may not update due to rules)`, "#43b581");
-          document.getElementById('transForm').reset();
-        }).catch(()=>showStatus("Transaction failed. Try again.", "#ff4c6c"));
+      // Generate a ticket number (timestamp + random)
+      const ticketId = Date.now().toString(36) + Math.floor(Math.random()*10000).toString(36);
+      // Save ticket to DB
+      db.ref("tickets/"+ticketId).set({
+        senderUid: user.uid,
+        senderName: user.displayName || user.email || "User",
+        amount: amount,
+        status: "pending"
+      }).then(() => {
+        showMsg("createMsg", "Ticket created! Ticket Number:\n" + ticketId, false);
+        document.getElementById("offerAmount").value = "";
+      }).catch(() => {
+        showMsg("createMsg", "Error creating ticket.", true);
       });
+    }
+
+    // LOOKUP TICKET
+    function lookupTicket() {
+      showMsg("lookupMsg", "", false);
+      const ticketId = document.getElementById("ticketNumber").value.trim();
+      if (!ticketId) {
+        showMsg("lookupMsg", "Enter a ticket number.", true); return;
+      }
+      db.ref("tickets/"+ticketId).get().then(snap => {
+        if (!snap.exists()) {
+          showMsg("lookupMsg", "No ticket found for this number.", true);
+          return;
+        }
+        const data = snap.val();
+        showMsg("lookupMsg", `Someone (${data.senderName}) is offering you ${data.amount} coins.`, false);
+        document.getElementById("ticketNumber").value = "";
+      }).catch(() => {
+        showMsg("lookupMsg", "Error looking up ticket.", true);
+      });
+    }
+
+    // Simple Authentication (anonymous for quick test)
+    auth.onAuthStateChanged(user => {
+      if (!user) auth.signInAnonymously();
     });
   </script>
 </body>
