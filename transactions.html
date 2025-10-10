@@ -55,41 +55,41 @@
       el.className = 'msg ' + (isError ? 'error' : 'info');
     }
 
-    // CREATE TICKET (uses name from db)
-function createTicket() {
-  showMsg("createMsg", "", false);
-  const amount = parseInt(document.getElementById("offerAmount").value, 10);
-  const user = auth.currentUser;
-  if (!user) { showMsg("createMsg", "You must be signed in!", true); return; }
-  if (!amount || amount < 1) { showMsg("createMsg", "Enter a valid amount.", true); return; }
-  // Deduct coins from sender before creating ticket
-  const coinsRef = db.ref("users/" + user.uid + "/coins");
-  coinsRef.transaction(coins => {
-    if (coins == null || coins < amount) return; // insufficient
-    return coins - amount;
-  }, (err, committed) => {
-    if (err || !committed) {
-      showMsg("createMsg", "Insufficient funds or error deducting coins.", true);
-      return;
-    }
-    // Deduction succeeded, now create ticket
-    const ticketId = Date.now().toString(36) + Math.floor(Math.random() * 10000).toString(36);
-    db.ref("users/" + user.uid + "/name").get().then(snap2 => {
-      const name = snap2.exists() ? snap2.val() : (user.displayName || user.email || "User");
-      db.ref("tickets/" + ticketId).set({
-        senderUid: user.uid,
-        senderName: name,
-        amount: amount,
-        status: "pending"
-      }).then(() => {
-        showMsg("createMsg", "Ticket created! Ticket Number:\n" + ticketId, false);
-        document.getElementById("offerAmount").value = "";
-      }).catch(() => {
-        showMsg("createMsg", "Error creating ticket.", true);
+    // CREATE TICKET: deduct sender's coins atomically before ticket is created
+    function createTicket() {
+      showMsg("createMsg", "", false);
+      const amount = parseInt(document.getElementById("offerAmount").value, 10);
+      const user = auth.currentUser;
+      if (!user) { showMsg("createMsg", "You must be signed in!", true); return; }
+      if (!amount || amount < 1) { showMsg("createMsg", "Enter a valid amount.", true); return; }
+      // Deduct coins first using transaction
+      const coinsRef = db.ref("users/"+user.uid+"/coins");
+      coinsRef.transaction(coins => {
+        if (coins == null || coins < amount) return; // Not enough
+        return coins - amount;
+      }, (err, committed, snap) => {
+        if (err || !committed) {
+          showMsg("createMsg", "Insufficient funds or error deducting coins.", true);
+          return;
+        }
+        // Now get name and create ticket
+        const ticketId = Date.now().toString(36) + Math.floor(Math.random()*10000).toString(36);
+        db.ref("users/"+user.uid+"/name").get().then(snap2 => {
+          const name = snap2.exists() ? snap2.val() : (user.displayName || user.email || "User");
+          db.ref("tickets/"+ticketId).set({
+            senderUid: user.uid,
+            senderName: name,
+            amount: amount,
+            status: "pending"
+          }).then(() => {
+            showMsg("createMsg", "Ticket created! Ticket Number:\n" + ticketId, false);
+            document.getElementById("offerAmount").value = "";
+          }).catch(() => {
+            showMsg("createMsg", "Error creating ticket.", true);
+          });
+        });
       });
-    });
-  });
-}
+    }
 
     let lastTicketData = null;
     let lastTicketId = null;
@@ -109,30 +109,36 @@ function createTicket() {
           showMsg("lookupMsg", "This ticket has already been claimed or is inactive.", true); return;
         }
         showMsg("lookupMsg", `Someone (${data.senderName}) is offering you ${data.amount} coins.`);
-        const btn = document.createElement("button");
-        btn.textContent = "Accept Offer";
-        btn.className = "btn";
-        btn.id = "acceptBtn";
-        btn.onclick = acceptOffer;
-        document.getElementById("lookupMsg").appendChild(document.createElement("br"));
-        document.getElementById("lookupMsg").appendChild(btn);
+        const user = auth.currentUser;
+        if (user && user.uid !== data.senderUid) {
+          const btn = document.createElement("button");
+          btn.textContent = "Accept Offer";
+          btn.className = "btn";
+          btn.id = "acceptBtn";
+          btn.onclick = acceptOffer;
+          document.getElementById("lookupMsg").appendChild(document.createElement("br"));
+          document.getElementById("lookupMsg").appendChild(btn);
+        } else if (user && user.uid === data.senderUid) {
+          showMsg("lookupMsg", "You cannot accept your own ticket.", true);
+        }
       }).catch(() => {
         showMsg("lookupMsg", "Error looking up ticket.", true);
       });
     }
 
-    // Accept Offer (adds coins to current user, changes ticket status)
+    // Accept Offer (adds coins to recipient, marks ticket used)
     function acceptOffer() {
       const user = auth.currentUser;
       if (!user) { showMsg("lookupMsg", "You must be signed in to accept.", true); return; }
       const amount = lastTicketData?.amount;
       if (!amount || !lastTicketId) { showMsg("lookupMsg", "Invalid ticket.", true); return;}
-      // Add coins
+      if (lastTicketData.senderUid === user.uid) {
+        showMsg("lookupMsg", "You can't accept your own ticket!", true); return;
+      }
       db.ref("users/"+user.uid+"/coins").transaction(coins => (coins||0) + amount, (err, committed, snap) => {
         if (err || !committed) {
           showMsg("lookupMsg", "Error adding coins to your balance.", true); return;
         }
-        // Update ticket status
         db.ref("tickets/"+lastTicketId+"/status").set("accepted").then(() => {
           showMsg("lookupMsg", "Offer accepted! " + amount + " coins added to your balance.", false);
           document.getElementById("acceptBtn").remove();
@@ -141,7 +147,7 @@ function createTicket() {
       });
     }
 
-    // Simple Authentication (anonymous for testing)
+    // Simple Authentication (anonymous for testing/demo)
     auth.onAuthStateChanged(user => {
       // For register: ensure /users/{uid}/name is set for all users!
       if (!user) auth.signInAnonymously();
