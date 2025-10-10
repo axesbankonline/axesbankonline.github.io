@@ -132,8 +132,9 @@
       const senderCoinsRef = db.ref("users/" + senderUid + "/coins");
       senderCoinsRef.transaction(curr => {
         // Abort transaction by returning undefined when there are not enough coins
-        if (curr === null || curr === undefined) return; // sender has no balance node -> abort
-        if (curr < amount) return; // insufficient funds -> abort
+const current = (curr || 0);
+if (current < amount) return; // not enough balance
+return current - amount;
         return curr - amount; // subtract and commit
       }, (err, committed, senderSnap) => {
         if (err) {
