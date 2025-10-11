@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Coin Cheque System — Escrow Logic (No Login)</title>
+  <title>Coin Cheque System — Custom Balances</title>
   <style>
     body { font-family: Segoe UI, Arial; background: #222; color: #fff; min-height:100vh; display:flex; flex-direction:column; align-items:center;}
     .box { background:#2d2d2d;border-radius:14px;box-shadow:0 8px 30px #1114; padding:38px 34px; margin:28px 0;}
@@ -20,7 +20,6 @@
   <div class="box" id="mainBox" style="display:none;">
     <h2>Your Info</h2>
     <div id="userInfo"></div>
-    <button class="btn" onclick="addCoins(100)" style="background:#43b581;">Add 100 coins</button>
     <h2 style="margin-top:2em;">Write a Cheque</h2>
     <div class="row">
       <input type="number" id="offerAmount" min="1" placeholder="Amount (coins)">
@@ -69,20 +68,12 @@
           let c = snap.exists() ? parseInt(snap.val(),10) : 0;
           document.getElementById("userInfo").textContent = `Your ID: ${user.uid}\nCoins: ${c}`;
         });
-        db.ref("users/"+user.uid+"/coins").once("value").then(s=>{
-          if (!s.exists()) db.ref("users/"+user.uid+"/coins").set(500);
-        });
+        // NO automatic coin balance creation!
         db.ref("users/"+user.uid+"/name").set("User-" + user.uid.substring(0,6));
       } else {
         auth.signInAnonymously();
       }
     });
-
-    function addCoins(n=100){
-      if (!currentUser) return;
-      const ref=db.ref("users/"+currentUser.uid+"/coins");
-      ref.transaction(v=>parseInt(v||0)+n);
-    }
 
     // ESCROW CHEQUE LOGIC
     function createTicket() {
