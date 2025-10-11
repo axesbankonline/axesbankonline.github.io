@@ -180,30 +180,41 @@
     }
 
     // Accept only deducts sender when offer is accepted, and deletes ticket
-    function acceptOffer() {
-      if (!currentUser) { showMsg("lookupMsg","Not signed in.",true); return; }
-      const ticketId=lastTicketId, data=lastTicketData;
-      if (!ticketId||!data) { showMsg("lookupMsg","Invalid ticket.",true); return; }
-      if (currentUser.uid===data.senderUid) { showMsg("lookupMsg","You cannot accept your own ticket.",true); return; }
-      showMsg("lookupMsg","Processing...",false);
-      const senderCoinsRef=db.ref("users/"+data.senderUid+"/coins");
-      senderCoinsRef.transaction(coins=>{
-        if (coins==null||coins<data.amount) return;
-        return coins-data.amount;
-      },(err,committed,snap)=>{
-        if (err) {showMsg("lookupMsg","Transaction error.",true);return;}
-        if (!committed){showMsg("lookupMsg","Sender does not have enough coins.",true);return;}
-        const receiverCoinsRef=db.ref("users/"+currentUser.uid+"/coins");
-        receiverCoinsRef.transaction(c=>(c||0)+data.amount,(ee,ec)=>{
-          if (ee||!ec){showMsg("lookupMsg","Could not credit your account.",true);senderCoinsRef.transaction(c=>(c||0)+data.amount);return;}
-          db.ref("tickets/"+ticketId).remove().then(()=>{
-            showMsg("lookupMsg",`✅ Offer accepted! ${data.amount} coins added to your balance.`,false);
-            document.getElementById("acceptBtn")?.remove();
-            lastTicketId = null; lastTicketData = null;
-          });
-        });
-      });
+function acceptOffer() {
+  if (!currentUser) { showMsg("lookupMsg","Not signed in.",true); return; }
+  const ticketId=lastTicketId, data=lastTicketData;
+  if (!ticketId||!data) { showMsg("lookupMsg","Invalid ticket.",true); return; }
+  if (currentUser.uid===data.senderUid) { showMsg("lookupMsg","You cannot accept your own ticket.",true); return; }
+  showMsg("lookupMsg","Processing...",false);
+  const senderCoinsRef = db.ref("users/"+data.senderUid+"/coins");
+  senderCoinsRef.transaction(raw=>{
+    let coins = typeof raw === 'string' ? parseInt(raw, 10) : (raw || 0);
+    if (coins < data.amount) return; // abort transaction
+    return coins - data.amount;
+  },(err,committed,snap)=>{
+    if (err || !committed) {
+      showMsg("lookupMsg","Sender does not have enough coins.",true);
+      console.log("Transaction failed. Sender coins:", snap && snap.val());
+      return;
     }
+    const receiverCoinsRef = db.ref("users/" + currentUser.uid + "/coins");
+    receiverCoinsRef.transaction(rcurr => {
+      let rc = typeof rcurr === 'string' ? parseInt(rcurr, 10) : (rcurr || 0);
+      return rc + data.amount;
+    },(ee,ec)=>{
+      if (ee || !ec){
+        showMsg("lookupMsg","Could not credit your account.",true);
+        senderCoinsRef.transaction(c => (typeof c === 'string' ? parseInt(c, 10) : (c || 0)) + data.amount);
+        return;
+      }
+      db.ref("tickets/"+ticketId).remove().then(()=>{
+        showMsg("lookupMsg",`✅ Offer accepted! ${data.amount} coins added to your balance.`,false);
+        document.getElementById("acceptBtn")?.remove();
+        lastTicketId = null; lastTicketData = null;
+      });
+    });
+  });
+}
   </script>
 </body>
 </html>
