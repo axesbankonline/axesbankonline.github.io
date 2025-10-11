@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Ticket Transfer — Clean Version</title>
+  <title>Ticket Transfer — Final Proof Version</title>
   <style>
     body { font-family: Segoe UI, Arial; background: #222; color: #fff; min-height:100vh; display:flex; flex-direction:column; align-items:center;}
     .box { background:#2d2d2d;border-radius:14px;box-shadow:0 8px 30px #1114; padding:38px 34px; margin:28px 0;}
@@ -51,7 +51,7 @@
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
   <script>
-    // --- Config ---
+    // -- Firebase --
     const firebaseConfig = {
       apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
       authDomain: "bankdata-fe769.firebaseapp.com",
@@ -65,8 +65,13 @@
     const db = firebase.database();
     const auth = firebase.auth();
 
-    // --- Auth ---
-    let currentUser = null;
+    let currentUser = null, canCreate=true;
+
+    function showMsg(id, msg, isError=false) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.className = 'msg ' + (isError ? 'error' : 'info');
+    }
     function signIn() {
       showMsg("authMsg","");
       const email = document.getElementById("email").value.trim();
@@ -84,7 +89,6 @@
       auth.signOut();
       document.getElementById("mainBox").style.display = "none";
     }
-
     auth.onAuthStateChanged(user=>{
       currentUser=user;
       if (user) {
@@ -102,14 +106,6 @@
         db.ref("users/"+user.uid+"/name").set(user.email.split("@")[0]);
       }
     });
-
-    // --- Helper for msg feedback ---
-    function showMsg(id, msg, isError=false) {
-      const el = document.getElementById(id);
-      el.textContent = msg;
-      el.className = 'msg ' + (isError ? 'error' : 'info');
-    }
-    // --- Demo "airdrop" coins ---
     function addCoins(n=100){
       if (!currentUser) return;
       const ref=db.ref("users/"+currentUser.uid+"/coins");
@@ -117,7 +113,6 @@
     }
 
     // ---- TICKET SYSTEM ----
-    let canCreate = true;
     function createTicket() {
       showMsg("createMsg","");
       if (!canCreate) return showMsg("createMsg","Wait 30 seconds between creates.",true);
@@ -140,6 +135,7 @@
     }
 
     let lastTicketId = null, lastTicketData = null;
+
     function lookupTicket() {
       showMsg("lookupMsg","");
       document.getElementById("acceptBtn")?.remove();
@@ -170,27 +166,39 @@
       if (!currentUser || !lastTicketData) return;
       if (currentUser.uid === lastTicketData.senderUid)
         return showMsg("lookupMsg","You can't accept your own ticket.",true);
-      const ticketRef = db.ref("tickets/"+lastTicketId);
-      ticketRef.get().then(snap=>{
-        const data=snap.val();
-        const senderCoinsRef = db.ref("users/"+data.senderUid+"/coins");
-        senderCoinsRef.transaction(coins=>{
-          let c = Number.isFinite(coins) ? coins : parseInt(coins||0,10);
-          if (c<data.amount) return;
-          return c-data.amount;
-        },(err,committed,snap2)=>{
-          if (err||!committed)
-            return showMsg("lookupMsg","Sender does not have enough coins.",true);
-          // Credit recipient
-          db.ref("users/"+currentUser.uid+"/coins").transaction(v=>parseInt(v||0,10)+parseInt(data.amount,10),(e2,c2)=>{
+
+      // DEBUG: check coins before transaction!
+      const ticketUid = lastTicketData.senderUid;
+      const ticketAmount = parseInt(lastTicketData.amount,10);
+      db.ref("users/"+ticketUid+"/coins").get().then(snap=>{
+        let coins = snap.exists() ? parseInt(snap.val(),10) : null;
+        if (coins === null) return showMsg("lookupMsg","Sender's coins missing in database.",true);
+        if (coins < ticketAmount) return showMsg("lookupMsg",`Sender only has ${coins}, needs ${ticketAmount}.`,true);
+        // Now actually transact
+        _doTicketTransfer(ticketUid, ticketAmount, lastTicketId);
+      });
+    }
+    function _doTicketTransfer(senderUid, amount, ticketId) {
+      const senderCoinsRef = db.ref("users/"+senderUid+"/coins");
+      senderCoinsRef.transaction(coins=>{
+        let c = Number.isFinite(coins) ? coins : parseInt(coins||0,10);
+        if (c<amount) return;
+        return c-amount;
+      },(err,committed,snap2)=>{
+        if (err||!committed)
+          return showMsg("lookupMsg","Sender does not have enough coins.",true);
+        // Credit recipient
+        db.ref("users/"+currentUser.uid+"/coins").transaction(
+          v=>parseInt(v||0,10)+amount,
+          (e2,c2)=>{
             if (e2 || !c2) return showMsg("lookupMsg","Could not credit recipient.",true);
-            // Delete ticket
-            ticketRef.remove().then(()=>{
-              showMsg("lookupMsg",`✅ ${data.amount} coins transferred!`);
+            db.ref("tickets/"+ticketId).remove().then(()=>{
+              showMsg("lookupMsg",`✅ ${amount} coins transferred!`);
               document.getElementById("acceptBtn")?.remove();
+              lastTicketId = null; lastTicketData = null;
             });
-          });
-        });
+          }
+        );
       });
     }
   </script>
