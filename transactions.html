@@ -4,29 +4,111 @@
   <meta charset="UTF-8">
   <title>Coin Ticket System</title>
   <style>
-    body { font-family: Segoe UI, Arial; background: #222; color: #fff; min-height:100vh; display:flex; flex-direction:column; align-items:center;}
-    .box { background:#2d2d2d;border-radius:14px;box-shadow:0 8px 30px #1114; padding:38px 34px; margin:28px 0;}
-    .btn {background:#7289da;color:#fff;border:none;border-radius:7px;padding:13px 36px;font-size:1.11em;margin-top:11px;cursor:pointer;}
-    h2 {color:#43b581;}
-    label {margin-top:15px;display:block;}
-    input {border-radius:5px; border:none; padding:8px; margin-top:8px; width:170px;}
-    .msg {margin-top:13px;font-size:1em;padding:4px;}
-    .info { color:#43b581;}
-    .error { color:#ff5c5c;}
-    .row {display:flex;gap:8px;}
+    body {
+      font-family: Segoe UI, Arial, monospace;
+      background: #20252b;
+      color: #fff;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .box {
+      background: #242930;
+      border-radius: 14px;
+      box-shadow: 0 8px 32px #0e141a50;
+      padding: 38px 40px 32px 40px;
+      margin: 32px 0 20px 0;
+      width: 360px;
+      max-width: 94vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .info-row {
+      width: 100%;
+      background: #191d22;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      padding: 10px 16px;
+      box-sizing: border-box;
+      text-align: left;
+      font-family: "JetBrains Mono", "Fira Mono", "Consolas", monospace;
+      letter-spacing: 1px;
+      font-size: 1.08em;
+    }
+    h2 {
+      color: #6ce154;
+      font-weight: 700;
+      margin-top: 18px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    label {
+      margin-bottom: 4px;
+      font-size: 1.07em;
+      width: 100%;
+      text-align: left;
+      display: block;
+      letter-spacing: 0.25px;
+    }
+    .row {
+      width: 100%;
+      display: flex;
+      gap: 9px;
+      margin-bottom: 2px;
+    }
+    input {
+      border-radius: 5px;
+      border: none;
+      padding: 8px;
+      font-size: 1.08em;
+      width: 70%;
+      background: #181d23;
+      color: #fff;
+      box-shadow: 0 2px 8px #1118;
+    }
+    .btn {
+      background: #7289da;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 9px 20px;
+      font-size: 1.08em;
+      margin-top: 0;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.14s;
+    }
+    .btn:active {
+      background: #536bb0;
+    }
+    .msg {
+      margin-top: 10px;
+      font-size: 1em;
+      padding: 4px 0 1px 0;
+      min-height: 1em;
+      width: 98%;
+      text-align: left;
+      letter-spacing: 0.3px;
+    }
+    .info { color: #43b581; }
+    .error { color: #ff5c5c; }
   </style>
 </head>
 <body>
   <div class="box" id="mainBox" style="display:none;">
-    <h2>Your Info</h2>
-    <div id="userInfo"></div>
-    <h2 style="margin-top:2em;">Create a Ticket</h2>
+    <h2>Your Ticket Info</h2>
+    <div class="info-row" id="userInfo"></div>
+    <h2>Create a Ticket</h2>
     <div class="row">
       <input type="number" id="offerAmount" min="1" placeholder="Amount (coins)">
       <button class="btn" onclick="createTicket()">Create Ticket</button>
     </div>
     <div class="msg" id="createMsg"></div>
-    <div style="margin-top:2em;"></div>
     <h2>Redeem a Ticket</h2>
     <div class="row">
       <input type="text" id="ticketCode" placeholder="Ticket Code">
@@ -38,7 +120,7 @@
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
   <script>
-    // Firebase
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
       authDomain: "bankdata-fe769.firebaseapp.com",
@@ -59,13 +141,17 @@
       el.className = 'msg ' + (isError ? 'error' : 'info');
     }
 
+    // Anonymous login automatically, no login UI
     auth.onAuthStateChanged(user=>{
       if (user) {
         currentUser = user;
         document.getElementById("mainBox").style.display = "";
-        db.ref("users/"+user.uid+"/coins").on("value", snap=>{
-          let c = snap.exists() ? parseInt(snap.val(),10) : 0;
-          document.getElementById("userInfo").textContent = `Your ID: ${user.uid}\nCoins: ${c}`;
+        db.ref("users/"+user.uid).on("value", snap => {
+          const data = snap.val() || {};
+          let coins = typeof data.coins === "number" ? data.coins : parseInt(data.coins || 0, 10);
+          let name = data.name || "User-" + user.uid.substring(0, 6);
+          document.getElementById("userInfo").textContent =
+            `ID:   ${user.uid}\nName: ${name}\nCoins: ${coins}`;
         });
         db.ref("users/"+user.uid+"/name").set("User-" + user.uid.substring(0,6));
       } else {
