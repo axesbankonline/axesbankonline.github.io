@@ -153,7 +153,7 @@
           document.getElementById("userInfo").textContent =
             `ID:   ${user.uid}\nName: ${name}\nCoins: ${coins}`;
         });
-        db.ref("users/"+user.uid+"/name").set("User-" + user.uid.substring(0,6));
+        
       } else {
         auth.signInAnonymously();
       }
