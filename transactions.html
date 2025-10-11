@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Ticket Transfer — Final Proof Version</title>
+  <title>Coin Cheque System — Escrow Logic</title>
   <style>
     body { font-family: Segoe UI, Arial; background: #222; color: #fff; min-height:100vh; display:flex; flex-direction:column; align-items:center;}
     .box { background:#2d2d2d;border-radius:14px;box-shadow:0 8px 30px #1114; padding:38px 34px; margin:28px 0;}
@@ -33,16 +33,16 @@
     <h2>Your Info</h2>
     <div id="userInfo"></div>
     <button class="btn" onclick="addCoins(100)" style="background:#43b581;">Add 100 coins</button>
-    <h2 style="margin-top:2em;">Create a Ticket</h2>
+    <h2 style="margin-top:2em;">Create a Coin Cheque</h2>
     <div class="row">
       <input type="number" id="offerAmount" min="1" placeholder="Amount (coins)">
-      <button class="btn" onclick="createTicket()">Create Ticket</button>
+      <button class="btn" onclick="createTicket()">Create Cheque</button>
     </div>
     <div class="msg" id="createMsg"></div>
     <div style="margin-top:2em;"></div>
-    <h2>Redeem a Ticket</h2>
+    <h2>Redeem a Cheque</h2>
     <div class="row">
-      <input type="text" id="ticketCode" placeholder="Ticket Code">
+      <input type="text" id="ticketCode" placeholder="Cheque Code">
       <button class="btn" onclick="lookupTicket()">Lookup</button>
     </div>
     <div class="msg" id="lookupMsg"></div>
@@ -112,25 +112,34 @@
       ref.transaction(v=>parseInt(v||0)+n);
     }
 
-    // ---- TICKET SYSTEM ----
+    // ---- ESCROW CHEQUE LOGIC ----
     function createTicket() {
       showMsg("createMsg","");
       if (!canCreate) return showMsg("createMsg","Wait 30 seconds between creates.",true);
       const amount = parseInt(document.getElementById("offerAmount").value,10);
       if (!currentUser) return showMsg("createMsg","Not signed in.",true);
       if (!amount || amount<1) return showMsg("createMsg","Enter a positive number.",true);
-      // Create ticket!
-      const ticketId = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
-      db.ref("tickets/"+ticketId).set({
-        senderUid: currentUser.uid,
-        senderEmail: currentUser.email,
-        amount,
-        status: "pending",
-        createdAt: Date.now()
-      }).then(()=>{
-        document.getElementById("offerAmount").value = "";
-        showMsg("createMsg",`✅ Ticket: ${ticketId}, Amount: ${amount}`);
-        canCreate = false; setTimeout(()=>canCreate=true,30000);
+      // Deduct coins up front (escrow)
+      const coinRef=db.ref("users/"+currentUser.uid+"/coins");
+      coinRef.transaction(c=>{
+        let coins=Number.isFinite(c)?c:parseInt(c||0,10);
+        if (coins<amount) return;
+        return coins-amount;
+      },(err,committed,snap)=>{
+        if (err||!committed) return showMsg("createMsg","Insufficient coins for cheque.",true);
+        // Now create ticket with escrowed amount
+        const ticketId = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+        db.ref("tickets/"+ticketId).set({
+          senderUid: currentUser.uid,
+          senderEmail: currentUser.email,
+          escrow: amount,
+          status: "pending",
+          createdAt: Date.now()
+        }).then(()=>{
+          document.getElementById("offerAmount").value = "";
+          showMsg("createMsg",`✅ Cheque created!\nCode: ${ticketId}\nAmount: ${amount}`);
+          canCreate = false; setTimeout(()=>canCreate=true,30000);
+        });
       });
     }
 
@@ -140,66 +149,44 @@
       showMsg("lookupMsg","");
       document.getElementById("acceptBtn")?.remove();
       const ticketId = document.getElementById("ticketCode").value.trim();
-      if (!ticketId) return showMsg("lookupMsg","Enter the ticket code.",true);
+      if (!ticketId) return showMsg("lookupMsg","Enter the cheque code.",true);
       db.ref("tickets/"+ticketId).get().then(snap=>{
-        if (!snap.exists()) return showMsg("lookupMsg","No such ticket.",true);
+        if (!snap.exists()) return showMsg("lookupMsg","No such cheque.",true);
         const data = snap.val();
         if (data.status !== "pending")
-          return showMsg("lookupMsg","This ticket is spent or unavailable.",true);
+          return showMsg("lookupMsg","This cheque is spent or unavailable.",true);
         lastTicketId = ticketId; lastTicketData = data;
-        showMsg("lookupMsg",`${data.senderEmail} is offering ${data.amount} coins.`);
+        showMsg("lookupMsg",`${data.senderEmail} wrote a cheque for ${data.escrow} coins.`);
         if (currentUser.uid !== data.senderUid) {
           const btn = document.createElement("button");
-          btn.textContent = "Accept Offer";
+          btn.textContent = "Redeem Cheque";
           btn.className = "btn";
           btn.id = "acceptBtn";
-          btn.onclick = acceptOffer;
+          btn.onclick = acceptCheque;
           document.getElementById("lookupMsg").appendChild(document.createElement("br"));
           document.getElementById("lookupMsg").appendChild(btn);
         } else {
-          showMsg("lookupMsg", "You can't accept your own ticket.", true);
+          showMsg("lookupMsg", "You can't redeem your own cheque.", true);
         }
       });
     }
 
-    function acceptOffer() {
-      if (!currentUser || !lastTicketData) return;
+    function acceptCheque() {
+      if (!currentUser || !lastTicketData || !lastTicketId) return;
       if (currentUser.uid === lastTicketData.senderUid)
-        return showMsg("lookupMsg","You can't accept your own ticket.",true);
-
-      // DEBUG: check coins before transaction!
-      const ticketUid = lastTicketData.senderUid;
-      const ticketAmount = parseInt(lastTicketData.amount,10);
-      db.ref("users/"+ticketUid+"/coins").get().then(snap=>{
-        let coins = snap.exists() ? parseInt(snap.val(),10) : null;
-        if (coins === null) return showMsg("lookupMsg","Sender's coins missing in database.",true);
-        if (coins < ticketAmount) return showMsg("lookupMsg",`Sender only has ${coins}, needs ${ticketAmount}.`,true);
-        // Now actually transact
-        _doTicketTransfer(ticketUid, ticketAmount, lastTicketId);
-      });
-    }
-    function _doTicketTransfer(senderUid, amount, ticketId) {
-      const senderCoinsRef = db.ref("users/"+senderUid+"/coins");
-      senderCoinsRef.transaction(coins=>{
-        let c = Number.isFinite(coins) ? coins : parseInt(coins||0,10);
-        if (c<amount) return;
-        return c-amount;
-      },(err,committed,snap2)=>{
-        if (err||!committed)
-          return showMsg("lookupMsg","Sender does not have enough coins.",true);
-        // Credit recipient
-        db.ref("users/"+currentUser.uid+"/coins").transaction(
-          v=>parseInt(v||0,10)+amount,
-          (e2,c2)=>{
-            if (e2 || !c2) return showMsg("lookupMsg","Could not credit recipient.",true);
-            db.ref("tickets/"+ticketId).remove().then(()=>{
-              showMsg("lookupMsg",`✅ ${amount} coins transferred!`);
-              document.getElementById("acceptBtn")?.remove();
-              lastTicketId = null; lastTicketData = null;
-            });
-          }
-        );
-      });
+        return showMsg("lookupMsg","You can't redeem your own cheque.",true);
+      // Credit recipient, delete ticket
+      db.ref("users/"+currentUser.uid+"/coins").transaction(
+        v=>parseInt(v||0,10)+parseInt(lastTicketData.escrow,10),
+        (ee,ec)=>{
+          if (ee || !ec) return showMsg("lookupMsg","Could not credit recipient.",true);
+          db.ref("tickets/"+lastTicketId).remove().then(()=>{
+            showMsg("lookupMsg",`✅ Cheque redeemed! ${lastTicketData.escrow} coins transferred.`);
+            document.getElementById("acceptBtn")?.remove();
+            lastTicketId = null; lastTicketData = null;
+          });
+        }
+      );
     }
   </script>
 </body>
