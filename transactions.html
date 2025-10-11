@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Ticket Debug System</title>
+  <title>Transaction Ticket System (Stable Auth)</title>
   <style>
     body { font-family: Segoe UI, Arial; background: #222; color: #fff; margin: 0; min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center;}
     .box { background:#2d2d2d;border-radius:14px;box-shadow:0 8px 30px #1114; padding:38px 34px; margin:28px 0;}
@@ -13,27 +13,35 @@
     .msg {margin-top:13px;font-size:1em;padding:4px;}
     .info { color:#43b581;}
     .error { color:#ff5c5c;}
-    .debug {background:#111; color:#ddd; font-size:.95em; margin-top:20px; padding:7px 13px;}
   </style>
 </head>
 <body>
-  <div class="box" id="createBox">
+  <div class="box">
+    <h2>Sign In</h2>
+    <label>Email: <input type="email" id="email"></label>
+    <label>Password: <input type="password" id="password"></label>
+    <button class="btn" onclick="signIn()">Sign In / Register</button>
+    <button class="btn" onclick="signOut()" style="background:#444;margin-left:10px;">Sign Out</button>
+    <div class="msg" id="authMsg"></div>
+  </div>
+  <div class="box" id="userBox" style="display:none;">
+    <h2>Your Info</h2>
+    <div id="userHello"></div>
+    <div id="userCoins"></div>
+    <button class="btn" onclick="addCoins(100)" style="background:#43b581;">Add 100 demo coins</button>
+  </div>
+  <div class="box" id="createBox" style="display:none;">
     <h2>Create Transaction Ticket</h2>
-    <label>Offer Amount:</label>
-    <input type="number" id="offerAmount" min="1" placeholder="Coins to offer"/>
+    <label>Offer Amount:<input type="number" id="offerAmount" min="1" placeholder="Coins to offer"></label>
     <button class="btn" onclick="createTicket()">Create Ticket</button>
     <div class="msg" id="createMsg"></div>
-    <div class="debug" id="createDebug"></div>
   </div>
-  <div class="box" id="enterBox">
+  <div class="box" id="enterBox" style="display:none;">
     <h2>Enter Ticket Number</h2>
-    <label>Ticket Number:</label>
-    <input type="text" id="ticketNumber" placeholder="Paste code here"/>
+    <label>Ticket Number:<input type="text" id="ticketNumber" placeholder="Paste code here"></label>
     <button class="btn" onclick="lookupTicket()">Lookup Ticket</button>
     <div class="msg" id="lookupMsg"></div>
-    <div class="debug" id="lookupDebug"></div>
   </div>
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
@@ -52,88 +60,112 @@
     const db = firebase.database();
     const auth = firebase.auth();
 
-    let lastTicketData = null;
-    let lastTicketId = null;
-    let lastTicketSenderUid = null;
+    let currentUser = null;
 
-    function showMsg(id, msg, isError) {
+    function showMsg(id, msg, isError=false) {
       const el = document.getElementById(id);
       el.textContent = msg;
       el.className = 'msg ' + (isError ? 'error' : 'info');
     }
 
-    function showDebug(id, msg) {
-      document.getElementById(id).innerText = msg;
+    // ---- Authentication ----
+    function signIn() {
+      showMsg("authMsg", "");
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      if (!email || !password) {
+        showMsg("authMsg", "Please enter email and password.", true); return;
+      }
+      auth.signInWithEmailAndPassword(email, password)
+      .then(() => showMsg("authMsg", "Signed in!"))
+      .catch(err => {
+        if (err.code === 'auth/user-not-found') {
+          auth.createUserWithEmailAndPassword(email, password)
+            .then(() => showMsg("authMsg", "Registered and signed in!"))
+            .catch(e => showMsg("authMsg", e.message, true));
+        }
+        else showMsg("authMsg", err.message, true);
+      });
     }
 
-    // CREATE TICKET
-    function createTicket() {
-      showMsg("createMsg", "", false);
-      showDebug("createDebug", "");
-      const amount = parseInt(document.getElementById("offerAmount").value, 10);
-      const user = auth.currentUser;
-      if (!user) {
-        showMsg("createMsg", "You must be signed in!", true);
-        return;
-      }
-      if (!amount || amount < 1) {
-        showMsg("createMsg", "Enter a valid amount.", true);
-        return;
-      }
-      // Show your UID and coins
-      db.ref("users/"+user.uid+"/coins").get().then(snap=>{
-        showDebug("createDebug","Your UID: "+user.uid+"\nYour coins: "+(snap.exists()?snap.val():0));
+    function signOut() {
+      auth.signOut().then(()=>{
+        showMsg("authMsg","Signed out.");
+        document.getElementById("userBox").style.display = "none";
+        document.getElementById("createBox").style.display = "none";
+        document.getElementById("enterBox").style.display = "none";
       });
+    }
 
-      const ticketId = Date.now().toString(36) + Math.floor(Math.random() * 10000).toString(36);
-      db.ref("users/" + user.uid + "/name").get().then(snap => {
-        const name = snap.exists() ? snap.val() : (user.displayName || user.email || "User");
-        db.ref("tickets/" + ticketId).set({
-          senderUid: user.uid,
-          senderName: name,
-          amount: amount,
-          status: "pending",
-          createdAt: Date.now()
-        }).then(() => {
-          showMsg("createMsg", "✅ Ticket created!\nTicket Number:\n" + ticketId, false);
-          document.getElementById("offerAmount").value = "";
-        }).catch(() => {
-          showMsg("createMsg", "Error creating ticket.", true);
+    // UI & balance
+    function refreshUserUI() {
+      if (!currentUser) return;
+      document.getElementById("userBox").style.display = "";
+      document.getElementById("createBox").style.display = "";
+      document.getElementById("enterBox").style.display = "";
+      document.getElementById("userHello").textContent = "Hello, " + (currentUser.email || currentUser.uid);
+      db.ref("users/"+currentUser.uid+"/coins").on("value", s=>{
+        document.getElementById("userCoins").textContent = "Your balance: "+((s && s.exists())?s.val():0)+" coins";
+      });
+      db.ref("users/"+currentUser.uid+"/name").set(currentUser.email.split("@")[0]);
+    }
+
+    function addCoins(n) {
+      if (!currentUser) return;
+      const ref = db.ref("users/"+currentUser.uid+"/coins");
+      ref.transaction(c=> (c||0)+n);
+    }
+
+    auth.onAuthStateChanged(async user=>{
+      currentUser = user;
+      if (user) {
+        showMsg("authMsg","Signed in as "+(user.email||user.uid));
+        refreshUserUI();
+        // Ensure coins exists
+        db.ref("users/"+user.uid+"/coins").once("value").then(s=>{
+          if (!s.exists()) db.ref("users/"+user.uid+"/coins").set(200); // Give new users 200 coins
         });
-      });
+        // Set name
+        db.ref("users/"+user.uid+"/name").set(user.email.split("@")[0]);
+      }
+    });
+
+    // ---- Ticket logic ----
+    let lastTicketData = null;
+    let lastTicketId = null;
+    let canCreate = true;
+    function createTicket() {
+      showMsg("createMsg", "");
+      if (!canCreate) { showMsg("createMsg","Wait 30 seconds between tickets.",true); return; }
+      const amount = parseInt(document.getElementById("offerAmount").value,10);
+      if (!currentUser) { showMsg("createMsg","Not signed in.",true); return; }
+      if (!amount || amount<1) { showMsg("createMsg","Enter a valid amount.",true); return; }
+      const ticketId = Date.now().toString(36) + Math.floor(Math.random()*10000).toString(36);
+      db.ref("tickets/"+ticketId).set({
+        senderUid: currentUser.uid,
+        senderName: currentUser.email.split("@")[0],
+        amount: amount,
+        status: "pending",
+        createdAt: Date.now()
+      }).then(()=>{
+        showMsg("createMsg","✅ Ticket created!\nTicket Number:\n"+ticketId,false);
+        document.getElementById("offerAmount").value="";
+        canCreate=false; setTimeout(()=>{canCreate=true;},30000);
+      }).catch(()=>showMsg("createMsg","Error creating ticket.",true));
     }
 
-    // LOOKUP TICKET
     function lookupTicket() {
-      showMsg("lookupMsg", "", false);
-      showDebug("lookupDebug","");
+      showMsg("lookupMsg","");
       document.getElementById("acceptBtn")?.remove();
       const ticketId = document.getElementById("ticketNumber").value.trim();
-      if (!ticketId) {
-        showMsg("lookupMsg", "Enter a ticket number.", true);
-        return;
-      }
-      db.ref("tickets/" + ticketId).get().then(snap => {
-        if (!snap.exists()) {
-          showMsg("lookupMsg", "No ticket found for this number.", true);
-          return;
-        }
-        const data = snap.val();
-        lastTicketData = data;
-        lastTicketId = ticketId;
-        lastTicketSenderUid = data.senderUid;
-        showDebug("lookupDebug",`Your UID: ${auth.currentUser?.uid || "(none)"}\nSender UID: ${data.senderUid}\nSender coins: loading...`);
-        // Load sender coins
-        db.ref("users/"+data.senderUid+"/coins").get().then(csnap=>{
-          document.getElementById("lookupDebug").innerText += `\nSender coins: ${(csnap.exists()?csnap.val():0)}`;
-        });
-        if (data.status !== "pending") {
-          showMsg("lookupMsg", "This ticket has already been claimed or is inactive.", true);
-          return;
-        }
-        showMsg("lookupMsg", `🎟️ ${data.senderName} is offering you ${data.amount} coins.`);
-        const user = auth.currentUser;
-        if (user && user.uid !== data.senderUid) {
+      if (!ticketId) { showMsg("lookupMsg","Enter a ticket number.",true); return; }
+      db.ref("tickets/"+ticketId).get().then(snap=>{
+        if (!snap.exists()) { showMsg("lookupMsg","No ticket found.",true); return; }
+        const data=snap.val();
+        lastTicketData=data; lastTicketId=ticketId;
+        if (data.status!=="pending") { showMsg("lookupMsg","This ticket has already been claimed or is inactive.",true); return;}
+        showMsg("lookupMsg",`🎟️ ${data.senderName} is offering you ${data.amount} coins.`);
+        if (currentUser && currentUser.uid!==data.senderUid) {
           const btn = document.createElement("button");
           btn.textContent = "Accept Offer";
           btn.className = "btn";
@@ -141,109 +173,37 @@
           btn.onclick = acceptOffer;
           document.getElementById("lookupMsg").appendChild(document.createElement("br"));
           document.getElementById("lookupMsg").appendChild(btn);
-        } else if (user && user.uid === data.senderUid) {
-          showMsg("lookupMsg", "You cannot accept your own ticket.", true);
+        } else if (currentUser && currentUser.uid===data.senderUid) {
+          showMsg("lookupMsg","You cannot accept your own ticket.",true);
         }
-      }).catch(() => {
-        showMsg("lookupMsg", "Error looking up ticket.", true);
-      });
+      }).catch(()=>showMsg("lookupMsg","Lookup error.",true));
     }
 
-    // ACCEPT OFFER (deduct coins only at accept)
+    // Accept only deducts sender when offer is accepted, and deletes ticket
     function acceptOffer() {
-      const user = auth.currentUser;
-      showDebug("lookupDebug", "Your UID: " + user.uid + "\nSender UID: " + lastTicketSenderUid);
-      if (!user) {
-        showMsg("lookupMsg", "You must be signed in to accept.", true);
-        return;
-      }
-      const ticketId = lastTicketId;
-      if (!ticketId || !lastTicketData) {
-        showMsg("lookupMsg", "Invalid ticket.", true);
-        return;
-      }
-      const amount = lastTicketData.amount;
-      const senderUid = lastTicketData.senderUid;
-      if (user.uid === senderUid) {
-        showMsg("lookupMsg", "You cannot accept your own ticket.", true);
-        return;
-      }
-      showMsg("lookupMsg", "Processing...", false);
-      const ticketRef = db.ref("tickets/" + ticketId);
-      // Show sender coins debug BEFORE trying transaction
-      db.ref("users/"+senderUid+"/coins").get().then(csnap=>{
-        showDebug("lookupDebug",`Your UID: ${user.uid}\nSender UID: ${senderUid}\nSender coins BEFORE: ${(csnap.exists()?csnap.val():0)}`);
-      });
-      ticketRef.get().then(ticketSnap => {
-        if (!ticketSnap.exists()) {
-          showMsg("lookupMsg", "Ticket no longer exists.", true);
-          return;
-        }
-        const ticket = ticketSnap.val();
-        if (ticket.status !== "pending") {
-          showMsg("lookupMsg", "This ticket is no longer available.", true);
-          return;
-        }
-        const senderCoinsRef = db.ref("users/" + senderUid + "/coins");
-        senderCoinsRef.transaction(curr => {
-          const current = (curr !== null && curr !== undefined) ? curr : 0;
-          if (current < amount) return; // abort
-          return current - amount;
-        }, (err, committed, senderSnap) => {
-          showDebug("lookupDebug",`Your UID: ${user.uid}\nSender UID: ${senderUid}\nSender coins AFTER: ${(senderSnap.exists()?senderSnap.val():0)}`);
-          if (err) {
-            showMsg("lookupMsg", "Transaction error.", true);
-            return;
-          }
-          if (!committed) {
-            showMsg("lookupMsg", "Sender does not have enough coins.", true);
-            return;
-          }
-          // Credit recipient and remove ticket
-          const receiverCoinsRef = db.ref("users/" + user.uid + "/coins");
-          receiverCoinsRef.transaction(rcurr => (rcurr || 0) + amount, (rErr, rCommitted, rSnap) => {
-            if (rErr || !rCommitted) {
-              showMsg("lookupMsg", "Error crediting your account.", true);
-              // Optionally refund in case of error:
-              senderCoinsRef.transaction(s => (s || 0) + amount);
-              return;
-            }
-            ticketRef.remove().then(() => {
-              showMsg("lookupMsg", `✅ Offer accepted! ${amount} coins added to your balance.`, false);
-              document.getElementById("acceptBtn")?.remove();
-              lastTicketId = null;
-              lastTicketData = null;
-              showDebug("lookupDebug","");
-            }).catch(() => {
-              showMsg("lookupMsg", "Accepted but failed to delete ticket. Contact support.", true);
-            });
+      if (!currentUser) { showMsg("lookupMsg","Not signed in.",true); return; }
+      const ticketId=lastTicketId, data=lastTicketData;
+      if (!ticketId||!data) { showMsg("lookupMsg","Invalid ticket.",true); return; }
+      if (currentUser.uid===data.senderUid) { showMsg("lookupMsg","You cannot accept your own ticket.",true); return; }
+      showMsg("lookupMsg","Processing...",false);
+      const senderCoinsRef=db.ref("users/"+data.senderUid+"/coins");
+      senderCoinsRef.transaction(coins=>{
+        if (coins==null||coins<data.amount) return;
+        return coins-data.amount;
+      },(err,committed,snap)=>{
+        if (err) {showMsg("lookupMsg","Transaction error.",true);return;}
+        if (!committed){showMsg("lookupMsg","Sender does not have enough coins.",true);return;}
+        const receiverCoinsRef=db.ref("users/"+currentUser.uid+"/coins");
+        receiverCoinsRef.transaction(c=>(c||0)+data.amount,(ee,ec)=>{
+          if (ee||!ec){showMsg("lookupMsg","Could not credit your account.",true);senderCoinsRef.transaction(c=>(c||0)+data.amount);return;}
+          db.ref("tickets/"+ticketId).remove().then(()=>{
+            showMsg("lookupMsg",`✅ Offer accepted! ${data.amount} coins added to your balance.`,false);
+            document.getElementById("acceptBtn")?.remove();
+            lastTicketId = null; lastTicketData = null;
           });
         });
-      }).catch(() => {
-        showMsg("lookupMsg", "Error reading ticket. Try again.", true);
       });
     }
-
-    // AUTH/INITIALIZATION
-    auth.onAuthStateChanged(user => {
-      if (!user) {
-        auth.signInAnonymously();
-      } else {
-        // Ensure coins node exists
-        const userCoinsRef = db.ref("users/" + user.uid + "/coins");
-        userCoinsRef.once("value").then(snap => {
-          if (!snap.exists()) {
-            userCoinsRef.set(0);
-          }
-        });
-        // Ensure name node exists
-        db.ref("users/" + user.uid + "/name").once("value").then(snap => {
-          if (!snap.exists()) {
-            db.ref("users/" + user.uid + "/name").set("Anonymous User");
-          }
-        });
-      }
-    });
   </script>
 </body>
 </html>
