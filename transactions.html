@@ -2,61 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Transaction Ticket System</title>
+  <title>Ticket Debug System</title>
   <style>
-    body {
-      font-family: 'Segoe UI', Arial;
-      background: #222;
-      color: #fff;
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    .box {
-      background: #2d2d2d;
-      border-radius: 14px;
-      box-shadow: 0 8px 30px #1114;
-      padding: 38px 34px;
-      margin: 28px 0;
-    }
-    .btn {
-      background: #7289da;
-      color: #fff;
-      border: none;
-      border-radius: 7px;
-      padding: 13px 36px;
-      font-size: 1.11em;
-      margin-top: 11px;
-      cursor: pointer;
-    }
-    h2 {
-      color: #43b581;
-    }
-    label {
-      margin-top: 15px;
-      display: block;
-    }
-    input {
-      border-radius: 5px;
-      border: none;
-      padding: 8px;
-      margin-top: 8px;
-      width: 170px;
-    }
-    .msg {
-      margin-top: 13px;
-      font-size: 1em;
-      padding: 4px;
-    }
-    .info {
-      color: #43b581;
-    }
-    .error {
-      color: #ff5c5c;
-    }
+    body { font-family: Segoe UI, Arial; background: #222; color: #fff; margin: 0; min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center;}
+    .box { background:#2d2d2d;border-radius:14px;box-shadow:0 8px 30px #1114; padding:38px 34px; margin:28px 0;}
+    .btn {background:#7289da;color:#fff;border:none;border-radius:7px;padding:13px 36px;font-size:1.11em;margin-top:11px;cursor:pointer;}
+    h2 {color:#43b581;}
+    label {margin-top:15px;display:block;}
+    input {border-radius:5px; border:none; padding:8px; margin-top:8px; width:170px;}
+    .msg {margin-top:13px;font-size:1em;padding:4px;}
+    .info { color:#43b581;}
+    .error { color:#ff5c5c;}
+    .debug {background:#111; color:#ddd; font-size:.95em; margin-top:20px; padding:7px 13px;}
   </style>
 </head>
 <body>
@@ -66,6 +23,7 @@
     <input type="number" id="offerAmount" min="1" placeholder="Coins to offer"/>
     <button class="btn" onclick="createTicket()">Create Ticket</button>
     <div class="msg" id="createMsg"></div>
+    <div class="debug" id="createDebug"></div>
   </div>
   <div class="box" id="enterBox">
     <h2>Enter Ticket Number</h2>
@@ -73,8 +31,8 @@
     <input type="text" id="ticketNumber" placeholder="Paste code here"/>
     <button class="btn" onclick="lookupTicket()">Lookup Ticket</button>
     <div class="msg" id="lookupMsg"></div>
+    <div class="debug" id="lookupDebug"></div>
   </div>
-
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
@@ -94,12 +52,9 @@
     const db = firebase.database();
     const auth = firebase.auth();
 
-    // Limit ticket creation to once every 30 seconds per user
-    let lastTicketTime = 0;
-    function canCreateTicket() {
-      const now = Date.now();
-      return (now - lastTicketTime) >= 30000;
-    }
+    let lastTicketData = null;
+    let lastTicketId = null;
+    let lastTicketSenderUid = null;
 
     function showMsg(id, msg, isError) {
       const el = document.getElementById(id);
@@ -107,13 +62,14 @@
       el.className = 'msg ' + (isError ? 'error' : 'info');
     }
 
-    // CREATE TICKET (limit every 30s, only timestamp in memory for single tab demo use)
+    function showDebug(id, msg) {
+      document.getElementById(id).innerText = msg;
+    }
+
+    // CREATE TICKET
     function createTicket() {
       showMsg("createMsg", "", false);
-      if (!canCreateTicket()) {
-        showMsg("createMsg", "You can only create a ticket every 30 seconds.", true);
-        return;
-      }
+      showDebug("createDebug", "");
       const amount = parseInt(document.getElementById("offerAmount").value, 10);
       const user = auth.currentUser;
       if (!user) {
@@ -124,6 +80,11 @@
         showMsg("createMsg", "Enter a valid amount.", true);
         return;
       }
+      // Show your UID and coins
+      db.ref("users/"+user.uid+"/coins").get().then(snap=>{
+        showDebug("createDebug","Your UID: "+user.uid+"\nYour coins: "+(snap.exists()?snap.val():0));
+      });
+
       const ticketId = Date.now().toString(36) + Math.floor(Math.random() * 10000).toString(36);
       db.ref("users/" + user.uid + "/name").get().then(snap => {
         const name = snap.exists() ? snap.val() : (user.displayName || user.email || "User");
@@ -134,7 +95,6 @@
           status: "pending",
           createdAt: Date.now()
         }).then(() => {
-          lastTicketTime = Date.now();
           showMsg("createMsg", "✅ Ticket created!\nTicket Number:\n" + ticketId, false);
           document.getElementById("offerAmount").value = "";
         }).catch(() => {
@@ -143,12 +103,10 @@
       });
     }
 
-    let lastTicketData = null;
-    let lastTicketId = null;
-
     // LOOKUP TICKET
     function lookupTicket() {
       showMsg("lookupMsg", "", false);
+      showDebug("lookupDebug","");
       document.getElementById("acceptBtn")?.remove();
       const ticketId = document.getElementById("ticketNumber").value.trim();
       if (!ticketId) {
@@ -163,6 +121,12 @@
         const data = snap.val();
         lastTicketData = data;
         lastTicketId = ticketId;
+        lastTicketSenderUid = data.senderUid;
+        showDebug("lookupDebug",`Your UID: ${auth.currentUser?.uid || "(none)"}\nSender UID: ${data.senderUid}\nSender coins: loading...`);
+        // Load sender coins
+        db.ref("users/"+data.senderUid+"/coins").get().then(csnap=>{
+          document.getElementById("lookupDebug").innerText += `\nSender coins: ${(csnap.exists()?csnap.val():0)}`;
+        });
         if (data.status !== "pending") {
           showMsg("lookupMsg", "This ticket has already been claimed or is inactive.", true);
           return;
@@ -185,9 +149,10 @@
       });
     }
 
-    // ACCEPT OFFER (deduct sender, credit recipient, then delete ticket)
+    // ACCEPT OFFER (deduct coins only at accept)
     function acceptOffer() {
       const user = auth.currentUser;
+      showDebug("lookupDebug", "Your UID: " + user.uid + "\nSender UID: " + lastTicketSenderUid);
       if (!user) {
         showMsg("lookupMsg", "You must be signed in to accept.", true);
         return;
@@ -205,6 +170,10 @@
       }
       showMsg("lookupMsg", "Processing...", false);
       const ticketRef = db.ref("tickets/" + ticketId);
+      // Show sender coins debug BEFORE trying transaction
+      db.ref("users/"+senderUid+"/coins").get().then(csnap=>{
+        showDebug("lookupDebug",`Your UID: ${user.uid}\nSender UID: ${senderUid}\nSender coins BEFORE: ${(csnap.exists()?csnap.val():0)}`);
+      });
       ticketRef.get().then(ticketSnap => {
         if (!ticketSnap.exists()) {
           showMsg("lookupMsg", "Ticket no longer exists.", true);
@@ -221,6 +190,7 @@
           if (current < amount) return; // abort
           return current - amount;
         }, (err, committed, senderSnap) => {
+          showDebug("lookupDebug",`Your UID: ${user.uid}\nSender UID: ${senderUid}\nSender coins AFTER: ${(senderSnap.exists()?senderSnap.val():0)}`);
           if (err) {
             showMsg("lookupMsg", "Transaction error.", true);
             return;
@@ -229,21 +199,21 @@
             showMsg("lookupMsg", "Sender does not have enough coins.", true);
             return;
           }
-          // Only now: credit recipient and remove ticket
+          // Credit recipient and remove ticket
           const receiverCoinsRef = db.ref("users/" + user.uid + "/coins");
           receiverCoinsRef.transaction(rcurr => (rcurr || 0) + amount, (rErr, rCommitted, rSnap) => {
             if (rErr || !rCommitted) {
-              showMsg("lookupMsg", "Error crediting your account. Sender was charged; contact support.", true);
+              showMsg("lookupMsg", "Error crediting your account.", true);
               // Optionally refund in case of error:
               senderCoinsRef.transaction(s => (s || 0) + amount);
               return;
             }
-            // Delete ticket after accept!
             ticketRef.remove().then(() => {
               showMsg("lookupMsg", `✅ Offer accepted! ${amount} coins added to your balance.`, false);
               document.getElementById("acceptBtn")?.remove();
               lastTicketId = null;
               lastTicketData = null;
+              showDebug("lookupDebug","");
             }).catch(() => {
               showMsg("lookupMsg", "Accepted but failed to delete ticket. Contact support.", true);
             });
@@ -266,7 +236,6 @@
             userCoinsRef.set(0);
           }
         });
-
         // Ensure name node exists
         db.ref("users/" + user.uid + "/name").once("value").then(snap => {
           if (!snap.exists()) {
