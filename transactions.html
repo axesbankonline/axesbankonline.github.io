@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Coin Cheque System — Escrow Logic</title>
+  <title>Coin Cheque System — Escrow Logic (No Login)</title>
   <style>
     body { font-family: Segoe UI, Arial; background: #222; color: #fff; min-height:100vh; display:flex; flex-direction:column; align-items:center;}
     .box { background:#2d2d2d;border-radius:14px;box-shadow:0 8px 30px #1114; padding:38px 34px; margin:28px 0;}
@@ -17,26 +17,14 @@
   </style>
 </head>
 <body>
-  <div class="box">
-    <h2>Login</h2>
-    <div class="row">
-      <input type="email" id="email" placeholder="Email">
-      <input type="password" id="password" placeholder="Password">
-    </div>
-    <div style="margin-top:8px;">
-      <button class="btn" onclick="signIn()">Login / Register</button>
-      <button class="btn" onclick="signOut()" style="background:#444;">Sign Out</button>
-    </div>
-    <div class="msg" id="authMsg"></div>
-  </div>
   <div class="box" id="mainBox" style="display:none;">
     <h2>Your Info</h2>
     <div id="userInfo"></div>
     <button class="btn" onclick="addCoins(100)" style="background:#43b581;">Add 100 coins</button>
-    <h2 style="margin-top:2em;">Create a Coin Cheque</h2>
+    <h2 style="margin-top:2em;">Write a Cheque</h2>
     <div class="row">
       <input type="number" id="offerAmount" min="1" placeholder="Amount (coins)">
-      <button class="btn" onclick="createTicket()">Create Cheque</button>
+      <button class="btn" onclick="createTicket()">Write Cheque</button>
     </div>
     <div class="msg" id="createMsg"></div>
     <div style="margin-top:2em;"></div>
@@ -51,7 +39,7 @@
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
   <script>
-    // -- Firebase --
+    // Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
       authDomain: "bankdata-fe769.firebaseapp.com",
@@ -66,60 +54,43 @@
     const auth = firebase.auth();
 
     let currentUser = null, canCreate=true;
-
     function showMsg(id, msg, isError=false) {
       const el = document.getElementById(id);
       el.textContent = msg;
       el.className = 'msg ' + (isError ? 'error' : 'info');
     }
-    function signIn() {
-      showMsg("authMsg","");
-      const email = document.getElementById("email").value.trim();
-      const pwd = document.getElementById("password").value.trim();
-      if (!email || !pwd) return showMsg("authMsg","Fill in email and password.", true);
-      auth.signInWithEmailAndPassword(email, pwd)
-        .catch(err=>{
-          if (err.code==="auth/user-not-found") {
-            auth.createUserWithEmailAndPassword(email,pwd)
-              .then(()=>showMsg("authMsg","Registered!")).catch(e=>showMsg("authMsg",e.message,true));
-          } else showMsg("authMsg",err.message,true);
-        });
-    }
-    function signOut() {
-      auth.signOut();
-      document.getElementById("mainBox").style.display = "none";
-    }
+
+    // Anonymous login automatically; no login UI shown
     auth.onAuthStateChanged(user=>{
-      currentUser=user;
       if (user) {
-        showMsg("authMsg","Logged in as "+user.email,false);
+        currentUser = user;
         document.getElementById("mainBox").style.display = "";
-        // Show name & coin balance
         db.ref("users/"+user.uid+"/coins").on("value", snap=>{
           let c = snap.exists() ? parseInt(snap.val(),10) : 0;
-          document.getElementById("userInfo").textContent = `Email: ${user.email}\nCoins: ${c}`;
+          document.getElementById("userInfo").textContent = `Your ID: ${user.uid}\nCoins: ${c}`;
         });
-        // Give new users some coins
         db.ref("users/"+user.uid+"/coins").once("value").then(s=>{
           if (!s.exists()) db.ref("users/"+user.uid+"/coins").set(500);
         });
-        db.ref("users/"+user.uid+"/name").set(user.email.split("@")[0]);
+        db.ref("users/"+user.uid+"/name").set("User-" + user.uid.substring(0,6));
+      } else {
+        auth.signInAnonymously();
       }
     });
+
     function addCoins(n=100){
       if (!currentUser) return;
       const ref=db.ref("users/"+currentUser.uid+"/coins");
       ref.transaction(v=>parseInt(v||0)+n);
     }
 
-    // ---- ESCROW CHEQUE LOGIC ----
+    // ESCROW CHEQUE LOGIC
     function createTicket() {
       showMsg("createMsg","");
       if (!canCreate) return showMsg("createMsg","Wait 30 seconds between creates.",true);
       const amount = parseInt(document.getElementById("offerAmount").value,10);
       if (!currentUser) return showMsg("createMsg","Not signed in.",true);
       if (!amount || amount<1) return showMsg("createMsg","Enter a positive number.",true);
-      // Deduct coins up front (escrow)
       const coinRef=db.ref("users/"+currentUser.uid+"/coins");
       coinRef.transaction(c=>{
         let coins=Number.isFinite(c)?c:parseInt(c||0,10);
@@ -127,11 +98,9 @@
         return coins-amount;
       },(err,committed,snap)=>{
         if (err||!committed) return showMsg("createMsg","Insufficient coins for cheque.",true);
-        // Now create ticket with escrowed amount
         const ticketId = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
         db.ref("tickets/"+ticketId).set({
           senderUid: currentUser.uid,
-          senderEmail: currentUser.email,
           escrow: amount,
           status: "pending",
           createdAt: Date.now()
@@ -144,7 +113,6 @@
     }
 
     let lastTicketId = null, lastTicketData = null;
-
     function lookupTicket() {
       showMsg("lookupMsg","");
       document.getElementById("acceptBtn")?.remove();
@@ -156,7 +124,7 @@
         if (data.status !== "pending")
           return showMsg("lookupMsg","This cheque is spent or unavailable.",true);
         lastTicketId = ticketId; lastTicketData = data;
-        showMsg("lookupMsg",`${data.senderEmail} wrote a cheque for ${data.escrow} coins.`);
+        showMsg("lookupMsg",`Cheque for ${data.escrow} coins is ready to be redeemed.`);
         if (currentUser.uid !== data.senderUid) {
           const btn = document.createElement("button");
           btn.textContent = "Redeem Cheque";
@@ -175,7 +143,6 @@
       if (!currentUser || !lastTicketData || !lastTicketId) return;
       if (currentUser.uid === lastTicketData.senderUid)
         return showMsg("lookupMsg","You can't redeem your own cheque.",true);
-      // Credit recipient, delete ticket
       db.ref("users/"+currentUser.uid+"/coins").transaction(
         v=>parseInt(v||0,10)+parseInt(lastTicketData.escrow,10),
         (ee,ec)=>{
