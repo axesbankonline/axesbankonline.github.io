@@ -170,85 +170,80 @@
     }
 
     // ACCEPT OFFER — FIXED
-    function acceptOffer() {
-      const user = auth.currentUser;
-      if (!user) {
-        showMsg("lookupMsg", "You must be signed in to accept.", true);
-        return;
-      }
-      const ticketId = lastTicketId;
-      if (!ticketId || !lastTicketData) {
-        showMsg("lookupMsg", "Invalid ticket.", true);
-        return;
-      }
+function acceptOffer() {
+  const user = auth.currentUser;
+  if (!user) {
+    showMsg("lookupMsg", "You must be signed in to accept.", true);
+    return;
+  }
+  const ticketId = lastTicketId;
+  if (!ticketId || !lastTicketData) {
+    showMsg("lookupMsg", "Invalid ticket.", true);
+    return;
+  }
+  const amount = lastTicketData.amount;
+  const senderUid = lastTicketData.senderUid;
+  if (user.uid === senderUid) {
+    showMsg("lookupMsg", "You cannot accept your own ticket.", true);
+    return;
+  }
+  showMsg("lookupMsg", "Processing...", false);
+  const ticketRef = db.ref("tickets/" + ticketId);
 
-      const amount = lastTicketData.amount;
-      const senderUid = lastTicketData.senderUid;
-
-      if (user.uid === senderUid) {
-        showMsg("lookupMsg", "You cannot accept your own ticket.", true);
-        return;
-      }
-
-      showMsg("lookupMsg", "Processing...", false);
-
-      const ticketRef = db.ref("tickets/" + ticketId);
-
-      ticketRef.get().then(ticketSnap => {
-        if (!ticketSnap.exists()) {
-          showMsg("lookupMsg", "Ticket no longer exists.", true);
-          return;
-        }
-        const ticket = ticketSnap.val();
-        if (ticket.status !== "pending") {
-          showMsg("lookupMsg", "This ticket is no longer available.", true);
-          return;
-        }
-
-        const senderCoinsRef = db.ref("users/" + senderUid + "/coins");
-
-        senderCoinsRef.transaction(curr => {
-          const current = (curr !== null && curr !== undefined) ? curr : 0;
-          if (current < amount) return; // abort
-          return current - amount;
-        }, (err, committed, senderSnap) => {
-          if (err) {
-            console.error("Transaction error:", err);
-            showMsg("lookupMsg", "Error while checking sender's balance.", true);
-            return;
-          }
-          if (!committed) {
-            showMsg("lookupMsg", "Sender does not have enough coins.", true);
-            return;
-          }
-
-          const receiverCoinsRef = db.ref("users/" + user.uid + "/coins");
-
-          receiverCoinsRef.transaction(rcurr => (rcurr || 0) + amount, (rErr, rCommitted, rSnap) => {
-            if (rErr || !rCommitted) {
-              showMsg("lookupMsg", "Error crediting your account. Refunding sender...", true);
-              senderCoinsRef.transaction(s => (s || 0) + amount);
-              return;
-            }
-
-            ticketRef.update({
-              status: "accepted",
-              acceptedBy: user.uid,
-              acceptedAt: Date.now()
-            }).then(() => {
-              showMsg("lookupMsg", `✅ Offer accepted! ${amount} coins added to your balance.`, false);
-              document.getElementById("acceptBtn")?.remove();
-              lastTicketId = null;
-              lastTicketData = null;
-            }).catch(() => {
-              showMsg("lookupMsg", "Accepted but failed to update ticket status. Contact support.", true);
-            });
-          });
-        });
-      }).catch(() => {
-        showMsg("lookupMsg", "Error reading ticket. Try again.", true);
-      });
+  // RE-GET ticket to ensure still pending
+  ticketRef.get().then(ticketSnap => {
+    if (!ticketSnap.exists()) {
+      showMsg("lookupMsg", "Ticket no longer exists.", true);
+      return;
     }
+    const ticket = ticketSnap.val();
+    if (ticket.status !== "pending") {
+      showMsg("lookupMsg", "This ticket is no longer available.", true);
+      return;
+    }
+
+    // Sender deduction transaction!
+    const senderCoinsRef = db.ref("users/" + senderUid + "/coins");
+    senderCoinsRef.transaction(curr => {
+      const current = (curr !== null && curr !== undefined) ? curr : 0;
+      if (current < amount) return; // abort transaction
+      return current - amount;
+    }, (err, committed, senderSnap) => {
+      if (err) {
+        showMsg("lookupMsg", "Transaction error.", true);
+        return;
+      }
+      if (!committed) {
+        showMsg("lookupMsg", "Sender does not have enough coins.", true);
+        return;
+      }
+      // Only now: credit recipient!
+      const receiverCoinsRef = db.ref("users/" + user.uid + "/coins");
+      receiverCoinsRef.transaction(rcurr => (rcurr || 0) + amount, (rErr, rCommitted, rSnap) => {
+        if (rErr || !rCommitted) {
+          showMsg("lookupMsg", "Error crediting your account. Sender was charged; contact support.", true);
+          // Optionally refund in case of error:
+          senderCoinsRef.transaction(s => (s || 0) + amount);
+          return;
+        }
+        ticketRef.update({
+          status: "accepted",
+          acceptedBy: user.uid,
+          acceptedAt: Date.now()
+        }).then(() => {
+          showMsg("lookupMsg", `✅ Offer accepted! ${amount} coins added to your balance.`, false);
+          document.getElementById("acceptBtn")?.remove();
+          lastTicketId = null;
+          lastTicketData = null;
+        }).catch(() => {
+          showMsg("lookupMsg", "Accepted but failed to update ticket status. Contact support.", true);
+        });
+      });
+    });
+  }).catch(() => {
+    showMsg("lookupMsg", "Error reading ticket. Try again.", true);
+  });
+}
 
     // AUTH — ensures coin balance is initialized
     auth.onAuthStateChanged(user => {
