@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Transaction Ticket System (Final Robust)</title>
+  <title>Ticket Transfer — Clean Version</title>
   <style>
-    body { font-family: Segoe UI, Arial; background: #222; color: #fff; margin: 0; min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center;}
+    body { font-family: Segoe UI, Arial; background: #222; color: #fff; min-height:100vh; display:flex; flex-direction:column; align-items:center;}
     .box { background:#2d2d2d;border-radius:14px;box-shadow:0 8px 30px #1114; padding:38px 34px; margin:28px 0;}
     .btn {background:#7289da;color:#fff;border:none;border-radius:7px;padding:13px 36px;font-size:1.11em;margin-top:11px;cursor:pointer;}
     h2 {color:#43b581;}
@@ -13,39 +13,45 @@
     .msg {margin-top:13px;font-size:1em;padding:4px;}
     .info { color:#43b581;}
     .error { color:#ff5c5c;}
+    .row {display:flex;gap:8px;}
   </style>
 </head>
 <body>
   <div class="box">
-    <h2>Sign In</h2>
-    <label>Email: <input type="email" id="email"></label>
-    <label>Password: <input type="password" id="password"></label>
-    <button class="btn" onclick="signIn()">Sign In / Register</button>
-    <button class="btn" onclick="signOut()" style="background:#444;margin-left:10px;">Sign Out</button>
+    <h2>Login</h2>
+    <div class="row">
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
+    </div>
+    <div style="margin-top:8px;">
+      <button class="btn" onclick="signIn()">Login / Register</button>
+      <button class="btn" onclick="signOut()" style="background:#444;">Sign Out</button>
+    </div>
     <div class="msg" id="authMsg"></div>
   </div>
-  <div class="box" id="userBox" style="display:none;">
+  <div class="box" id="mainBox" style="display:none;">
     <h2>Your Info</h2>
-    <div id="userHello"></div>
-    <div id="userCoins"></div>
-    <button class="btn" onclick="addCoins(100)" style="background:#43b581;">Add 100 demo coins</button>
-  </div>
-  <div class="box" id="createBox" style="display:none;">
-    <h2>Create Transaction Ticket</h2>
-    <label>Offer Amount:<input type="number" id="offerAmount" min="1" placeholder="Coins to offer"></label>
-    <button class="btn" onclick="createTicket()">Create Ticket</button>
+    <div id="userInfo"></div>
+    <button class="btn" onclick="addCoins(100)" style="background:#43b581;">Add 100 coins</button>
+    <h2 style="margin-top:2em;">Create a Ticket</h2>
+    <div class="row">
+      <input type="number" id="offerAmount" min="1" placeholder="Amount (coins)">
+      <button class="btn" onclick="createTicket()">Create Ticket</button>
+    </div>
     <div class="msg" id="createMsg"></div>
-  </div>
-  <div class="box" id="enterBox" style="display:none;">
-    <h2>Enter Ticket Number</h2>
-    <label>Ticket Number:<input type="text" id="ticketNumber" placeholder="Paste code here"></label>
-    <button class="btn" onclick="lookupTicket()">Lookup Ticket</button>
+    <div style="margin-top:2em;"></div>
+    <h2>Redeem a Ticket</h2>
+    <div class="row">
+      <input type="text" id="ticketCode" placeholder="Ticket Code">
+      <button class="btn" onclick="lookupTicket()">Lookup</button>
+    </div>
     <div class="msg" id="lookupMsg"></div>
   </div>
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
   <script>
+    // --- Config ---
     const firebaseConfig = {
       apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
       authDomain: "bankdata-fe769.firebaseapp.com",
@@ -59,109 +65,94 @@
     const db = firebase.database();
     const auth = firebase.auth();
 
+    // --- Auth ---
     let currentUser = null;
+    function signIn() {
+      showMsg("authMsg","");
+      const email = document.getElementById("email").value.trim();
+      const pwd = document.getElementById("password").value.trim();
+      if (!email || !pwd) return showMsg("authMsg","Fill in email and password.", true);
+      auth.signInWithEmailAndPassword(email, pwd)
+        .catch(err=>{
+          if (err.code==="auth/user-not-found") {
+            auth.createUserWithEmailAndPassword(email,pwd)
+              .then(()=>showMsg("authMsg","Registered!")).catch(e=>showMsg("authMsg",e.message,true));
+          } else showMsg("authMsg",err.message,true);
+        });
+    }
+    function signOut() {
+      auth.signOut();
+      document.getElementById("mainBox").style.display = "none";
+    }
 
+    auth.onAuthStateChanged(user=>{
+      currentUser=user;
+      if (user) {
+        showMsg("authMsg","Logged in as "+user.email,false);
+        document.getElementById("mainBox").style.display = "";
+        // Show name & coin balance
+        db.ref("users/"+user.uid+"/coins").on("value", snap=>{
+          let c = snap.exists() ? parseInt(snap.val(),10) : 0;
+          document.getElementById("userInfo").textContent = `Email: ${user.email}\nCoins: ${c}`;
+        });
+        // Give new users some coins
+        db.ref("users/"+user.uid+"/coins").once("value").then(s=>{
+          if (!s.exists()) db.ref("users/"+user.uid+"/coins").set(500);
+        });
+        db.ref("users/"+user.uid+"/name").set(user.email.split("@")[0]);
+      }
+    });
+
+    // --- Helper for msg feedback ---
     function showMsg(id, msg, isError=false) {
       const el = document.getElementById(id);
       el.textContent = msg;
       el.className = 'msg ' + (isError ? 'error' : 'info');
     }
-
-    function signIn() {
-      showMsg("authMsg", "");
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      if (!email || !password) {
-        showMsg("authMsg", "Please enter email and password.", true); return;
-      }
-      auth.signInWithEmailAndPassword(email, password)
-      .then(() => showMsg("authMsg", "Signed in!"))
-      .catch(err => {
-        if (err.code === 'auth/user-not-found') {
-          auth.createUserWithEmailAndPassword(email, password)
-            .then(() => showMsg("authMsg", "Registered and signed in!"))
-            .catch(e => showMsg("authMsg", e.message, true));
-        }
-        else showMsg("authMsg", err.message, true);
-      });
-    }
-
-    function signOut() {
-      auth.signOut().then(()=>{
-        showMsg("authMsg","Signed out.");
-        document.getElementById("userBox").style.display = "none";
-        document.getElementById("createBox").style.display = "none";
-        document.getElementById("enterBox").style.display = "none";
-      });
-    }
-
-    function refreshUserUI() {
+    // --- Demo "airdrop" coins ---
+    function addCoins(n=100){
       if (!currentUser) return;
-      document.getElementById("userBox").style.display = "";
-      document.getElementById("createBox").style.display = "";
-      document.getElementById("enterBox").style.display = "";
-      document.getElementById("userHello").textContent = "Hello, " + (currentUser.email || currentUser.uid);
-      db.ref("users/"+currentUser.uid+"/coins").on("value", s=>{
-        document.getElementById("userCoins").textContent = "Your balance: "+((s && s.exists())?s.val():0)+" coins";
-      });
-      db.ref("users/"+currentUser.uid+"/name").set(currentUser.email.split("@")[0]);
+      const ref=db.ref("users/"+currentUser.uid+"/coins");
+      ref.transaction(v=>parseInt(v||0)+n);
     }
 
-    function addCoins(n) {
-      if (!currentUser) return;
-      const ref = db.ref("users/"+currentUser.uid+"/coins");
-      ref.transaction(c=> (typeof c === 'string'?parseInt(c,10):c||0)+n);
-    }
-
-    auth.onAuthStateChanged(async user=>{
-      currentUser = user;
-      if (user) {
-        showMsg("authMsg","Signed in as "+(user.email||user.uid));
-        refreshUserUI();
-        // Force coins number type
-        db.ref("users/"+user.uid+"/coins").once("value").then(s=>{
-          if (!s.exists()) db.ref("users/"+user.uid+"/coins").set(200);
-          else if (typeof s.val() !== "number") db.ref("users/"+user.uid+"/coins").set(parseInt(s.val(),10));
-        });
-      }
-    });
-
-    // ---- Ticket logic ----
-    let lastTicketData = null;
-    let lastTicketId = null;
+    // ---- TICKET SYSTEM ----
     let canCreate = true;
     function createTicket() {
-      showMsg("createMsg", "");
-      if (!canCreate) { showMsg("createMsg","Wait 30 seconds between tickets.",true); return; }
+      showMsg("createMsg","");
+      if (!canCreate) return showMsg("createMsg","Wait 30 seconds between creates.",true);
       const amount = parseInt(document.getElementById("offerAmount").value,10);
-      if (!currentUser) { showMsg("createMsg","Not signed in.",true); return; }
-      if (!amount || amount<1) { showMsg("createMsg","Enter a valid amount.",true); return; }
-      const ticketId = Date.now().toString(36) + Math.floor(Math.random()*10000).toString(36);
+      if (!currentUser) return showMsg("createMsg","Not signed in.",true);
+      if (!amount || amount<1) return showMsg("createMsg","Enter a positive number.",true);
+      // Create ticket!
+      const ticketId = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
       db.ref("tickets/"+ticketId).set({
         senderUid: currentUser.uid,
-        senderName: currentUser.email.split("@")[0],
-        amount: amount,
+        senderEmail: currentUser.email,
+        amount,
         status: "pending",
         createdAt: Date.now()
       }).then(()=>{
-        showMsg("createMsg","✅ Ticket created!\nTicket Number:\n"+ticketId,false);
-        document.getElementById("offerAmount").value="";
-        canCreate=false; setTimeout(()=>{canCreate=true;},30000);
-      }).catch(()=>showMsg("createMsg","Error creating ticket.",true));
+        document.getElementById("offerAmount").value = "";
+        showMsg("createMsg",`✅ Ticket: ${ticketId}, Amount: ${amount}`);
+        canCreate = false; setTimeout(()=>canCreate=true,30000);
+      });
     }
 
+    let lastTicketId = null, lastTicketData = null;
     function lookupTicket() {
       showMsg("lookupMsg","");
       document.getElementById("acceptBtn")?.remove();
-      const ticketId = document.getElementById("ticketNumber").value.trim();
-      if (!ticketId) { showMsg("lookupMsg","Enter a ticket number.",true); return; }
+      const ticketId = document.getElementById("ticketCode").value.trim();
+      if (!ticketId) return showMsg("lookupMsg","Enter the ticket code.",true);
       db.ref("tickets/"+ticketId).get().then(snap=>{
-        if (!snap.exists()) { showMsg("lookupMsg","No ticket found.",true); return; }
-        const data=snap.val();
-        lastTicketData=data; lastTicketId=ticketId;
-        if (data.status!=="pending") { showMsg("lookupMsg","This ticket has already been claimed or is inactive.",true); return;}
-        showMsg("lookupMsg",`🎟️ ${data.senderName} is offering you ${data.amount} coins.`);
-        if (currentUser && currentUser.uid!==data.senderUid) {
+        if (!snap.exists()) return showMsg("lookupMsg","No such ticket.",true);
+        const data = snap.val();
+        if (data.status !== "pending")
+          return showMsg("lookupMsg","This ticket is spent or unavailable.",true);
+        lastTicketId = ticketId; lastTicketData = data;
+        showMsg("lookupMsg",`${data.senderEmail} is offering ${data.amount} coins.`);
+        if (currentUser.uid !== data.senderUid) {
           const btn = document.createElement("button");
           btn.textContent = "Accept Offer";
           btn.className = "btn";
@@ -169,49 +160,34 @@
           btn.onclick = acceptOffer;
           document.getElementById("lookupMsg").appendChild(document.createElement("br"));
           document.getElementById("lookupMsg").appendChild(btn);
-        } else if (currentUser && currentUser.uid===data.senderUid) {
-          showMsg("lookupMsg","You cannot accept your own ticket.",true);
+        } else {
+          showMsg("lookupMsg", "You can't accept your own ticket.", true);
         }
-      }).catch(()=>showMsg("lookupMsg","Lookup error.",true));
+      });
     }
 
     function acceptOffer() {
-      if (!currentUser) { showMsg("lookupMsg","Not signed in.",true); return; }
-      const ticketId=lastTicketId, data=lastTicketData;
-      if (!ticketId||!data) { showMsg("lookupMsg","Invalid ticket.",true); return; }
-      if (currentUser.uid===data.senderUid) { showMsg("lookupMsg","You cannot accept your own ticket.",true); return; }
-      showMsg("lookupMsg","Processing...",false);
-      const senderCoinsRef = db.ref("users/"+data.senderUid+"/coins");
-      senderCoinsRef.once('value').then(cSnap => {
-        let raw = cSnap.exists() ? cSnap.val() : 0;
-        let coins = typeof raw === 'string' ? parseInt(raw, 10) : raw;
-        console.log(`ACCEPT: senderUid=${data.senderUid}, senderCoins(pre)=${coins}, want to send=${data.amount}`);
-        senderCoinsRef.transaction(coinsOld=>{
-          let c = typeof coinsOld === 'string'?parseInt(coinsOld,10):(coinsOld||0);
-          if (c < data.amount) return;
-          return c - data.amount;
-        },(err,committed,snap)=>{
-          if (err || !committed) {
-            showMsg("lookupMsg","Sender does not have enough coins.",true);
-            console.log("Transaction failed. Sender coins:", snap && snap.val());
-            return;
-          }
-          let senderCoinsAfter = snap && snap.exists() ? snap.val() : "N/A";
-          console.log(`ACCEPT-success: senderUid=${data.senderUid}, senderCoins(after)=${senderCoinsAfter}, sent=${data.amount}`);
-          const receiverCoinsRef = db.ref("users/" + currentUser.uid + "/coins");
-          receiverCoinsRef.transaction(rcurr => {
-            let rc = typeof rcurr === 'string' ? parseInt(rcurr, 10) : (rcurr || 0);
-            return rc + data.amount;
-          },(ee,ec)=>{
-            if (ee || !ec){
-              showMsg("lookupMsg","Could not credit your account.",true);
-              senderCoinsRef.transaction(c => (typeof c === 'string' ? parseInt(c, 10) : (c || 0)) + data.amount);
-              return;
-            }
-            db.ref("tickets/"+ticketId).remove().then(()=>{
-              showMsg("lookupMsg",`✅ Offer accepted! ${data.amount} coins added to your balance.`,false);
+      if (!currentUser || !lastTicketData) return;
+      if (currentUser.uid === lastTicketData.senderUid)
+        return showMsg("lookupMsg","You can't accept your own ticket.",true);
+      const ticketRef = db.ref("tickets/"+lastTicketId);
+      ticketRef.get().then(snap=>{
+        const data=snap.val();
+        const senderCoinsRef = db.ref("users/"+data.senderUid+"/coins");
+        senderCoinsRef.transaction(coins=>{
+          let c = Number.isFinite(coins) ? coins : parseInt(coins||0,10);
+          if (c<data.amount) return;
+          return c-data.amount;
+        },(err,committed,snap2)=>{
+          if (err||!committed)
+            return showMsg("lookupMsg","Sender does not have enough coins.",true);
+          // Credit recipient
+          db.ref("users/"+currentUser.uid+"/coins").transaction(v=>parseInt(v||0,10)+parseInt(data.amount,10),(e2,c2)=>{
+            if (e2 || !c2) return showMsg("lookupMsg","Could not credit recipient.",true);
+            // Delete ticket
+            ticketRef.remove().then(()=>{
+              showMsg("lookupMsg",`✅ ${data.amount} coins transferred!`);
               document.getElementById("acceptBtn")?.remove();
-              lastTicketId = null; lastTicketData = null;
             });
           });
         });
