@@ -20,16 +20,16 @@
   <div class="box" id="mainBox" style="display:none;">
     <h2>Your Info</h2>
     <div id="userInfo"></div>
-    <h2 style="margin-top:2em;">Write a Cheque</h2>
+    <h2 style="margin-top:2em;">Create Ticket</h2>
     <div class="row">
       <input type="number" id="offerAmount" min="1" placeholder="Amount (coins)">
-      <button class="btn" onclick="createTicket()">Write Cheque</button>
+      <button class="btn" onclick="createTicket()">Create</button>
     </div>
     <div class="msg" id="createMsg"></div>
     <div style="margin-top:2em;"></div>
-    <h2>Redeem a Cheque</h2>
+    <h2>Redeem a ticket</h2>
     <div class="row">
-      <input type="text" id="ticketCode" placeholder="Cheque Code">
+      <input type="text" id="ticketCode" placeholder="Ticket number">
       <button class="btn" onclick="lookupTicket()">Lookup</button>
     </div>
     <div class="msg" id="lookupMsg"></div>
@@ -88,7 +88,7 @@
         if (coins<amount) return;
         return coins-amount;
       },(err,committed,snap)=>{
-        if (err||!committed) return showMsg("createMsg","Insufficient coins for cheque.",true);
+        if (err||!committed) return showMsg("createMsg","Insufficient coins for Ticket.",true);
         const ticketId = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
         db.ref("tickets/"+ticketId).set({
           senderUid: currentUser.uid,
@@ -97,7 +97,7 @@
           createdAt: Date.now()
         }).then(()=>{
           document.getElementById("offerAmount").value = "";
-          showMsg("createMsg",`✅ Cheque created!\nCode: ${ticketId}\nAmount: ${amount}`);
+          showMsg("createMsg",`✅ Ticket created!\nCode: ${ticketId}\nAmount: ${amount}`);
           canCreate = false; setTimeout(()=>canCreate=true,30000);
         });
       });
@@ -108,24 +108,24 @@
       showMsg("lookupMsg","");
       document.getElementById("acceptBtn")?.remove();
       const ticketId = document.getElementById("ticketCode").value.trim();
-      if (!ticketId) return showMsg("lookupMsg","Enter the cheque code.",true);
+      if (!ticketId) return showMsg("lookupMsg","Enter the Ticket Number.",true);
       db.ref("tickets/"+ticketId).get().then(snap=>{
-        if (!snap.exists()) return showMsg("lookupMsg","No such cheque.",true);
+        if (!snap.exists()) return showMsg("lookupMsg","No such ticket.",true);
         const data = snap.val();
         if (data.status !== "pending")
-          return showMsg("lookupMsg","This cheque is spent or unavailable.",true);
+          return showMsg("lookupMsg","This ticket is redeemed or unavailable.",true);
         lastTicketId = ticketId; lastTicketData = data;
         showMsg("lookupMsg",`Cheque for ${data.escrow} coins is ready to be redeemed.`);
         if (currentUser.uid !== data.senderUid) {
           const btn = document.createElement("button");
-          btn.textContent = "Redeem Cheque";
+          btn.textContent = "Redeem ticket";
           btn.className = "btn";
           btn.id = "acceptBtn";
           btn.onclick = acceptCheque;
           document.getElementById("lookupMsg").appendChild(document.createElement("br"));
           document.getElementById("lookupMsg").appendChild(btn);
         } else {
-          showMsg("lookupMsg", "You can't redeem your own cheque.", true);
+          showMsg("lookupMsg", "You can't redeem your own ticket.", true);
         }
       });
     }
@@ -133,13 +133,13 @@
     function acceptCheque() {
       if (!currentUser || !lastTicketData || !lastTicketId) return;
       if (currentUser.uid === lastTicketData.senderUid)
-        return showMsg("lookupMsg","You can't redeem your own cheque.",true);
+        return showMsg("lookupMsg","You can't redeem your own ticket",true);
       db.ref("users/"+currentUser.uid+"/coins").transaction(
         v=>parseInt(v||0,10)+parseInt(lastTicketData.escrow,10),
         (ee,ec)=>{
           if (ee || !ec) return showMsg("lookupMsg","Could not credit recipient.",true);
           db.ref("tickets/"+lastTicketId).remove().then(()=>{
-            showMsg("lookupMsg",`✅ Cheque redeemed! ${lastTicketData.escrow} coins transferred.`);
+            showMsg("lookupMsg",`✅ ticket redeemed! ${lastTicketData.escrow} coins transferred.`);
             document.getElementById("acceptBtn")?.remove();
             lastTicketId = null; lastTicketData = null;
           });
