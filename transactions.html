@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Transaction Ticket System (Stable Auth)</title>
+  <title>Transaction Ticket System (Final Robust)</title>
   <style>
     body { font-family: Segoe UI, Arial; background: #222; color: #fff; margin: 0; min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center;}
     .box { background:#2d2d2d;border-radius:14px;box-shadow:0 8px 30px #1114; padding:38px 34px; margin:28px 0;}
@@ -46,7 +46,6 @@
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
   <script>
-    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
       authDomain: "bankdata-fe769.firebaseapp.com",
@@ -68,7 +67,6 @@
       el.className = 'msg ' + (isError ? 'error' : 'info');
     }
 
-    // ---- Authentication ----
     function signIn() {
       showMsg("authMsg", "");
       const email = document.getElementById("email").value.trim();
@@ -97,7 +95,6 @@
       });
     }
 
-    // UI & balance
     function refreshUserUI() {
       if (!currentUser) return;
       document.getElementById("userBox").style.display = "";
@@ -113,7 +110,7 @@
     function addCoins(n) {
       if (!currentUser) return;
       const ref = db.ref("users/"+currentUser.uid+"/coins");
-      ref.transaction(c=> (c||0)+n);
+      ref.transaction(c=> (typeof c === 'string'?parseInt(c,10):c||0)+n);
     }
 
     auth.onAuthStateChanged(async user=>{
@@ -121,12 +118,11 @@
       if (user) {
         showMsg("authMsg","Signed in as "+(user.email||user.uid));
         refreshUserUI();
-        // Ensure coins exists
+        // Force coins number type
         db.ref("users/"+user.uid+"/coins").once("value").then(s=>{
-          if (!s.exists()) db.ref("users/"+user.uid+"/coins").set(200); // Give new users 200 coins
+          if (!s.exists()) db.ref("users/"+user.uid+"/coins").set(200);
+          else if (typeof s.val() !== "number") db.ref("users/"+user.uid+"/coins").set(parseInt(s.val(),10));
         });
-        // Set name
-        db.ref("users/"+user.uid+"/name").set(user.email.split("@")[0]);
       }
     });
 
@@ -179,42 +175,48 @@
       }).catch(()=>showMsg("lookupMsg","Lookup error.",true));
     }
 
-    // Accept only deducts sender when offer is accepted, and deletes ticket
-function acceptOffer() {
-  if (!currentUser) { showMsg("lookupMsg","Not signed in.",true); return; }
-  const ticketId=lastTicketId, data=lastTicketData;
-  if (!ticketId||!data) { showMsg("lookupMsg","Invalid ticket.",true); return; }
-  if (currentUser.uid===data.senderUid) { showMsg("lookupMsg","You cannot accept your own ticket.",true); return; }
-  showMsg("lookupMsg","Processing...",false);
-  const senderCoinsRef = db.ref("users/"+data.senderUid+"/coins");
-  senderCoinsRef.transaction(raw=>{
-    let coins = typeof raw === 'string' ? parseInt(raw, 10) : (raw || 0);
-    if (coins < data.amount) return; // abort transaction
-    return coins - data.amount;
-  },(err,committed,snap)=>{
-    if (err || !committed) {
-      showMsg("lookupMsg","Sender does not have enough coins.",true);
-      console.log("Transaction failed. Sender coins:", snap && snap.val());
-      return;
-    }
-    const receiverCoinsRef = db.ref("users/" + currentUser.uid + "/coins");
-    receiverCoinsRef.transaction(rcurr => {
-      let rc = typeof rcurr === 'string' ? parseInt(rcurr, 10) : (rcurr || 0);
-      return rc + data.amount;
-    },(ee,ec)=>{
-      if (ee || !ec){
-        showMsg("lookupMsg","Could not credit your account.",true);
-        senderCoinsRef.transaction(c => (typeof c === 'string' ? parseInt(c, 10) : (c || 0)) + data.amount);
-        return;
-      }
-      db.ref("tickets/"+ticketId).remove().then(()=>{
-        showMsg("lookupMsg",`✅ Offer accepted! ${data.amount} coins added to your balance.`,false);
-        document.getElementById("acceptBtn")?.remove();
-        lastTicketId = null; lastTicketData = null;
+    function acceptOffer() {
+      if (!currentUser) { showMsg("lookupMsg","Not signed in.",true); return; }
+      const ticketId=lastTicketId, data=lastTicketData;
+      if (!ticketId||!data) { showMsg("lookupMsg","Invalid ticket.",true); return; }
+      if (currentUser.uid===data.senderUid) { showMsg("lookupMsg","You cannot accept your own ticket.",true); return; }
+      showMsg("lookupMsg","Processing...",false);
+      const senderCoinsRef = db.ref("users/"+data.senderUid+"/coins");
+      senderCoinsRef.once('value').then(cSnap => {
+        let raw = cSnap.exists() ? cSnap.val() : 0;
+        let coins = typeof raw === 'string' ? parseInt(raw, 10) : raw;
+        console.log(`ACCEPT: senderUid=${data.senderUid}, senderCoins(pre)=${coins}, want to send=${data.amount}`);
+        senderCoinsRef.transaction(coinsOld=>{
+          let c = typeof coinsOld === 'string'?parseInt(coinsOld,10):(coinsOld||0);
+          if (c < data.amount) return;
+          return c - data.amount;
+        },(err,committed,snap)=>{
+          if (err || !committed) {
+            showMsg("lookupMsg","Sender does not have enough coins.",true);
+            console.log("Transaction failed. Sender coins:", snap && snap.val());
+            return;
+          }
+          let senderCoinsAfter = snap && snap.exists() ? snap.val() : "N/A";
+          console.log(`ACCEPT-success: senderUid=${data.senderUid}, senderCoins(after)=${senderCoinsAfter}, sent=${data.amount}`);
+          const receiverCoinsRef = db.ref("users/" + currentUser.uid + "/coins");
+          receiverCoinsRef.transaction(rcurr => {
+            let rc = typeof rcurr === 'string' ? parseInt(rcurr, 10) : (rcurr || 0);
+            return rc + data.amount;
+          },(ee,ec)=>{
+            if (ee || !ec){
+              showMsg("lookupMsg","Could not credit your account.",true);
+              senderCoinsRef.transaction(c => (typeof c === 'string' ? parseInt(c, 10) : (c || 0)) + data.amount);
+              return;
+            }
+            db.ref("tickets/"+ticketId).remove().then(()=>{
+              showMsg("lookupMsg",`✅ Offer accepted! ${data.amount} coins added to your balance.`,false);
+              document.getElementById("acceptBtn")?.remove();
+              lastTicketId = null; lastTicketData = null;
+            });
+          });
+        });
       });
-    });
-  });
-}
+    }
   </script>
 </body>
 </html>
