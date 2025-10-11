@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Coin Cheque System — Custom Balances</title>
+  <title>transfer coin</title>
   <style>
     body { font-family: Segoe UI, Arial; background: #222; color: #fff; min-height:100vh; display:flex; flex-direction:column; align-items:center;}
     .box { background:#2d2d2d;border-radius:14px;box-shadow:0 8px 30px #1114; padding:38px 34px; margin:28px 0;}
@@ -115,7 +115,7 @@
         if (data.status !== "pending")
           return showMsg("lookupMsg","This ticket is redeemed or unavailable.",true);
         lastTicketId = ticketId; lastTicketData = data;
-        showMsg("lookupMsg",`Cheque for ${data.escrow} coins is ready to be redeemed.`);
+        showMsg("lookupMsg",`ticket for ${data.escrow} coins is ready to be redeemed.`);
         if (currentUser.uid !== data.senderUid) {
           const btn = document.createElement("button");
           btn.textContent = "Redeem ticket";
