@@ -1,147 +1,866 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Spin The Wheel — Earn Coins</title>
-  <style>
-    body { font-family: Segoe UI, Arial; background: #222; color: #fff; min-height:100vh;
-      display:flex; flex-direction:column; align-items:center;}
-    .box { background:#2d2d2d; border-radius:14px; box-shadow:0 8px 30px #1114;
-      padding:38px 34px; margin:32px 0 20px 0; width:350px; max-width:96vw; }
-    h2 { color:#6ce154; margin:16px 0 8px 0;}
-    .info-row { width:100%; background:#191d22; border-radius:8px; padding:10px 18px;
-      font-family:monospace; margin:10px 0 18px 0; }
-    input, .btn { border-radius:6px; border:none; padding:8px; font-size:1.09em;}
-    .btn { background:#7289da; color:#fff; font-weight:600; margin-top:10px; cursor:pointer; }
-    .row { display:flex; gap:8px; margin-top:10px;}
-    .msg { margin-top:10px; font-size:1em; min-height:1em;}
-    .info { color:#43b581; }
-    .error { color:#ff5c5c; }
-    #wheelMsg { margin-top:18px; margin-bottom:5px;}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Earn — Axes Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #181b22;
+    --border: rgba(255,255,255,0.07);
+    --gold: #f5c842;
+    --gold2: #e8a020;
+    --green: #2ecc87;
+    --blue: #4f8ef7;
+    --purple: #9b6dff;
+    --red: #ff5f5f;
+    --text: #f0f2f7;
+    --muted: #6b7280;
+    --card-glow: 0 0 40px rgba(245,200,66,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Ambient BG */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px; left: -200px;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(245,200,66,0.06) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 64px;
+    background: rgba(10,12,16,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; z-index: 100;
+  }
+  .logo { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.5px; color: var(--gold); }
+  .coin-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.95rem;
+    background: rgba(245,200,66,0.1);
+    border: 1px solid rgba(245,200,66,0.2);
+    color: var(--gold);
+    padding: 6px 18px; border-radius: 999px;
+    transition: all 0.3s;
+  }
+  .back-btn {
+    background: none; border: none; color: var(--muted);
+    font-family: 'Syne', sans-serif; font-size: 0.9rem;
+    cursor: pointer; padding: 6px 14px;
+    border-radius: 8px; transition: all 0.2s;
+    text-decoration: none; display: flex; align-items: center; gap: 6px;
+  }
+  .back-btn:hover { color: var(--text); background: var(--surface2); }
+
+  /* MAIN */
+  main {
+    max-width: 900px; margin: 0 auto;
+    padding: 96px 24px 60px;
+    position: relative; z-index: 1;
+  }
+
+  .page-header {
+    margin-bottom: 40px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .page-header h1 {
+    font-size: 2.4rem; font-weight: 800; letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .page-header p { color: var(--muted); margin-top: 8px; font-size: 1rem; font-weight: 400; }
+
+  /* EARNING METHODS GRID */
+  .methods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .earn-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    animation: fadeUp 0.5s ease both;
+    cursor: default;
+  }
+  .earn-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--card-gradient, transparent);
+    opacity: 0.06; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .earn-card:hover { transform: translateY(-4px); box-shadow: var(--card-glow); }
+  .earn-card:hover::before { opacity: 0.12; }
+
+  .earn-card.gold { --card-gradient: linear-gradient(135deg, var(--gold), var(--gold2)); border-color: rgba(245,200,66,0.2); }
+  .earn-card.green { --card-gradient: linear-gradient(135deg, #2ecc87, #00b86b); border-color: rgba(46,204,135,0.2); }
+  .earn-card.blue { --card-gradient: linear-gradient(135deg, #4f8ef7, #2563eb); border-color: rgba(79,142,247,0.2); }
+  .earn-card.purple { --card-gradient: linear-gradient(135deg, #9b6dff, #7c3aed); border-color: rgba(155,109,255,0.2); }
+  .earn-card.red { --card-gradient: linear-gradient(135deg, #ff5f5f, #dc2626); border-color: rgba(255,95,95,0.2); }
+
+  .earn-card:hover.gold { border-color: rgba(245,200,66,0.5); box-shadow: 0 0 30px rgba(245,200,66,0.08); }
+  .earn-card:hover.green { border-color: rgba(46,204,135,0.5); box-shadow: 0 0 30px rgba(46,204,135,0.08); }
+  .earn-card:hover.blue { border-color: rgba(79,142,247,0.5); box-shadow: 0 0 30px rgba(79,142,247,0.08); }
+  .earn-card:hover.purple { border-color: rgba(155,109,255,0.5); box-shadow: 0 0 30px rgba(155,109,255,0.08); }
+  .earn-card:hover.red { border-color: rgba(255,95,95,0.5); box-shadow: 0 0 30px rgba(255,95,95,0.08); }
+
+  .card-icon { font-size: 2rem; margin-bottom: 14px; display: block; }
+  .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+  .card-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin-bottom: 18px; }
+  .card-reward {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem; font-weight: 500;
+    padding: 5px 12px; border-radius: 999px;
+    display: inline-block; margin-bottom: 16px;
+  }
+  .gold .card-reward { background: rgba(245,200,66,0.12); color: var(--gold); }
+  .green .card-reward { background: rgba(46,204,135,0.12); color: var(--green); }
+  .blue .card-reward { background: rgba(79,142,247,0.12); color: var(--blue); }
+  .purple .card-reward { background: rgba(155,109,255,0.12); color: var(--purple); }
+  .red .card-reward { background: rgba(255,95,95,0.12); color: var(--red); }
+
+  .card-btn {
+    display: block; width: 100%;
+    padding: 12px; border: none; border-radius: 12px;
+    font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .gold .card-btn { background: rgba(245,200,66,0.15); color: var(--gold); }
+  .gold .card-btn:hover { background: var(--gold); color: #000; }
+  .green .card-btn { background: rgba(46,204,135,0.15); color: var(--green); }
+  .green .card-btn:hover { background: var(--green); color: #000; }
+  .blue .card-btn { background: rgba(79,142,247,0.15); color: var(--blue); }
+  .blue .card-btn:hover { background: var(--blue); color: #fff; }
+  .purple .card-btn { background: rgba(155,109,255,0.15); color: var(--purple); }
+  .purple .card-btn:hover { background: var(--purple); color: #fff; }
+  .red .card-btn { background: rgba(255,95,95,0.15); color: var(--red); }
+  .red .card-btn:hover { background: var(--red); color: #fff; }
+
+  .card-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .cooldown-bar {
+    height: 3px; border-radius: 99px;
+    background: var(--surface2); overflow: hidden; margin-top: 10px;
+  }
+  .cooldown-fill { height: 100%; border-radius: 99px; transition: width 1s linear; }
+  .gold .cooldown-fill { background: var(--gold); }
+  .green .cooldown-fill { background: var(--green); }
+  .blue .cooldown-fill { background: var(--blue); }
+  .purple .cooldown-fill { background: var(--purple); }
+  .red .cooldown-fill { background: var(--red); }
+
+  /* SPIN SECTION */
+  .spin-section {
+    background: var(--surface);
+    border: 1px solid rgba(245,200,66,0.15);
+    border-radius: 24px; padding: 36px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.5s 0.1s ease both;
+    position: relative; overflow: hidden;
+  }
+  .spin-section::after {
+    content: '';
+    position: absolute; top: -80px; right: -80px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(245,200,66,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .spin-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+  .spin-header h2 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
+  .spin-header p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+  .spin-cost-badge {
+    font-family: 'DM Mono', monospace; font-size: 0.85rem;
+    background: rgba(245,200,66,0.1); color: var(--gold);
+    padding: 8px 18px; border-radius: 10px; white-space: nowrap;
+    border: 1px solid rgba(245,200,66,0.2);
+  }
+
+  /* Wheel visual */
+  .wheel-wrap { display: flex; align-items: center; gap: 40px; flex-wrap: wrap; }
+  .wheel-canvas-wrap {
+    position: relative; flex-shrink: 0;
+  }
+  #spinCanvas { display: block; border-radius: 50%; }
+  .wheel-pointer {
+    position: absolute; top: 50%; right: -18px;
+    transform: translateY(-50%);
+    width: 0; height: 0;
+    border-top: 14px solid transparent;
+    border-bottom: 14px solid transparent;
+    border-right: 26px solid var(--gold);
+    filter: drop-shadow(0 0 6px rgba(245,200,66,0.5));
+  }
+  .spin-controls { flex: 1; min-width: 200px; }
+  .spin-result {
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem;
+    background: var(--surface2);
+    border-radius: 12px; padding: 14px 18px;
+    margin-bottom: 16px;
+    min-height: 48px;
+    color: var(--green);
+    border: 1px solid var(--border);
+  }
+  .spin-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-primary {
+    padding: 13px 24px; border: none; border-radius: 12px;
+    font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700;
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    color: #000; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,200,66,0.3); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-secondary {
+    padding: 13px 24px; border: 1px solid rgba(46,204,135,0.3); border-radius: 12px;
+    font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700;
+    background: rgba(46,204,135,0.08); color: var(--green);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: rgba(46,204,135,0.18); border-color: var(--green); }
+  .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .spins-counter {
+    font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--muted);
+    margin-top: 10px;
+  }
+
+  /* Daily Check-in */
+  .checkin-grid {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .checkin-day {
+    flex: 1; min-width: 60px;
+    background: var(--surface2); border-radius: 10px;
+    padding: 10px 6px; text-align: center;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .checkin-day.done { background: rgba(46,204,135,0.1); border-color: rgba(46,204,135,0.3); }
+  .checkin-day.today { border-color: var(--gold); }
+  .checkin-day .day-label { font-size: 0.7rem; color: var(--muted); margin-bottom: 4px; }
+  .checkin-day .day-coins { font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--gold); font-weight: 500; }
+  .checkin-day .day-check { font-size: 1rem; }
+
+  /* Ad overlay */
+  #adOverlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  #adOverlay.show { display: flex; }
+  .ad-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 24px; padding: 40px; max-width: 400px; width: 90%;
+    text-align: center;
+  }
+  .ad-box h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
+  .ad-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+  .ad-timer {
+    font-family: 'DM Mono', monospace;
+    font-size: 2.5rem; font-weight: 500;
+    color: var(--gold); margin-bottom: 20px;
+  }
+  .ad-bar { height: 4px; background: var(--surface2); border-radius: 99px; overflow: hidden; margin-bottom: 20px; }
+  .ad-bar-fill { height: 100%; background: var(--gold); transition: width 1s linear; border-radius: 99px; }
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 24px;
+    font-size: 0.95rem; font-weight: 600;
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 300; white-space: nowrap;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.success { border-color: rgba(46,204,135,0.4); color: var(--green); }
+  #toast.error { border-color: rgba(255,95,95,0.4); color: var(--red); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 600px) {
+    .topbar { padding: 0 16px; }
+    main { padding: 80px 16px 60px; }
+    .page-header h1 { font-size: 1.8rem; }
+    .wheel-wrap { flex-direction: column; align-items: flex-start; }
+    #spinCanvas { width: 180px !important; height: 180px !important; }
+    .spin-section { padding: 24px; }
+  }
+</style>
 </head>
 <body>
-  <div class="box" id="mainBox" style="display:none;">
-    <h2>Earn: Spin the Wheel</h2>
-    <div class="info-row" id="userInfo"></div>
-    <div id="spinInfo"></div>
-    <div class="row">
-      <button class="btn" onclick="spinTheWheel()" id="spinBtn">Spin (<span id="spinCost">...</span> coins)</button>
-      <button class="btn" onclick="showAdSpin()" id="adSpinBtn" style="background:#43b581;">Watch Ad for Free Spin</button>
+
+<div class="topbar">
+  <a class="back-btn" href="dashboard.html">← Dashboard</a>
+  <div class="logo">Axes Bank</div>
+  <div class="coin-badge" id="coinBadge">⏳ Loading</div>
+</div>
+
+<main>
+  <div class="page-header">
+    <h1>Earn Coins</h1>
+    <p>Complete tasks, spin the wheel, and grow your balance.</p>
+  </div>
+
+  <!-- EARN METHODS GRID -->
+  <div class="methods-grid">
+
+    <!-- Daily Check-in -->
+    <div class="earn-card green" style="animation-delay:0s">
+      <span class="card-icon">📅</span>
+      <div class="card-title">Daily Check-in</div>
+      <div class="card-desc">Log in every day for increasing streak rewards. Miss a day and the streak resets.</div>
+      <span class="card-reward" id="checkinRewardLabel">+50 coins</span>
+      <div class="checkin-grid" id="checkinGrid"></div>
+      <button class="card-btn" id="checkinBtn" onclick="doCheckin()">Claim Today</button>
+      <div class="cooldown-bar"><div class="cooldown-fill" id="checkinBar" style="width:0%"></div></div>
     </div>
-    <div class="msg" id="spinMsg"></div>
-    <div class="msg" id="wheelMsg"></div>
+
+    <!-- Watch Ad -->
+    <div class="earn-card blue" style="animation-delay:0.05s">
+      <span class="card-icon">📺</span>
+      <div class="card-title">Watch an Ad</div>
+      <div class="card-desc">Watch a short 15-second ad to earn coins. Available every 30 minutes.</div>
+      <span class="card-reward">+75 coins</span>
+      <button class="card-btn" id="adBtn" onclick="startAd()">Watch Now</button>
+      <div class="cooldown-bar"><div class="cooldown-fill" id="adBar" style="width:0%"></div></div>
+    </div>
+
+    <!-- Trivia -->
+    <div class="earn-card purple" style="animation-delay:0.1s">
+      <span class="card-icon">🧠</span>
+      <div class="card-title">Daily Trivia</div>
+      <div class="card-desc">Answer one trivia question correctly per day to earn a coin bonus.</div>
+      <span class="card-reward">+100 coins</span>
+      <button class="card-btn" id="triviaBtn" onclick="openTrivia()">Answer Now</button>
+      <div class="cooldown-bar"><div class="cooldown-fill" id="triviaBar" style="width:0%"></div></div>
+    </div>
+
+    <!-- Referral -->
+    <div class="earn-card gold" style="animation-delay:0.15s">
+      <span class="card-icon">🔗</span>
+      <div class="card-title">Refer a Friend</div>
+      <div class="card-desc">Share your referral code. Earn 500 coins when a friend signs up and makes their first spin.</div>
+      <span class="card-reward">+500 per referral</span>
+      <button class="card-btn" onclick="copyReferral()">Copy Referral Link</button>
+    </div>
+
+    <!-- Streak Bonus -->
+    <div class="earn-card red" style="animation-delay:0.2s">
+      <span class="card-icon">🔥</span>
+      <div class="card-title">7-Day Streak</div>
+      <div class="card-desc">Maintain a 7-day daily login streak to unlock a massive bonus reward.</div>
+      <span class="card-reward">+1,000 coins</span>
+      <div style="font-family:'DM Mono',monospace;font-size:0.8rem;color:var(--muted);margin-bottom:14px;" id="streakLabel">Streak: 0 / 7</div>
+      <button class="card-btn" id="streakBtn" disabled>Keep Logging In</button>
+    </div>
+
   </div>
 
-  <!-- Simulated Ad overlay (hide in real prod, replace with actual ad logic) -->
-  <div class="box" id="adOverlay" style="display:none;position:fixed;top:30vh;left:0;right:0;margin:auto;">
-    <h2>Watch Ad</h2>
-    <div class="msg">[Ad playing simulation...]</div>
-    <button class="btn" onclick="finishAd()">I've finished watching the ad</button>
+  <!-- SPIN THE WHEEL -->
+  <div class="spin-section">
+    <div class="spin-header">
+      <div>
+        <h2>🎰 Spin the Wheel</h2>
+        <p>Pay coins to spin. Higher spin count = higher cost but better average prize.</p>
+      </div>
+      <div class="spin-cost-badge">Cost: <span id="spinCostDisplay">...</span> coins</div>
+    </div>
+    <div class="wheel-wrap">
+      <div class="wheel-canvas-wrap">
+        <canvas id="spinCanvas" width="220" height="220"></canvas>
+        <div class="wheel-pointer"></div>
+      </div>
+      <div class="spin-controls">
+        <div class="spin-result" id="spinResult">Hit spin to try your luck!</div>
+        <div class="spin-btns">
+          <button class="btn-primary" id="spinBtn" onclick="doSpin(false)">Spin</button>
+          <button class="btn-secondary" id="freeSpinBtn" onclick="startAdForSpin()">Ad → Free Spin</button>
+        </div>
+        <div class="spins-counter" id="spinsCounter">Total spins: 0</div>
+      </div>
+    </div>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-      authDomain: "bankdata-fe769.firebaseapp.com",
-      databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "bankdata-fe769",
-      storageBucket: "bankdata-fe769.appspot.com",
-      messagingSenderId: "967507656753",
-      appId: "1:967507656753:web:562c1383dca78d56471510"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
+</main>
 
-    let currentUser = null, userData = {};
-    function showMsg(id, msg, isError=false) {
-      const el = document.getElementById(id);
-      el.textContent = msg;
-      el.className = 'msg ' + (isError ? 'error' : 'info');
-    }
-    function updateSpinCost(cost) {
-      document.getElementById("spinCost").textContent = cost;
-    }
+<!-- Ad Overlay -->
+<div id="adOverlay">
+  <div class="ad-box">
+    <h3>📺 Watching Ad</h3>
+    <p id="adPurposeText">Watch the full ad to earn your reward.</p>
+    <div class="ad-timer" id="adTimerDisplay">15</div>
+    <div class="ad-bar"><div class="ad-bar-fill" id="adBarFill" style="width:100%"></div></div>
+    <button class="btn-primary" id="adFinishBtn" onclick="finishAd()" disabled style="width:100%;opacity:0.3">Claim Reward</button>
+  </div>
+</div>
 
-    function getNextSpinCost(spins) {
-      return Math.floor(20 * Math.pow(1.05, spins || 0));
-    }
+<!-- Trivia Modal -->
+<div id="triviaOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center;">
+  <div class="ad-box" style="max-width:480px;">
+    <h3 id="triviaQ" style="font-size:1.1rem;margin-bottom:20px;line-height:1.5;"></h3>
+    <div id="triviaOptions" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
+    <div id="triviaResult" style="font-family:'DM Mono',monospace;font-size:0.9rem;min-height:24px;"></div>
+  </div>
+</div>
 
-    // Auth & user info
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        document.getElementById("mainBox").style.display = "";
-        db.ref("users/"+user.uid).on("value", snap => {
-          userData = snap.val() || {};
-          let coins = typeof userData.coins === "number" ? userData.coins : parseInt(userData.coins||0,10);
-          if (!isFinite(coins)) coins = 0;
-          let spins = parseInt(userData.spins) || 0;
-          document.getElementById("userInfo").textContent =
-            `ID: ${user.uid}\nCoins: ${coins}\nSpins so far: ${spins}`;
-          const cost = getNextSpinCost(spins);
-          updateSpinCost(cost);
-        });
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+  authDomain: "bankdata-fe769.firebaseapp.com",
+  databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "bankdata-fe769",
+  storageBucket: "bankdata-fe769.appspot.com",
+  messagingSenderId: "967507656753",
+  appId: "1:967507656753:web:562c1383dca78d56471510"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
+
+let currentUser = null, userData = {};
+let adPurpose = 'coins'; // 'coins' or 'spin'
+let adTimer = null;
+let adCooldownTimer = null;
+
+// ── AUTH ──────────────────────────────────────────────
+auth.onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user;
+    db.ref("users/" + user.uid).on("value", snap => {
+      userData = snap.val() || {};
+      refreshUI();
+    });
+  } else {
+    auth.signInAnonymously();
+  }
+});
+
+function refreshUI() {
+  const coins = getCoins();
+  document.getElementById("coinBadge").textContent = "💰 " + coins.toLocaleString();
+
+  const spins = parseInt(userData.spins) || 0;
+  document.getElementById("spinCostDisplay").textContent = getSpinCost(spins).toLocaleString();
+  document.getElementById("spinsCounter").textContent = "Total spins: " + spins;
+
+  const streak = parseInt(userData.streak) || 0;
+  document.getElementById("streakLabel").textContent = `Streak: ${streak} / 7`;
+  if (streak >= 7) {
+    const btn = document.getElementById("streakBtn");
+    btn.disabled = false;
+    btn.textContent = "🎉 Claim 1,000 Bonus!";
+    btn.onclick = claimStreakBonus;
+  }
+
+  renderCheckinGrid();
+  checkCheckin();
+  checkAdCooldown();
+  checkTriviaCooldown();
+  drawWheel();
+}
+
+function getCoins() {
+  let c = typeof userData.coins === "number" ? userData.coins : parseInt(userData.coins || "0", 10);
+  return isFinite(c) ? c : 0;
+}
+
+function getSpinCost(spins) {
+  return Math.floor(30 * Math.pow(1.07, spins || 0));
+}
+
+// ── TOAST ──────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const t = document.getElementById("toast");
+  t.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
+  t.className = 'show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = '', 3000);
+}
+
+// ── DAILY CHECK-IN ──────────────────────────────────────
+const CHECK_REWARDS = [50, 75, 100, 150, 200, 300, 500];
+
+function renderCheckinGrid() {
+  const streak = parseInt(userData.streak) || 0;
+  const grid = document.getElementById("checkinGrid");
+  const days = ['M','T','W','T','F','S','S'];
+  grid.innerHTML = days.map((d, i) => {
+    const done = i < (streak % 7);
+    const today = i === (streak % 7) && !isCheckedInToday();
+    return `<div class="checkin-day ${done ? 'done' : ''} ${today ? 'today' : ''}">
+      <div class="day-label">${d}</div>
+      <div class="day-check">${done ? '✅' : today ? '⭐' : '○'}</div>
+      <div class="day-coins">+${CHECK_REWARDS[i]}</div>
+    </div>`;
+  }).join('');
+
+  const todayReward = CHECK_REWARDS[streak % 7];
+  document.getElementById("checkinRewardLabel").textContent = `+${todayReward} coins`;
+}
+
+function isCheckedInToday() {
+  const last = userData.lastCheckin;
+  if (!last) return false;
+  return new Date(last).toDateString() === new Date().toDateString();
+}
+
+function checkCheckin() {
+  const btn = document.getElementById("checkinBtn");
+  if (isCheckedInToday()) {
+    btn.disabled = true;
+    btn.textContent = "✓ Claimed Today";
+    document.getElementById("checkinBar").style.width = "100%";
+  } else {
+    btn.disabled = false;
+    btn.textContent = "Claim Today";
+    document.getElementById("checkinBar").style.width = "0%";
+  }
+}
+
+function doCheckin() {
+  if (!currentUser || isCheckedInToday()) return;
+  const streak = parseInt(userData.streak) || 0;
+  const reward = CHECK_REWARDS[streak % 7];
+  const newStreak = streak + 1;
+  const updates = {
+    [`users/${currentUser.uid}/coins`]: getCoins() + reward,
+    [`users/${currentUser.uid}/streak`]: newStreak,
+    [`users/${currentUser.uid}/lastCheckin`]: new Date().toISOString()
+  };
+  db.ref().update(updates).then(() => toast(`+${reward} coins! Streak: ${newStreak}`));
+}
+
+// ── STREAK BONUS ──────────────────────────────────────────
+function claimStreakBonus() {
+  if (!currentUser) return;
+  const updates = {
+    [`users/${currentUser.uid}/coins`]: getCoins() + 1000,
+    [`users/${currentUser.uid}/streak`]: 0
+  };
+  db.ref().update(updates).then(() => {
+    toast("+1,000 coins! Streak reset. Keep going!");
+    document.getElementById("streakBtn").disabled = true;
+    document.getElementById("streakBtn").textContent = "Keep Logging In";
+  });
+}
+
+// ── AD SYSTEM ──────────────────────────────────────────────
+const AD_COOLDOWN_MS = 30 * 60 * 1000; // 30 min
+
+function checkAdCooldown() {
+  const last = userData.lastAd;
+  const btn = document.getElementById("adBtn");
+  if (!last) { btn.disabled = false; document.getElementById("adBar").style.width = "0%"; return; }
+  const elapsed = Date.now() - new Date(last).getTime();
+  if (elapsed >= AD_COOLDOWN_MS) {
+    btn.disabled = false;
+    document.getElementById("adBar").style.width = "0%";
+  } else {
+    btn.disabled = true;
+    const pct = (elapsed / AD_COOLDOWN_MS) * 100;
+    document.getElementById("adBar").style.width = pct + "%";
+    // auto-refresh countdown
+    clearInterval(adCooldownTimer);
+    adCooldownTimer = setInterval(() => {
+      const el2 = Date.now() - new Date(userData.lastAd).getTime();
+      if (el2 >= AD_COOLDOWN_MS) {
+        clearInterval(adCooldownTimer);
+        btn.disabled = false;
+        document.getElementById("adBar").style.width = "0%";
+        btn.textContent = "Watch Now";
       } else {
-        auth.signInAnonymously();
+        const rem = Math.ceil((AD_COOLDOWN_MS - el2) / 60000);
+        btn.textContent = `Cooldown: ${rem}m`;
+        document.getElementById("adBar").style.width = ((el2 / AD_COOLDOWN_MS) * 100) + "%";
+      }
+    }, 5000);
+  }
+}
+
+function startAd(purpose = 'coins') {
+  adPurpose = purpose;
+  document.getElementById("adPurposeText").textContent =
+    purpose === 'spin' ? "Watch the full ad to earn a free spin!" : "Watch the full ad to earn 75 coins.";
+  openAdOverlay();
+}
+
+function startAdForSpin() { startAd('spin'); }
+
+function openAdOverlay() {
+  document.getElementById("adOverlay").classList.add("show");
+  const finBtn = document.getElementById("adFinishBtn");
+  finBtn.disabled = true;
+  finBtn.style.opacity = "0.3";
+  let secs = 15;
+  document.getElementById("adTimerDisplay").textContent = secs;
+  document.getElementById("adBarFill").style.width = "100%";
+  clearInterval(adTimer);
+  adTimer = setInterval(() => {
+    secs--;
+    document.getElementById("adTimerDisplay").textContent = secs;
+    document.getElementById("adBarFill").style.width = (secs / 15 * 100) + "%";
+    if (secs <= 0) {
+      clearInterval(adTimer);
+      finBtn.disabled = false;
+      finBtn.style.opacity = "1";
+    }
+  }, 1000);
+}
+
+function finishAd() {
+  document.getElementById("adOverlay").classList.remove("show");
+  clearInterval(adTimer);
+  if (!currentUser) return;
+
+  if (adPurpose === 'spin') {
+    doSpin(true);
+  } else {
+    const updates = {
+      [`users/${currentUser.uid}/coins`]: getCoins() + 75,
+      [`users/${currentUser.uid}/lastAd`]: new Date().toISOString()
+    };
+    db.ref().update(updates).then(() => toast("+75 coins! Come back in 30 min."));
+  }
+}
+
+// ── TRIVIA ──────────────────────────────────────────────
+const TRIVIA_QUESTIONS = [
+  { q: "What does 'APR' stand for in finance?", opts: ["Annual Percentage Rate","Average Price Range","Asset Purchase Return","Annual Payment Record"], a: 0 },
+  { q: "What is compound interest?", opts: ["Interest on principal only","Interest on interest","A flat fee","A government tax"], a: 1 },
+  { q: "What is a 'bull market'?", opts: ["A falling market","A market with high volatility","A rising market","A market for commodities"], a: 2 },
+  { q: "What does 'diversification' mean in investing?", opts: ["Putting all money in one stock","Spreading investments to reduce risk","Borrowing money to invest","Selling investments quickly"], a: 1 },
+  { q: "What is inflation?", opts: ["Decrease in money supply","Increase in purchasing power","Rise in general price levels","Drop in stock prices"], a: 2 },
+  { q: "What is a 'dividend'?", opts: ["A stock split","A payment from profit to shareholders","A type of loan","An investment fee"], a: 1 },
+  { q: "What does 'liquidity' refer to?", opts: ["How wet an asset is","How quickly an asset can be converted to cash","How profitable a company is","How large a company's debt is"], a: 1 },
+];
+
+let currentTrivia = null;
+
+function checkTriviaCooldown() {
+  const last = userData.lastTrivia;
+  const btn = document.getElementById("triviaBtn");
+  if (!last) { btn.disabled = false; document.getElementById("triviaBar").style.width = "0%"; return; }
+  const elapsed = Date.now() - new Date(last).getTime();
+  const COOLDOWN = 24 * 60 * 60 * 1000;
+  if (elapsed >= COOLDOWN) {
+    btn.disabled = false;
+    document.getElementById("triviaBar").style.width = "0%";
+  } else {
+    btn.disabled = true;
+    btn.textContent = "Come back tomorrow";
+    document.getElementById("triviaBar").style.width = (elapsed / COOLDOWN * 100) + "%";
+  }
+}
+
+function openTrivia() {
+  currentTrivia = TRIVIA_QUESTIONS[Math.floor(Math.random() * TRIVIA_QUESTIONS.length)];
+  document.getElementById("triviaQ").textContent = currentTrivia.q;
+  document.getElementById("triviaResult").textContent = "";
+  const opts = document.getElementById("triviaOptions");
+  opts.innerHTML = currentTrivia.opts.map((o, i) =>
+    `<button onclick="answerTrivia(${i})" style="padding:11px 16px;border-radius:10px;border:1px solid var(--border);
+      background:var(--surface2);color:var(--text);font-family:'Syne',sans-serif;font-size:0.9rem;
+      cursor:pointer;text-align:left;transition:all 0.2s;" 
+      onmouseover="this.style.borderColor='var(--purple)'" 
+      onmouseout="this.style.borderColor='var(--border)'">${o}</button>`
+  ).join('');
+  document.getElementById("triviaOverlay").style.display = "flex";
+}
+
+function answerTrivia(idx) {
+  const res = document.getElementById("triviaResult");
+  const btns = document.querySelectorAll("#triviaOptions button");
+  btns.forEach(b => b.disabled = true);
+  if (idx === currentTrivia.a) {
+    res.textContent = "✅ Correct! +100 coins";
+    res.style.color = "var(--green)";
+    const updates = {
+      [`users/${currentUser.uid}/coins`]: getCoins() + 100,
+      [`users/${currentUser.uid}/lastTrivia`]: new Date().toISOString()
+    };
+    db.ref().update(updates).then(() => {
+      setTimeout(() => { document.getElementById("triviaOverlay").style.display = "none"; toast("+100 coins! Trivia complete."); }, 1500);
+    });
+  } else {
+    res.textContent = `❌ Wrong! Answer: "${currentTrivia.opts[currentTrivia.a]}"`;
+    res.style.color = "var(--red)";
+    db.ref(`users/${currentUser.uid}/lastTrivia`).set(new Date().toISOString());
+    setTimeout(() => { document.getElementById("triviaOverlay").style.display = "none"; toast("Wrong answer. Try again tomorrow.", 'error'); }, 2000);
+  }
+}
+
+// ── REFERRAL ──────────────────────────────────────────────
+function copyReferral() {
+  if (!currentUser) return;
+  const link = `https://axesbankonline.github.io?ref=${currentUser.uid.slice(0,8)}`;
+  navigator.clipboard.writeText(link).then(() => toast("Referral link copied!")).catch(() => toast("Copy failed", 'error'));
+}
+
+// ── WHEEL ──────────────────────────────────────────────
+const PRIZES = [
+  { label: "Common\n10-30",    color: "#2a2d35", textColor: "#999", range: [10,30],      prob: 50 },
+  { label: "Mediocre\n20-50",  color: "#1e3a2f", textColor: "#2ecc87", range: [20,50],  prob: 30 },
+  { label: "Rare\n100-500",    color: "#1a2a4a", textColor: "#4f8ef7", range: [100,500],prob: 12 },
+  { label: "Epic\n500-1k",     color: "#2a1a4a", textColor: "#9b6dff", range: [500,1000],prob: 5 },
+  { label: "Legendary\n1k-10k",color: "#3a2a00", textColor: "#f5c842", range: [1000,10000],prob: 2.5 },
+  { label: "HACKER!\n100k+",   color: "#3a0000", textColor: "#ff5f5f", range: [100000,1000000],prob: 0.5 },
+];
+
+let wheelAngle = 0;
+let spinning = false;
+
+function drawWheel(highlight = -1) {
+  const canvas = document.getElementById("spinCanvas");
+  const ctx = canvas.getContext("2d");
+  const cx = canvas.width / 2, cy = canvas.height / 2, r = cx - 4;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const totalSlices = PRIZES.length;
+  const slice = (Math.PI * 2) / totalSlices;
+
+  for (let i = 0; i < totalSlices; i++) {
+    const start = wheelAngle + i * slice;
+    const end = start + slice;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = PRIZES[i].color;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + slice / 2);
+    ctx.textAlign = "right";
+    ctx.fillStyle = PRIZES[i].textColor;
+    ctx.font = "bold 9px Syne";
+    const lines = PRIZES[i].label.split('\n');
+    lines.forEach((l, li) => ctx.fillText(l, r - 8, li * 12 - (lines.length - 1) * 6));
+    ctx.restore();
+  }
+
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, 20, 0, Math.PI * 2);
+  ctx.fillStyle = "#0a0c10";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(245,200,66,0.4)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function pickPrize() {
+  const roll = Math.random() * 100;
+  let cum = 0;
+  for (let i = 0; i < PRIZES.length; i++) {
+    cum += PRIZES[i].prob;
+    if (roll < cum) return i;
+  }
+  return 0;
+}
+
+function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+function doSpin(free = false) {
+  if (!currentUser || spinning) return;
+  const coins = getCoins();
+  const spins = parseInt(userData.spins) || 0;
+  const cost = getSpinCost(spins);
+
+  if (!free && coins < cost) { toast("Not enough coins!", 'error'); return; }
+
+  spinning = true;
+  document.getElementById("spinBtn").disabled = true;
+  document.getElementById("freeSpinBtn").disabled = true;
+  document.getElementById("spinResult").textContent = "🎰 Spinning...";
+  document.getElementById("spinResult").style.color = "var(--muted)";
+
+  const prizeIdx = pickPrize();
+  const totalSlices = PRIZES.length;
+  const slice = (Math.PI * 2) / totalSlices;
+  const targetAngle = -Math.PI / 2 - (prizeIdx * slice + slice / 2);
+  const spins_count = 6 + Math.random() * 4;
+  const finalAngle = targetAngle - spins_count * Math.PI * 2;
+  const duration = 4000;
+  const startAngle = wheelAngle;
+  const startTime = performance.now();
+
+  function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+
+  function frame(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    wheelAngle = startAngle + (finalAngle - startAngle) * easeOut(t);
+    drawWheel();
+    if (t < 1) { requestAnimationFrame(frame); return; }
+
+    // Done
+    spinning = false;
+    const prize = PRIZES[prizeIdx];
+    const amount = rand(prize.range[0], prize.range[1]);
+    const resultEl = document.getElementById("spinResult");
+    resultEl.textContent = `🎉 ${prize.label.split('\n')[0]} — +${amount.toLocaleString()} coins!`;
+    resultEl.style.color = prize.textColor;
+
+    const newCoins = (free ? coins : coins - cost) + amount;
+    const updates = {
+      [`users/${currentUser.uid}/coins`]: newCoins,
+      [`users/${currentUser.uid}/spins`]: spins + 1
+    };
+    if (!free) {
+      // mark last ad used if it was ad-spin
+    }
+    db.ref().update(updates).then(() => {
+      document.getElementById("spinBtn").disabled = false;
+      document.getElementById("freeSpinBtn").disabled = false;
+      if (!free) {
+        db.ref(`users/${currentUser.uid}/lastAd`).set(new Date().toISOString());
       }
     });
+  }
 
-    // Prize logic
-    function spinTheWheel(freeSpin=false) {
-      showMsg("spinMsg", "");
-      showMsg("wheelMsg", "");
-      if (!currentUser) return;
-      const coins = parseInt(userData.coins||"0",10);
-      let spins = parseInt(userData.spins)||0;
-      const spinCost = getNextSpinCost(spins);
-      if (!freeSpin && coins < spinCost) return showMsg("spinMsg", "Not enough coins!", true);
+  requestAnimationFrame(frame);
+}
 
-      // Prize roll
-      const roll = Math.random() * 100;
-      let crate, crateText, prize = 0;
-      if      (roll <  1) { crate="hacker";    crateText="Hacker Ticket";    prize = rand(100000,1000000);}
-      else if (roll <  3) { crate="legendary"; crateText="Legendary Ticket"; prize = rand(1000,10000);}
-      else if (roll <  8) { crate="epic";      crateText="Epic Ticket";      prize = rand(500,1000);}
-      else if (roll < 20) { crate="rare";      crateText="Rare Ticket";      prize = rand(100,500);}
-      else if (roll < 50) { crate="mediocre";  crateText="Mediocre Ticket";  prize = rand(20,50);}
-      else                { crate="common";    crateText="Common Ticket";    prize = rand(10,30);}
-
-      // Prepare new values
-      let updates = {};
-      if (!freeSpin) {
-        updates["/users/"+currentUser.uid+"/coins"] = coins - spinCost + prize;
-        updates["/users/"+currentUser.uid+"/spins"] = spins + 1;
-      } else {
-        updates["/users/"+currentUser.uid+"/coins"] = coins + prize;
-      }
-      db.ref().update(updates).then(()=>{
-        showMsg("wheelMsg", `🎉 You won a ${crateText} and got ${prize} coins!`, false);
-        document.getElementById("spinBtn").disabled = false;
-        document.getElementById("adSpinBtn").disabled = false;
-      });
-      document.getElementById("spinBtn").disabled = true;
-      document.getElementById("adSpinBtn").disabled = true;
-      setTimeout(() => {
-        document.getElementById("spinBtn").disabled = false;
-        document.getElementById("adSpinBtn").disabled = false;
-      }, 1800);
-    }
-    function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
-
-    // Ad / free spin logic (you’ll use a real ad provider in prod)
-    function showAdSpin() {
-      document.getElementById("adOverlay").style.display = "";
-      showMsg("spinMsg", "Watch the ad to earn your spin!", false);
-    }
-    function finishAd() {
-      document.getElementById("adOverlay").style.display = "none";
-      spinTheWheel(true);
-    }
-  </script>
+drawWheel();
+</script>
 </body>
 </html>
