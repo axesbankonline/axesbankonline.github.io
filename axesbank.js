@@ -1,5 +1,5 @@
 // ============================================================
-//  AXES BANK — Shared Economy Engine v2.0
+//  AXES BANK — Shared Economy Engine v2.0 
 //  Include on every page AFTER firebase compat scripts
 // ============================================================
 
