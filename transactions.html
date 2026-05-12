@@ -1,235 +1,201 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Coin Ticket System</title>
-  <style>
-    body {
-      font-family: Segoe UI, Arial, monospace;
-      background: #20252b;
-      color: #fff;
-      min-height: 100vh;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-    }
-    .box {
-      background: #242930;
-      border-radius: 14px;
-      box-shadow: 0 8px 32px #0e141a50;
-      padding: 38px 40px 32px 40px;
-      margin: 32px 0 20px 0;
-      width: 360px;
-      max-width: 94vw;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-    }
-    .info-row {
-      width: 100%;
-      background: #191d22;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      padding: 10px 16px;
-      box-sizing: border-box;
-      text-align: left;
-      font-family: "JetBrains Mono", "Fira Mono", "Consolas", monospace;
-      letter-spacing: 1px;
-      font-size: 1.08em;
-    }
-    h2 {
-      color: #6ce154;
-      font-weight: 700;
-      margin-top: 18px;
-      margin-bottom: 12px;
-      text-align: center;
-    }
-    label {
-      margin-bottom: 4px;
-      font-size: 1.07em;
-      width: 100%;
-      text-align: left;
-      display: block;
-      letter-spacing: 0.25px;
-    }
-    .row {
-      width: 100%;
-      display: flex;
-      gap: 9px;
-      margin-bottom: 2px;
-    }
-    input {
-      border-radius: 5px;
-      border: none;
-      padding: 8px;
-      font-size: 1.08em;
-      width: 70%;
-      background: #181d23;
-      color: #fff;
-      box-shadow: 0 2px 8px #1118;
-    }
-    .btn {
-      background: #7289da;
-      color: #fff;
-      border: none;
-      border-radius: 7px;
-      padding: 9px 20px;
-      font-size: 1.08em;
-      margin-top: 0;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background 0.14s;
-    }
-    .btn:active {
-      background: #536bb0;
-    }
-    .msg {
-      margin-top: 10px;
-      font-size: 1em;
-      padding: 4px 0 1px 0;
-      min-height: 1em;
-      width: 98%;
-      text-align: left;
-      letter-spacing: 0.3px;
-    }
-    .info { color: #43b581; }
-    .error { color: #ff5c5c; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transactions — Axes Bank</title>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
+<script src="axesbank.js"></script>
+<style>
+body::before{content:'';position:fixed;top:-200px;right:-100px;width:500px;height:500px;
+  background:radial-gradient(circle,rgba(59,130,246,.04) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+.tx-page{max-width:760px;margin:0 auto;padding:80px 20px 60px;position:relative;z-index:1;}
+
+/* HEADER */
+.tx-head{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:28px;animation:fadeUp .4s ease both;}
+.tx-head h1{font-size:1.8rem;font-weight:800;letter-spacing:-.6px;}
+.tx-head p{color:var(--t2);font-size:.85rem;margin-top:4px;}
+
+/* SUMMARY ROW */
+.tx-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;animation:fadeUp .4s .05s ease both;}
+.tx-sum-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;}
+.tx-sum-label{font-size:.7rem;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+.tx-sum-val{font-size:1.3rem;font-weight:800;letter-spacing:-.4px;}
+.tx-sum-val.pos{color:var(--green);}
+.tx-sum-val.neg{color:var(--red);}
+
+/* FILTERS */
+.tx-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;animation:fadeUp .4s .08s ease both;}
+.filter-btn{
+  padding:7px 14px;border-radius:9px;border:1px solid var(--border);
+  background:var(--surface);color:var(--t2);font-family:var(--ff);font-size:.78rem;font-weight:600;
+  cursor:pointer;transition:all .18s;
+}
+.filter-btn:hover,.filter-btn.active{background:var(--s3);color:var(--text);border-color:var(--b2);}
+
+/* LIST */
+.tx-list{display:flex;flex-direction:column;gap:8px;animation:fadeUp .4s .1s ease both;}
+.tx-item{
+  background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:16px 20px;
+  display:flex;align-items:center;gap:14px;transition:border-color .18s,transform .18s;
+}
+.tx-item:hover{border-color:var(--b2);transform:translateX(3px);}
+.tx-ico-wrap{
+  width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;flex-shrink:0;
+}
+.tx-info{flex:1;}
+.tx-name{font-size:.9rem;font-weight:700;}
+.tx-meta{font-family:var(--fm);font-size:.7rem;color:var(--t3);margin-top:3px;}
+.tx-right{text-align:right;}
+.tx-amount{font-family:var(--fm);font-size:.95rem;font-weight:500;}
+.tx-amount.pos{color:var(--green);}
+.tx-amount.neg{color:var(--red);}
+.tx-inr{font-family:var(--fm);font-size:.7rem;color:var(--t3);margin-top:2px;}
+
+.tx-empty{text-align:center;padding:60px 20px;color:var(--t3);}
+.tx-empty span{font-size:2.5rem;display:block;margin-bottom:12px;}
+
+@media(max-width:500px){
+  .tx-summary{grid-template-columns:1fr 1fr;}
+  .tx-item{padding:14px;}
+}
+</style>
 </head>
 <body>
-  <div class="box" id="mainBox" style="display:none;">
-    <h2>Your Ticket Info</h2>
-    <div class="info-row" id="userInfo"></div>
-    <h2>Create a Ticket</h2>
-    <div class="row">
-      <input type="number" id="offerAmount" min="1" placeholder="Amount (coins)">
-      <button class="btn" onclick="createTicket()">Create Ticket</button>
-    </div>
-    <div class="msg" id="createMsg"></div>
-    <h2>Redeem a Ticket</h2>
-    <div class="row">
-      <input type="text" id="ticketCode" placeholder="Ticket Code">
-      <button class="btn" onclick="lookupTicket()">Lookup</button>
-    </div>
-    <div class="msg" id="lookupMsg"></div>
+
+<div class="ax-top">
+  <a class="ax-ghost" href="dashboard.html">← Dashboard</a>
+  <div class="ax-logo">⬡ Axes Bank</div>
+  <div class="ax-top-r">
+    <div class="ax-pill" id="ratePill">AXC/INR —</div>
   </div>
-  <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
-  <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-      authDomain: "bankdata-fe769.firebaseapp.com",
-      databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "bankdata-fe769",
-      storageBucket: "bankdata-fe769.appspot.com",
-      messagingSenderId: "967507656753",
-      appId: "1:967507656753:web:562c1383dca78d56471510"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
+</div>
 
-    let currentUser = null, canCreate=true;
-    function showMsg(id, msg, isError=false) {
-      const el = document.getElementById(id);
-      el.textContent = msg;
-      el.className = 'msg ' + (isError ? 'error' : 'info');
-    }
+<div class="tx-page">
+  <div class="tx-head">
+    <div>
+      <h1>Transactions</h1>
+      <p>Your complete Axes Coin activity history.</p>
+    </div>
+  </div>
 
-    // Anonymous login automatically, no login UI
-    auth.onAuthStateChanged(user=>{
-      if (user) {
-        currentUser = user;
-        document.getElementById("mainBox").style.display = "";
-        db.ref("users/"+user.uid).on("value", snap => {
-          const data = snap.val() || {};
-          let coins = typeof data.coins === "number" ? data.coins : parseInt(data.coins || 0, 10);
-          let name = data.name || "User-" + user.uid.substring(0, 6);
-          document.getElementById("userInfo").textContent =
-            `ID:   ${user.uid}\nName: ${name}\nCoins: ${coins}`;
-        });
-        
-      } else {
-        auth.signInAnonymously();
-      }
-    });
+  <!-- SUMMARY -->
+  <div class="tx-summary">
+    <div class="tx-sum-card">
+      <div class="tx-sum-label">Total Earned</div>
+      <div class="tx-sum-val pos" id="sumEarned">—</div>
+    </div>
+    <div class="tx-sum-card">
+      <div class="tx-sum-label">Total Spent</div>
+      <div class="tx-sum-val neg" id="sumSpent">—</div>
+    </div>
+    <div class="tx-sum-card">
+      <div class="tx-sum-label">Transactions</div>
+      <div class="tx-sum-val" id="sumCount">—</div>
+    </div>
+  </div>
 
-    // ESCROW TICKET LOGIC
-    function createTicket() {
-      showMsg("createMsg","");
-      if (!canCreate) return showMsg("createMsg","Wait 30 seconds between creates.",true);
-      const amount = parseInt(document.getElementById("offerAmount").value,10);
-      if (!currentUser) return showMsg("createMsg","Not signed in.",true);
-      if (!amount || amount<1) return showMsg("createMsg","Enter a positive number.",true);
-      const coinRef=db.ref("users/"+currentUser.uid+"/coins");
-      coinRef.transaction(c=>{
-        let coins=Number.isFinite(c)?c:parseInt(c||0,10);
-        if (coins<amount) return;
-        return coins-amount;
-      },(err,committed,snap)=>{
-        if (err||!committed) return showMsg("createMsg","Insufficient coins for ticket.",true);
-        const ticketId = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
-        db.ref("tickets/"+ticketId).set({
-          senderUid: currentUser.uid,
-          escrow: amount,
-          status: "pending",
-          createdAt: Date.now()
-        }).then(()=>{
-          document.getElementById("offerAmount").value = "";
-          showMsg("createMsg",`✅ Ticket created!\nCode: ${ticketId}\nAmount: ${amount}`);
-          canCreate = false; setTimeout(()=>canCreate=true,30000);
-        });
-      });
-    }
+  <!-- FILTERS -->
+  <div class="tx-filters">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('spin',this)">🎰 Spins</button>
+    <button class="filter-btn" onclick="setFilter('checkin',this)">📅 Check-ins</button>
+    <button class="filter-btn" onclick="setFilter('ad',this)">📺 Ads</button>
+    <button class="filter-btn" onclick="setFilter('trivia',this)">🧠 Trivia</button>
+    <button class="filter-btn" onclick="setFilter('earn',this)">⚡ Bonuses</button>
+  </div>
 
-    let lastTicketId = null, lastTicketData = null;
-    function lookupTicket() {
-      showMsg("lookupMsg","");
-      document.getElementById("acceptBtn")?.remove();
-      const ticketId = document.getElementById("ticketCode").value.trim();
-      if (!ticketId) return showMsg("lookupMsg","Enter the ticket code.",true);
-      db.ref("tickets/"+ticketId).get().then(snap=>{
-        if (!snap.exists()) return showMsg("lookupMsg","No such ticket.",true);
-        const data = snap.val();
-        if (data.status !== "pending")
-          return showMsg("lookupMsg","This ticket is spent or unavailable.",true);
-        lastTicketId = ticketId; lastTicketData = data;
-        showMsg("lookupMsg",`Ticket for ${data.escrow} coins is ready to be redeemed.`);
-        if (currentUser.uid !== data.senderUid) {
-          const btn = document.createElement("button");
-          btn.textContent = "Redeem Ticket";
-          btn.className = "btn";
-          btn.id = "acceptBtn";
-          btn.onclick = acceptTicket;
-          document.getElementById("lookupMsg").appendChild(document.createElement("br"));
-          document.getElementById("lookupMsg").appendChild(btn);
-        } else {
-          showMsg("lookupMsg", "You can't redeem your own ticket.", true);
-        }
-      });
-    }
+  <!-- LIST -->
+  <div class="tx-list" id="txList">
+    <div class="tx-empty"><span>⏳</span>Loading transactions…</div>
+  </div>
+</div>
 
-    function acceptTicket() {
-      if (!currentUser || !lastTicketData || !lastTicketId) return;
-      if (currentUser.uid === lastTicketData.senderUid)
-        return showMsg("lookupMsg","You can't redeem your own ticket.",true);
-      db.ref("users/"+currentUser.uid+"/coins").transaction(
-        v=>parseInt(v||0,10)+parseInt(lastTicketData.escrow,10),
-        (ee,ec)=>{
-          if (ee || !ec) return showMsg("lookupMsg","Could not credit recipient.",true);
-          db.ref("tickets/"+lastTicketId).remove().then(()=>{
-            showMsg("lookupMsg",`✅ Ticket redeemed! ${lastTicketData.escrow} coins transferred.`);
-            document.getElementById("acceptBtn")?.remove();
-            lastTicketId = null; lastTicketData = null;
-          });
-        }
-      );
-    }
-  </script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+  authDomain:"bankdata-fe769.firebaseapp.com",
+  databaseURL:"https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"bankdata-fe769",storageBucket:"bankdata-fe769.appspot.com",
+  messagingSenderId:"967507656753",appId:"1:967507656753:web:562c1383dca78d56471510"
+});
+const db = firebase.database(), auth = firebase.auth();
+let allTxns = [], currentFilter = 'all', liveRate = 95;
+
+const ICONS = { spin:'🎰', checkin:'📅', ad:'📺', trivia:'🧠', earn:'⚡', send:'🎁', receive:'📥' };
+const COLORS = {
+  spin:'rgba(240,180,41,.12)', checkin:'rgba(16,212,142,.12)', ad:'rgba(59,130,246,.12)',
+  trivia:'rgba(139,92,246,.12)', earn:'rgba(240,180,41,.12)', send:'rgba(239,68,68,.12)', receive:'rgba(16,212,142,.12)'
+};
+const TC = {
+  spin:'var(--gold)', checkin:'var(--green)', ad:'var(--blue)',
+  trivia:'var(--purple)', earn:'var(--gold)', send:'var(--red)', receive:'var(--green)'
+};
+
+auth.onAuthStateChanged(u => {
+  if (!u) { window.location.href='index.html'; return; }
+  getLiveRate().then(({rate}) => {
+    liveRate = rate;
+    document.getElementById('ratePill').textContent = 'AXC/INR ' + fmtRate(rate);
+  });
+  db.ref('users/'+u.uid+'/transactions').on('value', snap => {
+    const raw = snap.val() || {};
+    allTxns = Object.values(raw).sort((a,b) => (b.t||0)-(a.t||0));
+    renderAll();
+  });
+});
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+function renderAll() {
+  const filtered = currentFilter === 'all' ? allTxns : allTxns.filter(t => t.type === currentFilter);
+  const earned = allTxns.filter(t => (t.amount||0)>0).reduce((s,t) => s+(t.amount||0),0);
+  const spent  = allTxns.filter(t => (t.amount||0)<0).reduce((s,t) => s+Math.abs(t.amount||0),0);
+  document.getElementById('sumEarned').textContent = '+' + fmtCoins(earned) + ' AXC';
+  document.getElementById('sumSpent').textContent  = '-' + fmtCoins(spent)  + ' AXC';
+  document.getElementById('sumCount').textContent  = allTxns.length;
+
+  const el = document.getElementById('txList');
+  if (!filtered.length) {
+    el.innerHTML = `<div class="tx-empty"><span>📭</span>No ${currentFilter === 'all' ? '' : currentFilter} transactions yet.</div>`;
+    return;
+  }
+  el.innerHTML = filtered.map(t => {
+    const ico   = ICONS[t.type]  || '💸';
+    const bg    = COLORS[t.type] || 'rgba(255,255,255,.04)';
+    const tc    = TC[t.type]     || 'var(--t2)';
+    const pos   = (t.amount||0) >= 0;
+    const inrVal = Math.abs((t.amount||0) * liveRate);
+    return `<div class="tx-item">
+      <div class="tx-ico-wrap" style="background:${bg};color:${tc}">${ico}</div>
+      <div class="tx-info">
+        <div class="tx-name">${t.label || t.type}</div>
+        <div class="tx-meta">${t.t ? timeAgo(t.t) : '—'} · ${t.type}</div>
+      </div>
+      <div class="tx-right">
+        <div class="tx-amount ${pos?'pos':'neg'}">${pos?'+':''}${fmtCoins(t.amount||0)} AXC</div>
+        <div class="tx-inr">≈ ${fmtRate(inrVal)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function timeAgo(ts) {
+  const s = Math.floor((Date.now()-ts)/1000);
+  if (s<60) return s+'s ago';
+  if (s<3600) return Math.floor(s/60)+'m ago';
+  if (s<86400) return Math.floor(s/3600)+'h ago';
+  return new Date(ts).toLocaleDateString();
+}
+</script>
 </body>
 </html>
