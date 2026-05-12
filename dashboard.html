@@ -1,267 +1,573 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Axes Bank</title>
-    <style>
-        :root {
-            --primary: #7289da;
-            --secondary: #43b581;
-            --accent: #ff73fa;
-            --background: #1a1a1a;
-            --surface: #2d2d2d;
-            --text: #ffffff;
-        }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: var(--background);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 80px;
-            background: rgba(45, 45, 45, 0.95);
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 40px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .bank-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .nav-buttons {
-            display: flex;
-            gap: 20px;
-        }
-        .nav-button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .nav-button:hover {
-            background: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
-        }
-        .container {
-            margin-top: 120px;
-            width: 90%;
-            max-width: 1000px;
-            background: rgba(45, 45, 45, 0.9);
-            padding: 40px;
-            border-radius: 24px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            display: flex;
-            gap: 40px;
-            position: relative;
-        }
-        .left-column, .right-column {
-            flex: 1;
-            padding: 20px;
-        }
-        .button-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .action-button {
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: left;
-            padding-left: 20px;
-        }
-        .action-button:hover {
-            background: var(--primary);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(114, 137, 218, 0.3);
-        }
-        .separator {
-            width: 1px;
-            background: rgba(255, 255, 255, 0.3);
-            margin: 20px 0;
-        }
-        .updates {
-            background: var(--surface);
-            padding: 20px;
-            border-radius: 16px;
-        }
-        .updates h2 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
-        .updates ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        .updates li {
-            margin: 10px 0;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-        }
-#coinsDisplay {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  padding: 10px 20px;
-  background: rgba(67, 181, 129, 0.1);
-  border-radius: 8px;
-  border: 1px solid rgba(67, 181, 129, 0.2);
-  color: var(--secondary);
-  z-index: 2;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Axes Bank</title>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
+<script src="axesbank.js"></script>
+<style>
+/* ── PAGE SPECIFIC ─────────────────────────────────────────── */
+body::before {
+  content:'';position:fixed;top:-300px;right:-200px;
+  width:700px;height:700px;
+  background:radial-gradient(circle,rgba(240,180,41,.05) 0%,transparent 65%);
+  pointer-events:none;z-index:0;
+}
+body::after {
+  content:'';position:fixed;bottom:-200px;left:-150px;
+  width:500px;height:500px;
+  background:radial-gradient(circle,rgba(16,212,142,.04) 0%,transparent 65%);
+  pointer-events:none;z-index:0;
 }
 
-/* Handles mobile: coins display moves into flow above buttons */
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-    margin-top: 100px;
-    padding: 20px;
-    position: relative;
-    align-items: stretch;
-  }
-  #coinsDisplay {
-    position: static;
-    width: 100%;
-    margin: 0 0 20px 0;
-    text-align: center;
-    box-sizing: border-box;
-    font-size: 1.18rem;
-    background: rgba(67,181,129,0.09);
-  }
+/* NEWS TICKER */
+.ticker-wrap {
+  background:rgba(240,180,41,.05);
+  border-bottom:1px solid rgba(240,180,41,.1);
+  overflow:hidden;height:32px;
+  display:flex;align-items:center;
+  position:fixed;top:58px;left:0;right:0;z-index:999;
 }
+.ticker-label {
+  font-family:var(--fm);font-size:.7rem;font-weight:500;
+  color:var(--gold);background:rgba(240,180,41,.12);
+  padding:0 12px;height:100%;display:flex;align-items:center;
+  border-right:1px solid rgba(240,180,41,.15);white-space:nowrap;flex-shrink:0;
+}
+.ticker-track {
+  display:flex;gap:0;white-space:nowrap;
+  animation:ticker 40s linear infinite;
+}
+.ticker-item {
+  padding:0 32px;font-family:var(--fm);font-size:.72rem;color:var(--t2);
+  border-right:1px solid var(--border);display:flex;align-items:center;gap:8px;
+}
+@keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
 
-        
-    </style>
+/* GRID LAYOUT */
+.dash-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  grid-template-rows:auto;
+  gap:14px;
+  position:relative;z-index:1;
+}
+.ax-page{padding-top:100px;}
+
+/* BALANCE CARD */
+.balance-card {
+  grid-column:1/3;
+  background:linear-gradient(135deg,#0f1117 0%,#14161f 100%);
+  border:1px solid rgba(240,180,41,.15);
+  border-radius:20px;padding:28px 32px;
+  position:relative;overflow:hidden;
+}
+.balance-card::before {
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:220px;height:220px;
+  background:radial-gradient(circle,rgba(240,180,41,.08),transparent 70%);
+  pointer-events:none;
+}
+.balance-label{font-size:.78rem;font-weight:600;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;}
+.balance-amount{font-size:3rem;font-weight:800;letter-spacing:-2px;line-height:1;color:var(--text);}
+.balance-amount span{font-size:1.4rem;color:var(--t2);font-weight:600;}
+.balance-sub{font-family:var(--fm);font-size:.82rem;color:var(--t2);margin-top:8px;}
+.balance-actions{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;}
+.bal-btn{
+  padding:10px 20px;border-radius:11px;border:none;
+  font-family:var(--ff);font-size:.85rem;font-weight:700;
+  cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px;
+}
+.bal-btn.primary{background:var(--gold);color:#000;}
+.bal-btn.primary:hover{background:#ffc93d;transform:translateY(-1px);box-shadow:0 6px 20px rgba(240,180,41,.3);}
+.bal-btn.ghost{background:var(--s2);color:var(--text);border:1px solid var(--b2);}
+.bal-btn.ghost:hover{background:var(--s3);transform:translateY(-1px);}
+
+/* RATE CARD */
+.rate-card {
+  grid-column:3/4;grid-row:1/3;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:24px;
+  display:flex;flex-direction:column;gap:16px;
+}
+.rate-header{display:flex;align-items:flex-start;justify-content:space-between;}
+.rate-title{font-size:.75rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;}
+.rate-live-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 8px var(--green);
+  animation:pulse 2s infinite;
+}
+.rate-value{font-size:2.2rem;font-weight:800;letter-spacing:-1px;color:var(--text);}
+.rate-pair{font-family:var(--fm);font-size:.75rem;color:var(--t2);margin-top:2px;}
+.rate-change{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--fm);font-size:.82rem;font-weight:500;
+  padding:4px 10px;border-radius:7px;margin-top:6px;
+}
+.rate-change.up{background:rgba(16,212,142,.1);color:var(--green);}
+.rate-change.down{background:rgba(239,68,68,.1);color:var(--red);}
+/* Mini chart */
+#rateChart{width:100%;height:90px;display:block;}
+.rate-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+.rate-stat{background:var(--s2);border-radius:10px;padding:10px 12px;}
+.rate-stat-label{font-size:.68rem;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+.rate-stat-val{font-family:var(--fm);font-size:.9rem;font-weight:500;color:var(--text);}
+.rate-economy-bar{margin-top:4px;}
+.rate-economy-label{font-size:.72rem;color:var(--t2);margin-bottom:6px;display:flex;justify-content:space-between;}
+.eco-bar-bg{height:5px;background:var(--s3);border-radius:99px;overflow:hidden;}
+.eco-bar-fill{height:100%;border-radius:99px;transition:width 1s ease;
+  background:linear-gradient(90deg,var(--green),var(--gold),var(--red));}
+
+/* STATS ROW */
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:20px;
+  display:flex;flex-direction:column;gap:6px;
+  transition:border-color .2s,transform .2s;
+}
+.stat-card:hover{border-color:var(--b2);transform:translateY(-2px);}
+.stat-icon{font-size:1.3rem;margin-bottom:2px;}
+.stat-label{font-size:.72rem;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.stat-val{font-size:1.5rem;font-weight:800;letter-spacing:-.5px;}
+.stat-sub{font-family:var(--fm);font-size:.72rem;color:var(--t3);}
+
+/* QUICK ACTIONS */
+.actions-card{
+  grid-column:1/3;
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;
+}
+.section-title{font-size:.78rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;}
+.actions-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.action-item{
+  background:var(--s2);border:1px solid var(--border);border-radius:14px;
+  padding:18px 14px;text-align:center;cursor:pointer;
+  transition:all .2s;text-decoration:none;color:var(--text);display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.action-item:hover{background:var(--s3);border-color:var(--b2);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+.action-icon{font-size:1.6rem;}
+.action-label{font-size:.8rem;font-weight:700;}
+.action-desc{font-size:.7rem;color:var(--t3);}
+
+/* EVENTS FEED */
+.events-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;
+}
+.event-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.event-item:last-child{border-bottom:none;}
+.event-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;
+}
+.event-text{font-size:.83rem;color:var(--t2);line-height:1.5;}
+.event-time{font-family:var(--fm);font-size:.68rem;color:var(--t3);margin-top:2px;}
+
+/* RECENT TXN */
+.txn-card{
+  grid-column:1/3;
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;
+}
+.txn-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.txn-item:last-child{border-bottom:none;}
+.txn-left{display:flex;align-items:center;gap:12px;}
+.txn-ico{
+  width:38px;height:38px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+  background:var(--s2);
+}
+.txn-name{font-size:.88rem;font-weight:600;}
+.txn-date{font-family:var(--fm);font-size:.72rem;color:var(--t3);margin-top:2px;}
+.txn-amount{font-family:var(--fm);font-size:.9rem;font-weight:500;}
+.txn-amount.pos{color:var(--green);}
+.txn-amount.neg{color:var(--red);}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .dash-grid{grid-template-columns:1fr;}
+  .balance-card,.rate-card,.actions-card,.txn-card{grid-column:1/2!important;grid-row:auto!important;}
+  .balance-amount{font-size:2.2rem;}
+  .actions-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
 </head>
 <body>
-    <div class="topbar">
-        <div class="logo-container">
-            <span class="bank-name">Axes Bank</span>
-        </div>
-        <div class="nav-buttons">
-            <button class="nav-button" onclick="window.location.href='profile.html';">Profile</button>
-            <button class="nav-button" id="logoutButton">Logout</button>
-        </div>
+
+<!-- TOPBAR -->
+<div class="ax-top">
+  <div class="ax-logo">⬡ Axes Bank</div>
+  <div class="ax-top-mid">
+    <div id="topRatePill" class="ax-pill">AXC/INR — Loading...</div>
+  </div>
+  <div class="ax-top-r">
+    <a href="profile.html" class="ax-ghost">👤 Profile</a>
+    <button class="ax-ghost" id="logoutBtn">Sign out</button>
+  </div>
+</div>
+
+<!-- NEWS TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-label">⚡ LIVE</div>
+  <div style="overflow:hidden;flex:1;">
+    <div class="ticker-track" id="tickerTrack">
+      <!-- duplicated for seamless loop -->
     </div>
-    <div class="container">
-        <div id="coinsDisplay">Money: Loading...</div>
-        <div class="left-column">
-            <div class="button-grid">
-                <a href="transactions.html" class="action-button">Transactions</a>
-                <a href="earn.html" class="action-button">Earn</a>
-                <a href="mailto:axesbankonline@gmail.com" class="action-button">Support</a>
-                <a href="donate.html" class="action-button">Donate</a>
-            </div>
-        </div>
-        <div class="separator"></div>
-        <div class="right-column">
-            <div class="updates">
-                <h2>Updates: (4.0)</h2>
-                <ul>
-                    <li>Completely Reworked Database</li>
-                    <li>More Security</li>
-                    <li>New user creation system</li>
-                </ul>
-            </div>
-        </div>
+  </div>
+</div>
+
+<div class="ax-page">
+<div class="dash-grid">
+
+  <!-- BALANCE CARD -->
+  <div class="balance-card fade-up" style="animation-delay:.05s">
+    <div class="balance-label">Total Balance</div>
+    <div class="balance-amount"><span>AXC </span><span id="balanceNum">—</span></div>
+    <div class="balance-sub" id="balanceInr">≈ ₹— at current rate</div>
+    <div style="margin-top:12px;font-family:var(--fm);font-size:.75rem;color:var(--t3)">
+      Account ID: <span id="userId" style="color:var(--t2)">—</span>
     </div>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    <div class="balance-actions">
+      <a href="earn.html" class="bal-btn primary">⚡ Earn Coins</a>
+      <a href="donate.html" class="bal-btn ghost">🎁 Send</a>
+      <a href="transactions.html" class="bal-btn ghost">📋 History</a>
+    </div>
+  </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-            authDomain: "bankdata-fe769.firebaseapp.com",
-            databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "bankdata-fe769",
-            storageBucket: "bankdata-fe769.appspot.com",
-            messagingSenderId: "967507656753",
-            appId: "1:967507656753:web:562c1383dca78d56471510"
-        };
+  <!-- RATE CARD -->
+  <div class="rate-card fade-up" style="animation-delay:.1s">
+    <div class="rate-header">
+      <div>
+        <div class="rate-title">Axes Coin Index</div>
+        <div class="rate-pair" style="margin-top:4px;font-family:var(--fm);font-size:.7rem;color:var(--t3)">AXC / INR</div>
+      </div>
+      <div class="rate-live-dot"></div>
+    </div>
+    <div>
+      <div class="rate-value" id="rateValue">₹—</div>
+      <div class="rate-change up" id="rateChange">— —%</div>
+    </div>
+    <canvas id="rateChart"></canvas>
+    <div class="rate-stats">
+      <div class="rate-stat">
+        <div class="rate-stat-label">24h High</div>
+        <div class="rate-stat-val" id="rate24h">₹—</div>
+      </div>
+      <div class="rate-stat">
+        <div class="rate-stat-label">Supply</div>
+        <div class="rate-stat-val" id="rateSupply">—</div>
+      </div>
+      <div class="rate-stat">
+        <div class="rate-stat-label">Floor</div>
+        <div class="rate-stat-val">₹40.00</div>
+      </div>
+      <div class="rate-stat">
+        <div class="rate-stat-label">Ceiling</div>
+        <div class="rate-stat-val">₹150.00</div>
+      </div>
+    </div>
+    <div class="rate-economy-bar">
+      <div class="rate-economy-label">
+        <span>Economy Health</span>
+        <span id="healthLabel">—</span>
+      </div>
+      <div class="eco-bar-bg">
+        <div class="eco-bar-fill" id="ecoBarFill" style="width:50%"></div>
+      </div>
+    </div>
+  </div>
 
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        const auth = getAuth();
+  <!-- STAT CARDS -->
+  <div class="stat-card fade-up" style="animation-delay:.15s">
+    <div class="stat-icon">🔥</div>
+    <div class="stat-label">Login Streak</div>
+    <div class="stat-val" id="statStreak">—</div>
+    <div class="stat-sub">days in a row</div>
+  </div>
+  <div class="stat-card fade-up" style="animation-delay:.18s">
+    <div class="stat-icon">🎰</div>
+    <div class="stat-label">Total Spins</div>
+    <div class="stat-val" id="statSpins">—</div>
+    <div class="stat-sub">lifetime spins</div>
+  </div>
 
-        function loadDashboard() {
-            onAuthStateChanged(auth, user => {
-                if (!user) {
-                    // Not authenticated, redirect to login
-                    window.location.href = "index.html";
-                } else {
-                    // User authenticated!
-                    const userId = user.uid;
-                    const userRef = ref(database, `users/${userId}`);
-                    get(userRef).then(snapshot => {
-                        if (snapshot.exists()) {
-                            const userData = snapshot.val();
-                            document.getElementById("coinsDisplay").textContent = `Money: ${userData.coins}`;
-                        } else {
-                            document.getElementById("coinsDisplay").textContent = "Money: 0";
-                        }
-                    }).catch(error => {
-                        document.getElementById("coinsDisplay").textContent = "Money: Error";
-                    });
-                }
-            });
-        }
+  <!-- QUICK ACTIONS -->
+  <div class="actions-card fade-up" style="animation-delay:.2s">
+    <div class="section-title">Quick Actions</div>
+    <div class="actions-grid">
+      <a href="earn.html" class="action-item">
+        <div class="action-icon">⚡</div>
+        <div class="action-label">Earn</div>
+        <div class="action-desc">Spin & daily tasks</div>
+      </a>
+      <a href="transactions.html" class="action-item">
+        <div class="action-icon">📋</div>
+        <div class="action-label">Transactions</div>
+        <div class="action-desc">View history</div>
+      </a>
+      <a href="donate.html" class="action-item">
+        <div class="action-icon">🎁</div>
+        <div class="action-label">Send Coins</div>
+        <div class="action-desc">Gift to a friend</div>
+      </a>
+      <a href="profile.html" class="action-item">
+        <div class="action-icon">👤</div>
+        <div class="action-label">Profile</div>
+        <div class="action-desc">Your account</div>
+      </a>
+    </div>
+  </div>
 
-        document.getElementById("logoutButton").addEventListener("click", () => {
-            signOut(auth).then(() => {
-                window.location.href = "index.html";
-            });
-        });
+  <!-- MARKET EVENTS -->
+  <div class="events-card fade-up" style="animation-delay:.22s">
+    <div class="section-title">Market Events</div>
+    <div id="eventsFeed">
+      <div style="color:var(--t3);font-size:.82rem;padding:12px 0;">Loading events...</div>
+    </div>
+  </div>
 
-        window.onload = loadDashboard;
-    </script>
+  <!-- RECENT TRANSACTIONS -->
+  <div class="txn-card fade-up" style="animation-delay:.25s">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div class="section-title" style="margin-bottom:0">Recent Activity</div>
+      <a href="transactions.html" style="font-size:.78rem;color:var(--gold);font-weight:600;">View all →</a>
+    </div>
+    <div id="recentTxns">
+      <div style="color:var(--t3);font-size:.82rem;padding:12px 0;">Loading transactions...</div>
+    </div>
+  </div>
+
+</div><!-- /dash-grid -->
+</div><!-- /ax-page -->
+
+<script>
+// ── FIREBASE INIT ─────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:"AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+  authDomain:"bankdata-fe769.firebaseapp.com",
+  databaseURL:"https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"bankdata-fe769",
+  storageBucket:"bankdata-fe769.appspot.com",
+  messagingSenderId:"967507656753",
+  appId:"1:967507656753:web:562c1383dca78d56471510"
+});
+const db = firebase.database();
+const auth = firebase.auth();
+
+let userData = {}, currentRate = 95;
+
+// ── AUTH ──────────────────────────────────────────────────────
+auth.onAuthStateChanged(user => {
+  if (!user) { window.location.href = 'index.html'; return; }
+  document.getElementById('userId').textContent = user.uid.slice(0,12) + '...';
+  db.ref('users/' + user.uid).on('value', snap => {
+    userData = snap.val() || {};
+    renderBalance();
+    renderStats();
+    renderRecentTxns();
+  });
+  maybeTickEconomy();
+  loadRateWidget();
+  buildTicker();
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  firebase.auth().signOut().then(() => window.location.href = 'index.html');
+});
+
+// ── BALANCE ───────────────────────────────────────────────────
+function renderBalance() {
+  const coins = Number(userData.coins) || 0;
+  document.getElementById('balanceNum').textContent = fmtCoins(coins);
+  document.getElementById('balanceInr').textContent =
+    '≈ ' + fmtRate(coins * currentRate) + ' at current rate';
+}
+
+// ── STATS ─────────────────────────────────────────────────────
+function renderStats() {
+  document.getElementById('statStreak').textContent = userData.streak || 0;
+  document.getElementById('statSpins').textContent = fmtCoins(userData.spins || 0);
+}
+
+// ── RATE WIDGET ───────────────────────────────────────────────
+async function loadRateWidget() {
+  const { rate, prev, totalCoins, history } = await getLiveRate();
+  currentRate = rate;
+  const pct = pctChange(rate, prev);
+  const isUp = pct >= 0;
+
+  document.getElementById('rateValue').textContent = fmtRate(rate);
+  document.getElementById('topRatePill').textContent = `AXC/INR ${fmtRate(rate)} ${isUp ? '▲' : '▼'} ${Math.abs(pct)}%`;
+  document.getElementById('topRatePill').className = 'ax-pill ' + (isUp ? 'green' : 'red');
+
+  const changeEl = document.getElementById('rateChange');
+  changeEl.textContent = (isUp ? '▲ +' : '▼ ') + pct + '%  today';
+  changeEl.className = 'rate-change ' + (isUp ? 'up' : 'down');
+
+  // 24h high estimate
+  const highs = history.map(h => h.r || h).filter(Boolean);
+  const high24 = highs.length ? Math.max(...highs.slice(-24)) : rate;
+  document.getElementById('rate24h').textContent = fmtRate(high24);
+  document.getElementById('rateSupply').textContent = fmtCoins(totalCoins);
+
+  // Economy health bar (rate relative to 40–150 range)
+  const healthPct = ((rate - 40) / 110) * 100;
+  document.getElementById('ecoBarFill').style.width = healthPct + '%';
+  document.getElementById('healthLabel').textContent =
+    rate > 100 ? '🟢 Strong' : rate > 70 ? '🟡 Moderate' : '🔴 Weak';
+
+  // Refresh balance with live rate
+  renderBalance();
+
+  drawMiniChart(history, isUp);
+
+  // Auto refresh every 5 min
+  setTimeout(loadRateWidget, 5 * 60 * 1000);
+}
+
+// ── MINI CHART ─────────────────────────────────────────────────
+function drawMiniChart(history, isUp) {
+  const canvas = document.getElementById('rateChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth || 220;
+  const H = 90;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+
+  let pts = history.map(h => h.r || h).filter(Boolean);
+  // If no history yet, generate a fake starting line
+  if (pts.length < 2) {
+    pts = Array.from({length:15}, (_,i) => 90 + Math.sin(i*0.5)*3 + Math.random()*1.5);
+    pts.push(currentRate);
+  }
+
+  const mn = Math.min(...pts) - 1;
+  const mx = Math.max(...pts) + 1;
+  const scaleX = W / (pts.length - 1);
+  const scaleY = (H - 16) / (mx - mn);
+  const toY = v => H - 8 - (v - mn) * scaleY;
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  const col = isUp ? '16,212,142' : '239,68,68';
+  grad.addColorStop(0, `rgba(${col},.18)`);
+  grad.addColorStop(1, `rgba(${col},0)`);
+
+  ctx.beginPath();
+  pts.forEach((v, i) => {
+    const x = i * scaleX, y = toY(v);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.lineTo((pts.length - 1) * scaleX, H);
+  ctx.lineTo(0, H);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  pts.forEach((v, i) => {
+    const x = i * scaleX, y = toY(v);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = isUp ? '#10d48e' : '#ef4444';
+  ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Dot at end
+  const lx = (pts.length - 1) * scaleX, ly = toY(pts[pts.length - 1]);
+  ctx.beginPath();
+  ctx.arc(lx, ly, 4, 0, Math.PI * 2);
+  ctx.fillStyle = isUp ? '#10d48e' : '#ef4444';
+  ctx.fill();
+}
+
+// ── MARKET EVENTS FEED ────────────────────────────────────────
+async function buildTicker() {
+  const { events, rate } = await getLiveRate();
+  const defaultEvents = [
+    { label:'Market open', delta:0 },
+    { label:'Economy drift applied', delta:0.1 },
+    { label:`AXC/INR rate: ${fmtRate(rate)}`, delta:0 },
+  ];
+  const all = [...(events || []), ...defaultEvents].slice(0, 10);
+
+  const feedEl = document.getElementById('eventsFeed');
+  const colors = ['var(--green)', 'var(--red)', 'var(--gold)', 'var(--blue)'];
+  if (all.length) {
+    feedEl.innerHTML = all.map(e => `
+      <div class="event-item">
+        <div class="event-dot" style="background:${e.delta > 0 ? 'var(--green)' : e.delta < 0 ? 'var(--red)' : 'var(--t3)'}"></div>
+        <div>
+          <div class="event-text">${e.label}</div>
+          <div class="event-time">${e.delta > 0 ? '▲ +' + e.delta.toFixed(2) : e.delta < 0 ? '▼ ' + e.delta.toFixed(2) : '—'} rate impact · ${e.t ? timeAgo(e.t) : 'just now'}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Ticker bar
+  const tickerItems = [
+    `⬡ AXC/INR ${fmtRate(rate)}`,
+    `💰 Total Supply: ${fmtCoins((await getLiveRate()).totalCoins)} AXC`,
+    `🔥 Inflation drives rate DOWN — spend or stake!`,
+    `🎰 Spin the wheel to earn AXC`,
+    `📈 Economy: ${rate > 100 ? 'Strong' : rate > 70 ? 'Moderate' : 'Weak'}`,
+    `⚡ Daily check-in = free coins`,
+    `🧠 Trivia correct = +100 AXC`,
+    `🔗 Refer friends = +500 AXC each`,
+    ...(all.map(e => `${e.delta > 0 ? '▲' : e.delta < 0 ? '▼' : '•'} ${e.label}`)),
+  ];
+  const doubled = [...tickerItems, ...tickerItems]; // duplicate for seamless loop
+  document.getElementById('tickerTrack').innerHTML = doubled.map(t =>
+    `<div class="ticker-item"><span style="color:var(--gold);margin-right:6px">⬡</span>${t}</div>`
+  ).join('');
+}
+
+// ── RECENT TRANSACTIONS ───────────────────────────────────────
+function renderRecentTxns() {
+  const el = document.getElementById('recentTxns');
+  const txns = userData.transactions
+    ? Object.values(userData.transactions).reverse().slice(0, 5)
+    : [];
+
+  if (!txns.length) {
+    el.innerHTML = `<div style="color:var(--t3);font-size:.82rem;padding:12px 0;text-align:center;">
+      No transactions yet — <a href="earn.html" style="color:var(--gold)">start earning!</a></div>`;
+    return;
+  }
+
+  const icons = { earn:'⚡', spin:'🎰', send:'🎁', receive:'📥', checkin:'📅', trivia:'🧠', ad:'📺' };
+  el.innerHTML = txns.map(t => `
+    <div class="txn-item">
+      <div class="txn-left">
+        <div class="txn-ico">${icons[t.type] || '💸'}</div>
+        <div>
+          <div class="txn-name">${t.label || t.type}</div>
+          <div class="txn-date">${t.t ? timeAgo(t.t) : '—'}</div>
+        </div>
+      </div>
+      <div class="txn-amount ${t.amount > 0 ? 'pos' : 'neg'}">
+        ${t.amount > 0 ? '+' : ''}${fmtCoins(t.amount)} AXC
+      </div>
+    </div>`).join('');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function timeAgo(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+</script>
 </body>
 </html>
-
-
-
-
-
-
-
