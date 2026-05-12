@@ -42,23 +42,19 @@ function applyNudge(delta, label) {
 }
 
 // Get full live rate snapshot
-async function getLiveRate() {
-  const snap = await firebase.database().ref("stats").get();
-  const s = snap.val() || {};
-  const totalCoins = s.totalCoins || ECONOMY.TARGET_SUPPLY;
-  const nudge = s.nudge || 0;
-  const rate = calcRate(totalCoins, nudge);
-  let history = [];
-  if (s.rateHistory) {
-    history = Array.isArray(s.rateHistory)
-      ? s.rateHistory
-      : Object.values(s.rateHistory);
-  }
-  const prev = history.length >= 2 ? history[history.length - 2].r : rate;
-  const events = s.events
-    ? Object.values(s.events).slice(-5).reverse()
-    : [];
-  return { rate, prev, totalCoins, nudge, history, events, lastUpdated: s.lastTick || 0 };
+function subscribeToRate(callback) {
+  firebase.database().ref("stats").on("value", snap => {
+    const s = snap.val() || {};
+    const totalCoins = s.totalCoins || ECONOMY.TARGET_SUPPLY;
+    const nudge = s.nudge || 0;
+    const rate = calcRate(totalCoins, nudge);
+    let history = s.rateHistory
+      ? (Array.isArray(s.rateHistory) ? s.rateHistory : Object.values(s.rateHistory))
+      : [];
+    const prev = history.length >= 2 ? history[history.length - 2].r : rate;
+    const events = s.events ? Object.values(s.events).slice(-5).reverse() : [];
+    callback({ rate, prev, totalCoins, nudge, history, events, lastUpdated: s.lastTick || 0 });
+  });
 }
 
 // Self-throttled hourly drift tick — call once on page load
