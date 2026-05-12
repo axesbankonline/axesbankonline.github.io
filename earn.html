@@ -4,791 +4,593 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Earn — Axes Bank</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
+<script src="axesbank.js"></script>
 <style>
-  :root {
-    --bg: #0a0c10;
-    --surface: #111318;
-    --surface2: #181b22;
-    --border: rgba(255,255,255,0.07);
-    --gold: #f5c842;
-    --gold2: #e8a020;
-    --green: #2ecc87;
-    --blue: #4f8ef7;
-    --purple: #9b6dff;
-    --red: #ff5f5f;
-    --text: #f0f2f7;
-    --muted: #6b7280;
-    --card-glow: 0 0 40px rgba(245,200,66,0.04);
-  }
+body::before{content:'';position:fixed;top:-200px;left:-100px;width:600px;height:600px;
+  background:radial-gradient(circle,rgba(240,180,41,.04) 0%,transparent 70%);pointer-events:none;z-index:0;}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── EARN GRID ──────────────────────────────────────────────── */
+.earn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-bottom:28px;position:relative;z-index:1;}
 
-  body {
-    font-family: 'Syne', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+.e-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;
+  position:relative;overflow:hidden;transition:transform .2s,border-color .25s,box-shadow .25s;
+  animation:fadeUp .45s ease both;
+}
+.e-card::before{content:'';position:absolute;inset:0;background:var(--cg,transparent);opacity:.05;pointer-events:none;transition:opacity .3s;}
+.e-card:hover{transform:translateY(-3px);}
+.e-card:hover::before{opacity:.1;}
 
-  /* Ambient BG */
-  body::before {
-    content: '';
-    position: fixed;
-    top: -200px; left: -200px;
-    width: 700px; height: 700px;
-    background: radial-gradient(circle, rgba(245,200,66,0.06) 0%, transparent 70%);
-    pointer-events: none; z-index: 0;
-  }
+.e-card.gold{--cg:linear-gradient(135deg,#f0b429,#c98a00);border-color:rgba(240,180,41,.15);}
+.e-card.green{--cg:linear-gradient(135deg,#10d48e,#0aad73);border-color:rgba(16,212,142,.15);}
+.e-card.blue{--cg:linear-gradient(135deg,#3b82f6,#1d4ed8);border-color:rgba(59,130,246,.15);}
+.e-card.purple{--cg:linear-gradient(135deg,#8b5cf6,#6d28d9);border-color:rgba(139,92,246,.15);}
+.e-card.red{--cg:linear-gradient(135deg,#ef4444,#b91c1c);border-color:rgba(239,68,68,.15);}
 
-  /* TOPBAR */
-  .topbar {
-    position: fixed; top: 0; left: 0; right: 0;
-    height: 64px;
-    background: rgba(10,12,16,0.85);
-    backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 32px; z-index: 100;
-  }
-  .logo { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.5px; color: var(--gold); }
-  .coin-badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.95rem;
-    background: rgba(245,200,66,0.1);
-    border: 1px solid rgba(245,200,66,0.2);
-    color: var(--gold);
-    padding: 6px 18px; border-radius: 999px;
-    transition: all 0.3s;
-  }
-  .back-btn {
-    background: none; border: none; color: var(--muted);
-    font-family: 'Syne', sans-serif; font-size: 0.9rem;
-    cursor: pointer; padding: 6px 14px;
-    border-radius: 8px; transition: all 0.2s;
-    text-decoration: none; display: flex; align-items: center; gap: 6px;
-  }
-  .back-btn:hover { color: var(--text); background: var(--surface2); }
+.e-card:hover.gold{border-color:rgba(240,180,41,.4);box-shadow:0 0 28px rgba(240,180,41,.07);}
+.e-card:hover.green{border-color:rgba(16,212,142,.4);box-shadow:0 0 28px rgba(16,212,142,.07);}
+.e-card:hover.blue{border-color:rgba(59,130,246,.4);box-shadow:0 0 28px rgba(59,130,246,.07);}
+.e-card:hover.purple{border-color:rgba(139,92,246,.4);box-shadow:0 0 28px rgba(139,92,246,.07);}
+.e-card:hover.red{border-color:rgba(239,68,68,.4);box-shadow:0 0 28px rgba(239,68,68,.07);}
 
-  /* MAIN */
-  main {
-    max-width: 900px; margin: 0 auto;
-    padding: 96px 24px 60px;
-    position: relative; z-index: 1;
-  }
+.e-icon{font-size:1.8rem;margin-bottom:12px;display:block;}
+.e-title{font-size:.95rem;font-weight:700;margin-bottom:5px;}
+.e-desc{font-size:.78rem;color:var(--t2);line-height:1.55;margin-bottom:14px;}
+.e-badge{
+  display:inline-block;font-family:var(--fm);font-size:.72rem;font-weight:500;
+  padding:3px 10px;border-radius:999px;margin-bottom:14px;
+}
+.gold .e-badge{background:rgba(240,180,41,.12);color:var(--gold);}
+.green .e-badge{background:rgba(16,212,142,.12);color:var(--green);}
+.blue .e-badge{background:rgba(59,130,246,.12);color:var(--blue);}
+.purple .e-badge{background:rgba(139,92,246,.12);color:var(--purple);}
+.red .e-badge{background:rgba(239,68,68,.12);color:var(--red);}
 
-  .page-header {
-    margin-bottom: 40px;
-    animation: fadeUp 0.5s ease both;
-  }
-  .page-header h1 {
-    font-size: 2.4rem; font-weight: 800; letter-spacing: -1px;
-    background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .page-header p { color: var(--muted); margin-top: 8px; font-size: 1rem; font-weight: 400; }
+.e-btn{
+  display:block;width:100%;padding:11px;border:none;border-radius:11px;
+  font-family:var(--ff);font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;
+}
+.gold .e-btn{background:rgba(240,180,41,.12);color:var(--gold);}
+.gold .e-btn:hover:not(:disabled){background:var(--gold);color:#000;}
+.green .e-btn{background:rgba(16,212,142,.12);color:var(--green);}
+.green .e-btn:hover:not(:disabled){background:var(--green);color:#000;}
+.blue .e-btn{background:rgba(59,130,246,.12);color:var(--blue);}
+.blue .e-btn:hover:not(:disabled){background:var(--blue);color:#fff;}
+.purple .e-btn{background:rgba(139,92,246,.12);color:var(--purple);}
+.purple .e-btn:hover:not(:disabled){background:var(--purple);color:#fff;}
+.red .e-btn{background:rgba(239,68,68,.12);color:var(--red);}
+.red .e-btn:hover:not(:disabled){background:var(--red);color:#fff;}
+.e-btn:disabled{opacity:.4;cursor:not-allowed;}
 
-  /* EARNING METHODS GRID */
-  .methods-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 16px;
-    margin-bottom: 40px;
-  }
+.cd-bar{height:3px;background:var(--s3);border-radius:99px;overflow:hidden;margin-top:10px;}
+.gold .cd-fill{background:var(--gold);}
+.green .cd-fill{background:var(--green);}
+.blue .cd-fill{background:var(--blue);}
+.purple .cd-fill{background:var(--purple);}
+.red .cd-fill{background:var(--red);}
+.cd-fill{height:100%;border-radius:99px;transition:width 1s linear;}
 
-  .earn-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 28px;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
-    animation: fadeUp 0.5s ease both;
-    cursor: default;
-  }
-  .earn-card::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: var(--card-gradient, transparent);
-    opacity: 0.06; pointer-events: none;
-    transition: opacity 0.3s;
-  }
-  .earn-card:hover { transform: translateY(-4px); box-shadow: var(--card-glow); }
-  .earn-card:hover::before { opacity: 0.12; }
+/* CHECKIN GRID */
+.ci-grid{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px;}
+.ci-day{flex:1;min-width:30px;background:var(--s2);border-radius:8px;padding:7px 4px;text-align:center;border:1px solid var(--border);}
+.ci-day.done{background:rgba(16,212,142,.08);border-color:rgba(16,212,142,.25);}
+.ci-day.today{border-color:var(--gold);}
+.ci-d-label{font-size:.6rem;color:var(--t3);}
+.ci-d-icon{font-size:.85rem;margin:2px 0;}
+.ci-d-coins{font-family:var(--fm);font-size:.65rem;color:var(--gold);}
 
-  .earn-card.gold { --card-gradient: linear-gradient(135deg, var(--gold), var(--gold2)); border-color: rgba(245,200,66,0.2); }
-  .earn-card.green { --card-gradient: linear-gradient(135deg, #2ecc87, #00b86b); border-color: rgba(46,204,135,0.2); }
-  .earn-card.blue { --card-gradient: linear-gradient(135deg, #4f8ef7, #2563eb); border-color: rgba(79,142,247,0.2); }
-  .earn-card.purple { --card-gradient: linear-gradient(135deg, #9b6dff, #7c3aed); border-color: rgba(155,109,255,0.2); }
-  .earn-card.red { --card-gradient: linear-gradient(135deg, #ff5f5f, #dc2626); border-color: rgba(255,95,95,0.2); }
+/* ── SPIN SECTION ───────────────────────────────────────────── */
+.spin-section{
+  background:var(--surface);border:1px solid rgba(240,180,41,.12);
+  border-radius:22px;padding:32px;margin-bottom:28px;
+  position:relative;overflow:hidden;z-index:1;
+  animation:fadeUp .5s .05s ease both;
+}
+.spin-section::after{content:'';position:absolute;top:-80px;right:-80px;
+  width:280px;height:280px;
+  background:radial-gradient(circle,rgba(240,180,41,.04),transparent 70%);pointer-events:none;}
 
-  .earn-card:hover.gold { border-color: rgba(245,200,66,0.5); box-shadow: 0 0 30px rgba(245,200,66,0.08); }
-  .earn-card:hover.green { border-color: rgba(46,204,135,0.5); box-shadow: 0 0 30px rgba(46,204,135,0.08); }
-  .earn-card:hover.blue { border-color: rgba(79,142,247,0.5); box-shadow: 0 0 30px rgba(79,142,247,0.08); }
-  .earn-card:hover.purple { border-color: rgba(155,109,255,0.5); box-shadow: 0 0 30px rgba(155,109,255,0.08); }
-  .earn-card:hover.red { border-color: rgba(255,95,95,0.5); box-shadow: 0 0 30px rgba(255,95,95,0.08); }
+.spin-head{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:28px;}
+.spin-head h2{font-size:1.3rem;font-weight:800;letter-spacing:-.5px;}
+.spin-head p{color:var(--t2);font-size:.82rem;margin-top:4px;}
+.spin-cost-box{
+  font-family:var(--fm);font-size:.82rem;
+  background:rgba(240,180,41,.08);color:var(--gold);
+  padding:8px 16px;border-radius:10px;border:1px solid rgba(240,180,41,.18);
+  white-space:nowrap;align-self:flex-start;
+}
 
-  .card-icon { font-size: 2rem; margin-bottom: 14px; display: block; }
-  .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
-  .card-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin-bottom: 18px; }
-  .card-reward {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.8rem; font-weight: 500;
-    padding: 5px 12px; border-radius: 999px;
-    display: inline-block; margin-bottom: 16px;
-  }
-  .gold .card-reward { background: rgba(245,200,66,0.12); color: var(--gold); }
-  .green .card-reward { background: rgba(46,204,135,0.12); color: var(--green); }
-  .blue .card-reward { background: rgba(79,142,247,0.12); color: var(--blue); }
-  .purple .card-reward { background: rgba(155,109,255,0.12); color: var(--purple); }
-  .red .card-reward { background: rgba(255,95,95,0.12); color: var(--red); }
+.spin-wrap{display:flex;gap:36px;align-items:center;flex-wrap:wrap;}
 
-  .card-btn {
-    display: block; width: 100%;
-    padding: 12px; border: none; border-radius: 12px;
-    font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700;
-    cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
-  }
-  .gold .card-btn { background: rgba(245,200,66,0.15); color: var(--gold); }
-  .gold .card-btn:hover { background: var(--gold); color: #000; }
-  .green .card-btn { background: rgba(46,204,135,0.15); color: var(--green); }
-  .green .card-btn:hover { background: var(--green); color: #000; }
-  .blue .card-btn { background: rgba(79,142,247,0.15); color: var(--blue); }
-  .blue .card-btn:hover { background: var(--blue); color: #fff; }
-  .purple .card-btn { background: rgba(155,109,255,0.15); color: var(--purple); }
-  .purple .card-btn:hover { background: var(--purple); color: #fff; }
-  .red .card-btn { background: rgba(255,95,95,0.15); color: var(--red); }
-  .red .card-btn:hover { background: var(--red); color: #fff; }
+/* WHEEL */
+.wheel-outer{position:relative;flex-shrink:0;}
+/* The pointer sits at the RIGHT (3 o'clock = 0 rad). The wheel spins so the
+   winning slice's center aligns with the pointer. */
+.wheel-ptr{
+  position:absolute;top:50%;right:-20px;transform:translateY(-50%);
+  width:0;height:0;
+  border-top:13px solid transparent;
+  border-bottom:13px solid transparent;
+  border-right:24px solid var(--gold);
+  filter:drop-shadow(0 0 6px rgba(240,180,41,.6));
+  z-index:2;
+}
+#wheelCanvas{display:block;border-radius:50%;}
 
-  .card-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .cooldown-bar {
-    height: 3px; border-radius: 99px;
-    background: var(--surface2); overflow: hidden; margin-top: 10px;
-  }
-  .cooldown-fill { height: 100%; border-radius: 99px; transition: width 1s linear; }
-  .gold .cooldown-fill { background: var(--gold); }
-  .green .cooldown-fill { background: var(--green); }
-  .blue .cooldown-fill { background: var(--blue); }
-  .purple .cooldown-fill { background: var(--purple); }
-  .red .cooldown-fill { background: var(--red); }
+/* SPIN CONTROLS */
+.spin-ctrl{flex:1;min-width:200px;display:flex;flex-direction:column;gap:14px;}
+.spin-result-box{
+  font-family:var(--fm);font-size:.9rem;
+  background:var(--s2);border:1px solid var(--border);border-radius:13px;padding:14px 16px;
+  min-height:50px;color:var(--t2);line-height:1.5;
+}
+.spin-btns{display:flex;gap:10px;flex-wrap:wrap;}
+.btn-gold{
+  padding:12px 22px;border:none;border-radius:12px;
+  font-family:var(--ff);font-size:.88rem;font-weight:800;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#000;cursor:pointer;transition:all .2s;
+}
+.btn-gold:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 22px rgba(240,180,41,.35);}
+.btn-gold:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-green{
+  padding:12px 22px;border:1px solid rgba(16,212,142,.25);border-radius:12px;
+  font-family:var(--ff);font-size:.88rem;font-weight:800;
+  background:rgba(16,212,142,.08);color:var(--green);cursor:pointer;transition:all .2s;
+}
+.btn-green:hover:not(:disabled){background:rgba(16,212,142,.18);border-color:var(--green);}
+.btn-green:disabled{opacity:.4;cursor:not-allowed;}
+.spins-note{font-family:var(--fm);font-size:.72rem;color:var(--t3);}
 
-  /* SPIN SECTION */
-  .spin-section {
-    background: var(--surface);
-    border: 1px solid rgba(245,200,66,0.15);
-    border-radius: 24px; padding: 36px;
-    margin-bottom: 40px;
-    animation: fadeUp 0.5s 0.1s ease both;
-    position: relative; overflow: hidden;
-  }
-  .spin-section::after {
-    content: '';
-    position: absolute; top: -80px; right: -80px;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(245,200,66,0.05) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .spin-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
-  .spin-header h2 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
-  .spin-header p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
-  .spin-cost-badge {
-    font-family: 'DM Mono', monospace; font-size: 0.85rem;
-    background: rgba(245,200,66,0.1); color: var(--gold);
-    padding: 8px 18px; border-radius: 10px; white-space: nowrap;
-    border: 1px solid rgba(245,200,66,0.2);
-  }
+/* PRIZE TABLE */
+.prize-table{margin-top:20px;border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.prize-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);font-size:.78rem;}
+.prize-row:last-child{border-bottom:none;}
+.prize-row:hover{background:var(--s2);}
+.prize-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.prize-name{font-weight:700;margin-left:10px;flex:1;}
+.prize-range{font-family:var(--fm);color:var(--t2);}
+.prize-chance{font-family:var(--fm);color:var(--t3);}
 
-  /* Wheel visual */
-  .wheel-wrap { display: flex; align-items: center; gap: 40px; flex-wrap: wrap; }
-  .wheel-canvas-wrap {
-    position: relative; flex-shrink: 0;
-  }
-  #spinCanvas { display: block; border-radius: 50%; }
-  .wheel-pointer {
-    position: absolute; top: 50%; right: -18px;
-    transform: translateY(-50%);
-    width: 0; height: 0;
-    border-top: 14px solid transparent;
-    border-bottom: 14px solid transparent;
-    border-right: 26px solid var(--gold);
-    filter: drop-shadow(0 0 6px rgba(245,200,66,0.5));
-  }
-  .spin-controls { flex: 1; min-width: 200px; }
-  .spin-result {
-    font-family: 'DM Mono', monospace;
-    font-size: 1rem;
-    background: var(--surface2);
-    border-radius: 12px; padding: 14px 18px;
-    margin-bottom: 16px;
-    min-height: 48px;
-    color: var(--green);
-    border: 1px solid var(--border);
-  }
-  .spin-btns { display: flex; gap: 10px; flex-wrap: wrap; }
-  .btn-primary {
-    padding: 13px 24px; border: none; border-radius: 12px;
-    font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700;
-    background: linear-gradient(135deg, var(--gold), var(--gold2));
-    color: #000; cursor: pointer; transition: all 0.2s;
-  }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,200,66,0.3); }
-  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .btn-secondary {
-    padding: 13px 24px; border: 1px solid rgba(46,204,135,0.3); border-radius: 12px;
-    font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700;
-    background: rgba(46,204,135,0.08); color: var(--green);
-    cursor: pointer; transition: all 0.2s;
-  }
-  .btn-secondary:hover { background: rgba(46,204,135,0.18); border-color: var(--green); }
-  .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+/* AD OVERLAY */
+#adOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2000;align-items:center;justify-content:center;}
+#adOverlay.on{display:flex;}
+.ad-box{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:38px;max-width:380px;width:92%;text-align:center;}
+.ad-box h3{font-size:1.2rem;font-weight:800;margin-bottom:8px;}
+.ad-box p{color:var(--t2);font-size:.85rem;margin-bottom:22px;}
+.ad-timer{font-family:var(--fm);font-size:2.8rem;font-weight:300;color:var(--gold);margin-bottom:14px;}
+.ad-prog{height:4px;background:var(--s3);border-radius:99px;overflow:hidden;margin-bottom:22px;}
+.ad-prog-fill{height:100%;background:var(--gold);border-radius:99px;transition:width 1s linear;}
 
-  .spins-counter {
-    font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--muted);
-    margin-top: 10px;
-  }
+/* TRIVIA OVERLAY */
+#triviaOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2000;align-items:center;justify-content:center;}
+#triviaOverlay.on{display:flex;}
+.trivia-box{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:36px;max-width:460px;width:92%;}
+.trivia-q{font-size:1rem;font-weight:700;line-height:1.6;margin-bottom:22px;}
+.trivia-opts{display:flex;flex-direction:column;gap:10px;}
+.trivia-opt{
+  padding:12px 16px;border-radius:11px;border:1px solid var(--b2);
+  background:var(--s2);color:var(--text);font-family:var(--ff);font-size:.85rem;
+  cursor:pointer;text-align:left;transition:all .18s;
+}
+.trivia-opt:hover:not(:disabled){border-color:var(--purple);background:rgba(139,92,246,.08);}
+.trivia-opt:disabled{cursor:not-allowed;}
+.trivia-res{font-family:var(--fm);font-size:.88rem;min-height:26px;margin-top:16px;text-align:center;}
 
-  /* Daily Check-in */
-  .checkin-grid {
-    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
-  }
-  .checkin-day {
-    flex: 1; min-width: 60px;
-    background: var(--surface2); border-radius: 10px;
-    padding: 10px 6px; text-align: center;
-    border: 1px solid var(--border);
-    transition: all 0.2s;
-  }
-  .checkin-day.done { background: rgba(46,204,135,0.1); border-color: rgba(46,204,135,0.3); }
-  .checkin-day.today { border-color: var(--gold); }
-  .checkin-day .day-label { font-size: 0.7rem; color: var(--muted); margin-bottom: 4px; }
-  .checkin-day .day-coins { font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--gold); font-weight: 500; }
-  .checkin-day .day-check { font-size: 1rem; }
-
-  /* Ad overlay */
-  #adOverlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.85); z-index: 200;
-    align-items: center; justify-content: center;
-  }
-  #adOverlay.show { display: flex; }
-  .ad-box {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 24px; padding: 40px; max-width: 400px; width: 90%;
-    text-align: center;
-  }
-  .ad-box h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
-  .ad-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
-  .ad-timer {
-    font-family: 'DM Mono', monospace;
-    font-size: 2.5rem; font-weight: 500;
-    color: var(--gold); margin-bottom: 20px;
-  }
-  .ad-bar { height: 4px; background: var(--surface2); border-radius: 99px; overflow: hidden; margin-bottom: 20px; }
-  .ad-bar-fill { height: 100%; background: var(--gold); transition: width 1s linear; border-radius: 99px; }
-
-  /* Toast */
-  #toast {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 14px; padding: 14px 24px;
-    font-size: 0.95rem; font-weight: 600;
-    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
-    z-index: 300; white-space: nowrap;
-    display: flex; align-items: center; gap: 10px;
-  }
-  #toast.show { transform: translateX(-50%) translateY(0); }
-  #toast.success { border-color: rgba(46,204,135,0.4); color: var(--green); }
-  #toast.error { border-color: rgba(255,95,95,0.4); color: var(--red); }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @media (max-width: 600px) {
-    .topbar { padding: 0 16px; }
-    main { padding: 80px 16px 60px; }
-    .page-header h1 { font-size: 1.8rem; }
-    .wheel-wrap { flex-direction: column; align-items: flex-start; }
-    #spinCanvas { width: 180px !important; height: 180px !important; }
-    .spin-section { padding: 24px; }
-  }
+@media(max-width:600px){
+  .spin-wrap{flex-direction:column;}
+  #wheelCanvas{width:200px!important;height:200px!important;}
+  .spin-section{padding:20px;}
+  .earn-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <a class="back-btn" href="dashboard.html">← Dashboard</a>
-  <div class="logo">Axes Bank</div>
-  <div class="coin-badge" id="coinBadge">⏳ Loading</div>
+<div class="ax-top">
+  <a class="ax-ghost" href="dashboard.html">← Back</a>
+  <div class="ax-logo">⬡ Axes Bank</div>
+  <div class="ax-top-r">
+    <div class="ax-pill" id="coinPill">⏳ Loading</div>
+  </div>
 </div>
 
-<main>
-  <div class="page-header">
-    <h1>Earn Coins</h1>
-    <p>Complete tasks, spin the wheel, and grow your balance.</p>
+<div class="ax-page" style="position:relative;z-index:1;">
+
+  <div style="margin-bottom:28px;animation:fadeUp .4s ease both;">
+    <h1 style="font-size:2rem;font-weight:800;letter-spacing:-.8px;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Earn Coins</h1>
+    <p style="color:var(--t2);margin-top:6px;font-size:.9rem;">Complete tasks and grow your balance. Economy responds to everyone's earnings.</p>
   </div>
 
-  <!-- EARN METHODS GRID -->
-  <div class="methods-grid">
+  <!-- EARN CARDS -->
+  <div class="earn-grid">
 
     <!-- Daily Check-in -->
-    <div class="earn-card green" style="animation-delay:0s">
-      <span class="card-icon">📅</span>
-      <div class="card-title">Daily Check-in</div>
-      <div class="card-desc">Log in every day for increasing streak rewards. Miss a day and the streak resets.</div>
-      <span class="card-reward" id="checkinRewardLabel">+50 coins</span>
-      <div class="checkin-grid" id="checkinGrid"></div>
-      <button class="card-btn" id="checkinBtn" onclick="doCheckin()">Claim Today</button>
-      <div class="cooldown-bar"><div class="cooldown-fill" id="checkinBar" style="width:0%"></div></div>
+    <div class="e-card green" style="animation-delay:.0s">
+      <span class="e-icon">📅</span>
+      <div class="e-title">Daily Check-in</div>
+      <div class="e-desc">Log in every day for escalating streak bonuses. Miss a day, streak resets.</div>
+      <span class="e-badge" id="ciRewardLabel">+50 AXC</span>
+      <div class="ci-grid" id="ciGrid"></div>
+      <button class="e-btn" id="ciBtn" onclick="doCheckin()">Claim Today</button>
+      <div class="cd-bar"><div class="cd-fill" id="ciBar" style="width:0%"></div></div>
     </div>
 
     <!-- Watch Ad -->
-    <div class="earn-card blue" style="animation-delay:0.05s">
-      <span class="card-icon">📺</span>
-      <div class="card-title">Watch an Ad</div>
-      <div class="card-desc">Watch a short 15-second ad to earn coins. Available every 30 minutes.</div>
-      <span class="card-reward">+75 coins</span>
-      <button class="card-btn" id="adBtn" onclick="startAd()">Watch Now</button>
-      <div class="cooldown-bar"><div class="cooldown-fill" id="adBar" style="width:0%"></div></div>
+    <div class="e-card blue" style="animation-delay:.04s">
+      <span class="e-icon">📺</span>
+      <div class="e-title">Watch an Ad</div>
+      <div class="e-desc">Watch a 15-second ad to earn coins. Available every 30 minutes.</div>
+      <span class="e-badge">+75 AXC</span>
+      <button class="e-btn" id="adBtn" onclick="startAd('coins')">Watch Now</button>
+      <div class="cd-bar"><div class="cd-fill blue" id="adBar" style="width:0%;background:var(--blue)"></div></div>
     </div>
 
     <!-- Trivia -->
-    <div class="earn-card purple" style="animation-delay:0.1s">
-      <span class="card-icon">🧠</span>
-      <div class="card-title">Daily Trivia</div>
-      <div class="card-desc">Answer one trivia question correctly per day to earn a coin bonus.</div>
-      <span class="card-reward">+100 coins</span>
-      <button class="card-btn" id="triviaBtn" onclick="openTrivia()">Answer Now</button>
-      <div class="cooldown-bar"><div class="cooldown-fill" id="triviaBar" style="width:0%"></div></div>
+    <div class="e-card purple" style="animation-delay:.08s">
+      <span class="e-icon">🧠</span>
+      <div class="e-title">Daily Trivia</div>
+      <div class="e-desc">Answer one finance trivia question correctly per day for a coin bonus.</div>
+      <span class="e-badge">+100 AXC</span>
+      <button class="e-btn" id="triviaBtn" onclick="openTrivia()">Answer Now</button>
+      <div class="cd-bar"><div class="cd-fill" id="triviaBar" style="width:0%;background:var(--purple)"></div></div>
     </div>
 
     <!-- Referral -->
-    <div class="earn-card gold" style="animation-delay:0.15s">
-      <span class="card-icon">🔗</span>
-      <div class="card-title">Refer a Friend</div>
-      <div class="card-desc">Share your referral code. Earn 500 coins when a friend signs up and makes their first spin.</div>
-      <span class="card-reward">+500 per referral</span>
-      <button class="card-btn" onclick="copyReferral()">Copy Referral Link</button>
+    <div class="e-card gold" style="animation-delay:.12s">
+      <span class="e-icon">🔗</span>
+      <div class="e-title">Refer a Friend</div>
+      <div class="e-desc">Share your link. Earn 500 AXC when a friend signs up and makes their first spin.</div>
+      <span class="e-badge">+500 AXC per referral</span>
+      <button class="e-btn" onclick="copyReferral()">Copy Referral Link</button>
     </div>
 
-    <!-- Streak Bonus -->
-    <div class="earn-card red" style="animation-delay:0.2s">
-      <span class="card-icon">🔥</span>
-      <div class="card-title">7-Day Streak</div>
-      <div class="card-desc">Maintain a 7-day daily login streak to unlock a massive bonus reward.</div>
-      <span class="card-reward">+1,000 coins</span>
-      <div style="font-family:'DM Mono',monospace;font-size:0.8rem;color:var(--muted);margin-bottom:14px;" id="streakLabel">Streak: 0 / 7</div>
-      <button class="card-btn" id="streakBtn" disabled>Keep Logging In</button>
+    <!-- 7-Day Streak -->
+    <div class="e-card red" style="animation-delay:.16s">
+      <span class="e-icon">🔥</span>
+      <div class="e-title">7-Day Streak Bonus</div>
+      <div class="e-desc">Maintain a 7-day login streak to unlock a massive bonus. Resets after claiming.</div>
+      <span class="e-badge">+1,000 AXC</span>
+      <div style="font-family:var(--fm);font-size:.75rem;color:var(--t2);margin-bottom:12px;" id="streakLabel">Streak: 0 / 7</div>
+      <button class="e-btn" id="streakBtn" disabled>Keep Logging In</button>
     </div>
 
   </div>
 
   <!-- SPIN THE WHEEL -->
   <div class="spin-section">
-    <div class="spin-header">
+    <div class="spin-head">
       <div>
         <h2>🎰 Spin the Wheel</h2>
-        <p>Pay coins to spin. Higher spin count = higher cost but better average prize.</p>
+        <p>Pay AXC to spin. Cost increases per spin. Rare prizes are genuinely rare.</p>
       </div>
-      <div class="spin-cost-badge">Cost: <span id="spinCostDisplay">...</span> coins</div>
+      <div class="spin-cost-box">Cost: <span id="spinCostLbl">…</span> AXC</div>
     </div>
-    <div class="wheel-wrap">
-      <div class="wheel-canvas-wrap">
-        <canvas id="spinCanvas" width="220" height="220"></canvas>
-        <div class="wheel-pointer"></div>
+
+    <div class="spin-wrap">
+      <!-- WHEEL -->
+      <div class="wheel-outer">
+        <canvas id="wheelCanvas" width="240" height="240"></canvas>
+        <div class="wheel-ptr"></div>
       </div>
-      <div class="spin-controls">
-        <div class="spin-result" id="spinResult">Hit spin to try your luck!</div>
+
+      <!-- CONTROLS -->
+      <div class="spin-ctrl">
+        <div class="spin-result-box" id="spinResult">Hit spin to try your luck! 🎲</div>
         <div class="spin-btns">
-          <button class="btn-primary" id="spinBtn" onclick="doSpin(false)">Spin</button>
-          <button class="btn-secondary" id="freeSpinBtn" onclick="startAdForSpin()">Ad → Free Spin</button>
+          <button class="btn-gold" id="spinBtn" onclick="doSpin(false)">Spin</button>
+          <button class="btn-green" id="adSpinBtn" onclick="startAd('spin')">📺 Ad → Free Spin</button>
         </div>
-        <div class="spins-counter" id="spinsCounter">Total spins: 0</div>
+        <div class="spins-note" id="spinsNote">Total spins: 0</div>
+
+        <!-- PRIZE ODDS TABLE -->
+        <div class="prize-table" id="prizeTable"></div>
       </div>
     </div>
   </div>
 
-</main>
+</div><!-- /ax-page -->
 
-<!-- Ad Overlay -->
+<!-- AD OVERLAY -->
 <div id="adOverlay">
   <div class="ad-box">
-    <h3>📺 Watching Ad</h3>
+    <h3>📺 Ad Playing</h3>
     <p id="adPurposeText">Watch the full ad to earn your reward.</p>
-    <div class="ad-timer" id="adTimerDisplay">15</div>
-    <div class="ad-bar"><div class="ad-bar-fill" id="adBarFill" style="width:100%"></div></div>
-    <button class="btn-primary" id="adFinishBtn" onclick="finishAd()" disabled style="width:100%;opacity:0.3">Claim Reward</button>
+    <div class="ad-timer" id="adTimerNum">15</div>
+    <div class="ad-prog"><div class="ad-prog-fill" id="adProgFill" style="width:100%"></div></div>
+    <button class="btn-gold" id="adClaimBtn" onclick="finishAd()" disabled style="width:100%;opacity:.35;">Claim Reward</button>
   </div>
 </div>
 
-<!-- Trivia Modal -->
-<div id="triviaOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center;">
-  <div class="ad-box" style="max-width:480px;">
-    <h3 id="triviaQ" style="font-size:1.1rem;margin-bottom:20px;line-height:1.5;"></h3>
-    <div id="triviaOptions" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;"></div>
-    <div id="triviaResult" style="font-family:'DM Mono',monospace;font-size:0.9rem;min-height:24px;"></div>
+<!-- TRIVIA OVERLAY -->
+<div id="triviaOverlay">
+  <div class="trivia-box">
+    <div class="trivia-q" id="triviaQuestion"></div>
+    <div class="trivia-opts" id="triviaOpts"></div>
+    <div class="trivia-res" id="triviaRes"></div>
   </div>
 </div>
 
-<div id="toast"></div>
-
-<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-  authDomain: "bankdata-fe769.firebaseapp.com",
-  databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "bankdata-fe769",
-  storageBucket: "bankdata-fe769.appspot.com",
-  messagingSenderId: "967507656753",
-  appId: "1:967507656753:web:562c1383dca78d56471510"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const auth = firebase.auth();
+// ── FIREBASE ──────────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:"AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+  authDomain:"bankdata-fe769.firebaseapp.com",
+  databaseURL:"https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"bankdata-fe769",storageBucket:"bankdata-fe769.appspot.com",
+  messagingSenderId:"967507656753",appId:"1:967507656753:web:562c1383dca78d56471510"
+});
+const db = firebase.database(), auth = firebase.auth();
+let CU = null, UD = {};
 
-let currentUser = null, userData = {};
-let adPurpose = 'coins'; // 'coins' or 'spin'
-let adTimer = null;
-let adCooldownTimer = null;
-
-// ── AUTH ──────────────────────────────────────────────
-auth.onAuthStateChanged(user => {
-  if (user) {
-    currentUser = user;
-    db.ref("users/" + user.uid).on("value", snap => {
-      userData = snap.val() || {};
-      refreshUI();
-    });
-  } else {
-    auth.signInAnonymously();
-  }
+auth.onAuthStateChanged(u => {
+  if (u) { CU = u; db.ref('users/'+u.uid).on('value', s => { UD = s.val()||{}; refreshUI(); }); maybeTickEconomy(); }
+  else auth.signInAnonymously();
 });
 
+// ── STATE ─────────────────────────────────────────────────────
+let adPurpose = 'coins', adInterval = null, adCdInterval = null;
+
+function getCoins() { let c = Number(UD.coins)||0; return isFinite(c)?c:0; }
+function getSpins() { return parseInt(UD.spins)||0; }
+function spinCost(n) { return Math.floor(40 * Math.pow(1.08, n||0)); }
+
+// ── REFRESH UI ────────────────────────────────────────────────
 function refreshUI() {
-  const coins = getCoins();
-  document.getElementById("coinBadge").textContent = "💰 " + coins.toLocaleString();
-
-  const spins = parseInt(userData.spins) || 0;
-  document.getElementById("spinCostDisplay").textContent = getSpinCost(spins).toLocaleString();
-  document.getElementById("spinsCounter").textContent = "Total spins: " + spins;
-
-  const streak = parseInt(userData.streak) || 0;
-  document.getElementById("streakLabel").textContent = `Streak: ${streak} / 7`;
+  document.getElementById('coinPill').textContent = '💰 ' + fmtCoins(getCoins()) + ' AXC';
+  document.getElementById('spinCostLbl').textContent = fmtCoins(spinCost(getSpins()));
+  document.getElementById('spinsNote').textContent = 'Total spins: ' + getSpins();
+  const streak = parseInt(UD.streak)||0;
+  document.getElementById('streakLabel').textContent = 'Streak: '+streak+' / 7';
   if (streak >= 7) {
-    const btn = document.getElementById("streakBtn");
-    btn.disabled = false;
-    btn.textContent = "🎉 Claim 1,000 Bonus!";
-    btn.onclick = claimStreakBonus;
+    const b = document.getElementById('streakBtn');
+    b.disabled = false; b.textContent = '🎉 Claim 1,000 Bonus!';
+    b.onclick = claimStreakBonus;
   }
-
-  renderCheckinGrid();
-  checkCheckin();
-  checkAdCooldown();
-  checkTriviaCooldown();
+  renderCiGrid(); checkCi(); checkAdCd(); checkTriviaCd();
   drawWheel();
 }
 
-function getCoins() {
-  let c = typeof userData.coins === "number" ? userData.coins : parseInt(userData.coins || "0", 10);
-  return isFinite(c) ? c : 0;
+// ── CHECKIN ───────────────────────────────────────────────────
+const CI_REWARDS = [50,75,100,150,200,300,500];
+function isCheckedInToday() {
+  const l = UD.lastCheckin; if (!l) return false;
+  return new Date(l).toDateString() === new Date().toDateString();
 }
-
-function getSpinCost(spins) {
-  return Math.floor(30 * Math.pow(1.07, spins || 0));
-}
-
-// ── TOAST ──────────────────────────────────────────────
-function toast(msg, type = 'success') {
-  const t = document.getElementById("toast");
-  t.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
-  t.className = 'show ' + type;
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.className = '', 3000);
-}
-
-// ── DAILY CHECK-IN ──────────────────────────────────────
-const CHECK_REWARDS = [50, 75, 100, 150, 200, 300, 500];
-
-function renderCheckinGrid() {
-  const streak = parseInt(userData.streak) || 0;
-  const grid = document.getElementById("checkinGrid");
-  const days = ['M','T','W','T','F','S','S'];
-  grid.innerHTML = days.map((d, i) => {
-    const done = i < (streak % 7);
-    const today = i === (streak % 7) && !isCheckedInToday();
-    return `<div class="checkin-day ${done ? 'done' : ''} ${today ? 'today' : ''}">
-      <div class="day-label">${d}</div>
-      <div class="day-check">${done ? '✅' : today ? '⭐' : '○'}</div>
-      <div class="day-coins">+${CHECK_REWARDS[i]}</div>
+function renderCiGrid() {
+  const streak = parseInt(UD.streak)||0;
+  document.getElementById('ciGrid').innerHTML = ['M','T','W','T','F','S','S'].map((d,i) => {
+    const done = i < (streak%7);
+    const today = i === (streak%7) && !isCheckedInToday();
+    return `<div class="ci-day ${done?'done':''} ${today?'today':''}">
+      <div class="ci-d-label">${d}</div>
+      <div class="ci-d-icon">${done?'✅':today?'⭐':'·'}</div>
+      <div class="ci-d-coins">+${CI_REWARDS[i]}</div>
     </div>`;
   }).join('');
-
-  const todayReward = CHECK_REWARDS[streak % 7];
-  document.getElementById("checkinRewardLabel").textContent = `+${todayReward} coins`;
+  document.getElementById('ciRewardLabel').textContent = '+' + CI_REWARDS[(parseInt(UD.streak)||0)%7] + ' AXC';
 }
-
-function isCheckedInToday() {
-  const last = userData.lastCheckin;
-  if (!last) return false;
-  return new Date(last).toDateString() === new Date().toDateString();
+function checkCi() {
+  const btn = document.getElementById('ciBtn');
+  if (isCheckedInToday()) { btn.disabled=true; btn.textContent='✓ Claimed'; document.getElementById('ciBar').style.width='100%'; }
+  else { btn.disabled=false; btn.textContent='Claim Today'; document.getElementById('ciBar').style.width='0%'; }
 }
-
-function checkCheckin() {
-  const btn = document.getElementById("checkinBtn");
-  if (isCheckedInToday()) {
-    btn.disabled = true;
-    btn.textContent = "✓ Claimed Today";
-    document.getElementById("checkinBar").style.width = "100%";
-  } else {
-    btn.disabled = false;
-    btn.textContent = "Claim Today";
-    document.getElementById("checkinBar").style.width = "0%";
-  }
-}
-
 function doCheckin() {
-  if (!currentUser || isCheckedInToday()) return;
-  const streak = parseInt(userData.streak) || 0;
-  const reward = CHECK_REWARDS[streak % 7];
-  const newStreak = streak + 1;
-  const updates = {
-    [`users/${currentUser.uid}/coins`]: getCoins() + reward,
-    [`users/${currentUser.uid}/streak`]: newStreak,
-    [`users/${currentUser.uid}/lastCheckin`]: new Date().toISOString()
-  };
-  db.ref().update(updates).then(() => toast(`+${reward} coins! Streak: ${newStreak}`));
-}
-
-// ── STREAK BONUS ──────────────────────────────────────────
-function claimStreakBonus() {
-  if (!currentUser) return;
-  const updates = {
-    [`users/${currentUser.uid}/coins`]: getCoins() + 1000,
-    [`users/${currentUser.uid}/streak`]: 0
-  };
-  db.ref().update(updates).then(() => {
-    toast("+1,000 coins! Streak reset. Keep going!");
-    document.getElementById("streakBtn").disabled = true;
-    document.getElementById("streakBtn").textContent = "Keep Logging In";
+  if (!CU || isCheckedInToday()) return;
+  const streak = parseInt(UD.streak)||0;
+  const reward = CI_REWARDS[streak%7];
+  const newStreak = streak+1;
+  const up = {};
+  up[`users/${CU.uid}/coins`] = getCoins()+reward;
+  up[`users/${CU.uid}/streak`] = newStreak;
+  up[`users/${CU.uid}/lastCheckin`] = new Date().toISOString();
+  // log txn
+  up[`users/${CU.uid}/transactions/${Date.now()}`] = {type:'checkin',label:'Daily Check-in',amount:reward,t:Date.now()};
+  db.ref().update(up).then(() => {
+    updateTotalCoins(reward);
+    axToast('+'+reward+' AXC! Streak: '+newStreak);
   });
 }
 
-// ── AD SYSTEM ──────────────────────────────────────────────
-const AD_COOLDOWN_MS = 30 * 60 * 1000; // 30 min
+// ── STREAK BONUS ──────────────────────────────────────────────
+function claimStreakBonus() {
+  if (!CU) return;
+  const up = {};
+  up[`users/${CU.uid}/coins`] = getCoins()+1000;
+  up[`users/${CU.uid}/streak`] = 0;
+  up[`users/${CU.uid}/transactions/${Date.now()}`] = {type:'earn',label:'7-Day Streak Bonus',amount:1000,t:Date.now()};
+  db.ref().update(up).then(() => { updateTotalCoins(1000); axToast('+1,000 AXC! Streak reset.'); });
+}
 
-function checkAdCooldown() {
-  const last = userData.lastAd;
-  const btn = document.getElementById("adBtn");
-  if (!last) { btn.disabled = false; document.getElementById("adBar").style.width = "0%"; return; }
-  const elapsed = Date.now() - new Date(last).getTime();
-  if (elapsed >= AD_COOLDOWN_MS) {
-    btn.disabled = false;
-    document.getElementById("adBar").style.width = "0%";
-  } else {
-    btn.disabled = true;
-    const pct = (elapsed / AD_COOLDOWN_MS) * 100;
-    document.getElementById("adBar").style.width = pct + "%";
-    // auto-refresh countdown
-    clearInterval(adCooldownTimer);
-    adCooldownTimer = setInterval(() => {
-      const el2 = Date.now() - new Date(userData.lastAd).getTime();
-      if (el2 >= AD_COOLDOWN_MS) {
-        clearInterval(adCooldownTimer);
-        btn.disabled = false;
-        document.getElementById("adBar").style.width = "0%";
-        btn.textContent = "Watch Now";
-      } else {
-        const rem = Math.ceil((AD_COOLDOWN_MS - el2) / 60000);
-        btn.textContent = `Cooldown: ${rem}m`;
-        document.getElementById("adBar").style.width = ((el2 / AD_COOLDOWN_MS) * 100) + "%";
-      }
-    }, 5000);
+// ── AD SYSTEM ─────────────────────────────────────────────────
+const AD_CD = 30*60*1000;
+function checkAdCd() {
+  const last = UD.lastAd, btn = document.getElementById('adBtn');
+  if (!last || Date.now()-new Date(last).getTime() >= AD_CD) {
+    btn.disabled=false; btn.textContent='Watch Now'; document.getElementById('adBar').style.width='0%'; return;
   }
+  btn.disabled=true;
+  clearInterval(adCdInterval);
+  adCdInterval = setInterval(() => {
+    const el = Date.now()-new Date(UD.lastAd).getTime();
+    if (el >= AD_CD) { clearInterval(adCdInterval); btn.disabled=false; btn.textContent='Watch Now'; document.getElementById('adBar').style.width='0%'; return; }
+    const rem = Math.ceil((AD_CD-el)/60000);
+    btn.textContent = 'Cooldown: '+rem+'m';
+    document.getElementById('adBar').style.width = (el/AD_CD*100)+'%';
+  }, 10000);
+  const el0 = Date.now()-new Date(UD.lastAd).getTime();
+  btn.textContent = 'Cooldown: '+Math.ceil((AD_CD-el0)/60000)+'m';
+  document.getElementById('adBar').style.width = (el0/AD_CD*100)+'%';
 }
 
-function startAd(purpose = 'coins') {
+function startAd(purpose) {
   adPurpose = purpose;
-  document.getElementById("adPurposeText").textContent =
-    purpose === 'spin' ? "Watch the full ad to earn a free spin!" : "Watch the full ad to earn 75 coins.";
-  openAdOverlay();
-}
-
-function startAdForSpin() { startAd('spin'); }
-
-function openAdOverlay() {
-  document.getElementById("adOverlay").classList.add("show");
-  const finBtn = document.getElementById("adFinishBtn");
-  finBtn.disabled = true;
-  finBtn.style.opacity = "0.3";
-  let secs = 15;
-  document.getElementById("adTimerDisplay").textContent = secs;
-  document.getElementById("adBarFill").style.width = "100%";
-  clearInterval(adTimer);
-  adTimer = setInterval(() => {
-    secs--;
-    document.getElementById("adTimerDisplay").textContent = secs;
-    document.getElementById("adBarFill").style.width = (secs / 15 * 100) + "%";
-    if (secs <= 0) {
-      clearInterval(adTimer);
-      finBtn.disabled = false;
-      finBtn.style.opacity = "1";
-    }
-  }, 1000);
+  document.getElementById('adPurposeText').textContent =
+    purpose==='spin' ? 'Watch the full ad to earn a free spin!' : 'Watch the full ad to earn 75 AXC.';
+  document.getElementById('adOverlay').classList.add('on');
+  const claimBtn = document.getElementById('adClaimBtn');
+  claimBtn.disabled=true; claimBtn.style.opacity='.35';
+  let s=15;
+  document.getElementById('adTimerNum').textContent=s;
+  document.getElementById('adProgFill').style.width='100%';
+  clearInterval(adInterval);
+  adInterval = setInterval(() => {
+    s--;
+    document.getElementById('adTimerNum').textContent=s;
+    document.getElementById('adProgFill').style.width=(s/15*100)+'%';
+    if (s<=0) { clearInterval(adInterval); claimBtn.disabled=false; claimBtn.style.opacity='1'; }
+  },1000);
 }
 
 function finishAd() {
-  document.getElementById("adOverlay").classList.remove("show");
-  clearInterval(adTimer);
-  if (!currentUser) return;
-
-  if (adPurpose === 'spin') {
-    doSpin(true);
-  } else {
-    const updates = {
-      [`users/${currentUser.uid}/coins`]: getCoins() + 75,
-      [`users/${currentUser.uid}/lastAd`]: new Date().toISOString()
-    };
-    db.ref().update(updates).then(() => toast("+75 coins! Come back in 30 min."));
-  }
+  document.getElementById('adOverlay').classList.remove('on');
+  clearInterval(adInterval);
+  if (!CU) return;
+  if (adPurpose==='spin') { doSpin(true); return; }
+  const up = {};
+  up[`users/${CU.uid}/coins`] = getCoins()+75;
+  up[`users/${CU.uid}/lastAd`] = new Date().toISOString();
+  up[`users/${CU.uid}/transactions/${Date.now()}`] = {type:'ad',label:'Watched Ad',amount:75,t:Date.now()};
+  db.ref().update(up).then(() => { updateTotalCoins(75); axToast('+75 AXC! Back in 30 min.'); });
 }
 
-// ── TRIVIA ──────────────────────────────────────────────
-const TRIVIA_QUESTIONS = [
-  { q: "What does 'APR' stand for in finance?", opts: ["Annual Percentage Rate","Average Price Range","Asset Purchase Return","Annual Payment Record"], a: 0 },
-  { q: "What is compound interest?", opts: ["Interest on principal only","Interest on interest","A flat fee","A government tax"], a: 1 },
-  { q: "What is a 'bull market'?", opts: ["A falling market","A market with high volatility","A rising market","A market for commodities"], a: 2 },
-  { q: "What does 'diversification' mean in investing?", opts: ["Putting all money in one stock","Spreading investments to reduce risk","Borrowing money to invest","Selling investments quickly"], a: 1 },
-  { q: "What is inflation?", opts: ["Decrease in money supply","Increase in purchasing power","Rise in general price levels","Drop in stock prices"], a: 2 },
-  { q: "What is a 'dividend'?", opts: ["A stock split","A payment from profit to shareholders","A type of loan","An investment fee"], a: 1 },
-  { q: "What does 'liquidity' refer to?", opts: ["How wet an asset is","How quickly an asset can be converted to cash","How profitable a company is","How large a company's debt is"], a: 1 },
+// ── TRIVIA ────────────────────────────────────────────────────
+const TRIVIA = [
+  {q:"What does APR stand for?",opts:["Annual Percentage Rate","Asset Price Ratio","Annual Payment Record","Average Portfolio Return"],a:0},
+  {q:"What is compound interest?",opts:["Interest on the principal only","Interest on interest","A flat annual fee","A government tax"],a:1},
+  {q:"What is a 'bull market'?",opts:["A falling market","High volatility","A rising market","A commodities-only market"],a:2},
+  {q:"What does 'diversification' mean in investing?",opts:["Putting all money in one asset","Spreading investments to reduce risk","Borrowing to invest","Selling investments quickly"],a:1},
+  {q:"What is inflation?",opts:["Decrease in money supply","Increase in purchasing power","A sustained rise in general price levels","A stock market crash"],a:2},
+  {q:"What is a 'dividend'?",opts:["A stock split","A profit payment to shareholders","A type of loan","A brokerage fee"],a:1},
+  {q:"What does 'liquidity' mean in finance?",opts:["How profitable a company is","How quickly an asset converts to cash","A measure of debt","How large a company is"],a:1},
+  {q:"What is a 'bear market'?",opts:["A rising market","A market declining 20%+","A market with no volatility","A market for bonds only"],a:1},
+  {q:"What does P/E ratio measure?",opts:["Price vs earnings","Profit vs expenses","Portfolio vs equity","Payments vs expenses"],a:0},
+  {q:"What is a 'hedge fund'?",opts:["A government savings scheme","A fund that only buys gold","A private, actively managed investment fund","A fixed deposit account"],a:2},
 ];
-
-let currentTrivia = null;
-
-function checkTriviaCooldown() {
-  const last = userData.lastTrivia;
-  const btn = document.getElementById("triviaBtn");
-  if (!last) { btn.disabled = false; document.getElementById("triviaBar").style.width = "0%"; return; }
-  const elapsed = Date.now() - new Date(last).getTime();
-  const COOLDOWN = 24 * 60 * 60 * 1000;
-  if (elapsed >= COOLDOWN) {
-    btn.disabled = false;
-    document.getElementById("triviaBar").style.width = "0%";
-  } else {
-    btn.disabled = true;
-    btn.textContent = "Come back tomorrow";
-    document.getElementById("triviaBar").style.width = (elapsed / COOLDOWN * 100) + "%";
-  }
+let curTrivia = null;
+function checkTriviaCd() {
+  const last = UD.lastTrivia, btn = document.getElementById('triviaBtn');
+  if (!last || Date.now()-new Date(last).getTime() >= 24*60*60*1000) {
+    btn.disabled=false; btn.textContent='Answer Now'; document.getElementById('triviaBar').style.width='0%';
+  } else { btn.disabled=true; btn.textContent='Come back tomorrow'; document.getElementById('triviaBar').style.width='100%'; }
 }
-
 function openTrivia() {
-  currentTrivia = TRIVIA_QUESTIONS[Math.floor(Math.random() * TRIVIA_QUESTIONS.length)];
-  document.getElementById("triviaQ").textContent = currentTrivia.q;
-  document.getElementById("triviaResult").textContent = "";
-  const opts = document.getElementById("triviaOptions");
-  opts.innerHTML = currentTrivia.opts.map((o, i) =>
-    `<button onclick="answerTrivia(${i})" style="padding:11px 16px;border-radius:10px;border:1px solid var(--border);
-      background:var(--surface2);color:var(--text);font-family:'Syne',sans-serif;font-size:0.9rem;
-      cursor:pointer;text-align:left;transition:all 0.2s;" 
-      onmouseover="this.style.borderColor='var(--purple)'" 
-      onmouseout="this.style.borderColor='var(--border)'">${o}</button>`
+  curTrivia = TRIVIA[Math.floor(Math.random()*TRIVIA.length)];
+  document.getElementById('triviaQuestion').textContent = curTrivia.q;
+  document.getElementById('triviaRes').textContent = '';
+  document.getElementById('triviaOpts').innerHTML = curTrivia.opts.map((o,i) =>
+    `<button class="trivia-opt" onclick="answerTrivia(${i})">${o}</button>`
   ).join('');
-  document.getElementById("triviaOverlay").style.display = "flex";
+  document.getElementById('triviaOverlay').classList.add('on');
 }
-
 function answerTrivia(idx) {
-  const res = document.getElementById("triviaResult");
-  const btns = document.querySelectorAll("#triviaOptions button");
-  btns.forEach(b => b.disabled = true);
-  if (idx === currentTrivia.a) {
-    res.textContent = "✅ Correct! +100 coins";
-    res.style.color = "var(--green)";
-    const updates = {
-      [`users/${currentUser.uid}/coins`]: getCoins() + 100,
-      [`users/${currentUser.uid}/lastTrivia`]: new Date().toISOString()
-    };
-    db.ref().update(updates).then(() => {
-      setTimeout(() => { document.getElementById("triviaOverlay").style.display = "none"; toast("+100 coins! Trivia complete."); }, 1500);
-    });
+  document.querySelectorAll('.trivia-opt').forEach(b => b.disabled=true);
+  const res = document.getElementById('triviaRes');
+  if (idx === curTrivia.a) {
+    res.textContent = '✅ Correct! +100 AXC'; res.style.color='var(--green)';
+    const up = {};
+    up[`users/${CU.uid}/coins`] = getCoins()+100;
+    up[`users/${CU.uid}/lastTrivia`] = new Date().toISOString();
+    up[`users/${CU.uid}/transactions/${Date.now()}`] = {type:'trivia',label:'Trivia Correct',amount:100,t:Date.now()};
+    db.ref().update(up).then(() => { updateTotalCoins(100); setTimeout(()=>{ document.getElementById('triviaOverlay').classList.remove('on'); axToast('+100 AXC! Nice.'); },1400); });
   } else {
-    res.textContent = `❌ Wrong! Answer: "${currentTrivia.opts[currentTrivia.a]}"`;
-    res.style.color = "var(--red)";
-    db.ref(`users/${currentUser.uid}/lastTrivia`).set(new Date().toISOString());
-    setTimeout(() => { document.getElementById("triviaOverlay").style.display = "none"; toast("Wrong answer. Try again tomorrow.", 'error'); }, 2000);
+    res.textContent = '❌ Wrong! Answer: "'+curTrivia.opts[curTrivia.a]+'"'; res.style.color='var(--red)';
+    db.ref(`users/${CU.uid}/lastTrivia`).set(new Date().toISOString());
+    setTimeout(()=>{ document.getElementById('triviaOverlay').classList.remove('on'); axToast('Wrong. Try again tomorrow.','error'); },2000);
   }
 }
 
-// ── REFERRAL ──────────────────────────────────────────────
+// ── REFERRAL ──────────────────────────────────────────────────
 function copyReferral() {
-  if (!currentUser) return;
-  const link = `https://axesbankonline.github.io?ref=${currentUser.uid.slice(0,8)}`;
-  navigator.clipboard.writeText(link).then(() => toast("Referral link copied!")).catch(() => toast("Copy failed", 'error'));
+  if (!CU) return;
+  const link = `https://axesbankonline.github.io?ref=${CU.uid.slice(0,10)}`;
+  navigator.clipboard.writeText(link).then(()=>axToast('Referral link copied!')).catch(()=>axToast('Copy failed','error'));
 }
 
-// ── WHEEL ──────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+//  WHEEL — Fixed so pointer (at right = 0°) always matches prize
+// ══════════════════════════════════════════════════════════════
+//
+// PRIZES ordered so visually distinct colors alternate.
+// Probabilities are MUCH harder for rare tiers.
+//
 const PRIZES = [
-  { label: "Common\n10-30",    color: "#2a2d35", textColor: "#999", range: [10,30],      prob: 50 },
-  { label: "Mediocre\n20-50",  color: "#1e3a2f", textColor: "#2ecc87", range: [20,50],  prob: 30 },
-  { label: "Rare\n100-500",    color: "#1a2a4a", textColor: "#4f8ef7", range: [100,500],prob: 12 },
-  { label: "Epic\n500-1k",     color: "#2a1a4a", textColor: "#9b6dff", range: [500,1000],prob: 5 },
-  { label: "Legendary\n1k-10k",color: "#3a2a00", textColor: "#f5c842", range: [1000,10000],prob: 2.5 },
-  { label: "HACKER!\n100k+",   color: "#3a0000", textColor: "#ff5f5f", range: [100000,1000000],prob: 0.5 },
+  // label, color, textColor, coinMin, coinMax, probability(%)
+  { name:'Common',     color:'#1a1c26', tc:'#6b7280', lo:10,   hi:30,      prob:52   },
+  { name:'Mediocre',   color:'#0f2218', tc:'#10d48e', lo:30,   hi:80,      prob:28   },
+  { name:'Rare',       color:'#0d1a33', tc:'#3b82f6', lo:150,  hi:500,     prob:12   },
+  { name:'Epic',       color:'#180d33', tc:'#8b5cf6', lo:600,  hi:1200,    prob:5    },
+  { name:'Legendary',  color:'#2a1800', tc:'#f0b429', lo:1500, hi:8000,    prob:2.5  },
+  { name:'HACKER',     color:'#1f0000', tc:'#ef4444', lo:80000,hi:500000,  prob:0.5  },
 ];
+// Sanity check: probs sum to 100
+// 52+28+12+5+2.5+0.5 = 100 ✓
 
-let wheelAngle = 0;
+const SLICES = PRIZES.length;
+const SLICE_RAD = (Math.PI * 2) / SLICES;
+
+// Current rotation of the wheel (radians). We track the CANVAS rotation.
+let wheelRot = 0;
 let spinning = false;
 
-function drawWheel(highlight = -1) {
-  const canvas = document.getElementById("spinCanvas");
-  const ctx = canvas.getContext("2d");
-  const cx = canvas.width / 2, cy = canvas.height / 2, r = cx - 4;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const totalSlices = PRIZES.length;
-  const slice = (Math.PI * 2) / totalSlices;
+function drawWheel(rot) {
+  if (rot !== undefined) wheelRot = rot;
+  const canvas = document.getElementById('wheelCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const SIZE = canvas.offsetWidth || 240;
+  canvas.width  = SIZE * dpr;
+  canvas.height = SIZE * dpr;
+  canvas.style.width  = SIZE + 'px';
+  canvas.style.height = SIZE + 'px';
+  ctx.scale(dpr, dpr);
+  const cx = SIZE/2, cy = SIZE/2, r = cx - 4;
 
-  for (let i = 0; i < totalSlices; i++) {
-    const start = wheelAngle + i * slice;
-    const end = start + slice;
+  for (let i = 0; i < SLICES; i++) {
+    const start = wheelRot + i * SLICE_RAD;
+    const end   = start + SLICE_RAD;
+    // fill
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, r, start, end);
     ctx.closePath();
     ctx.fillStyle = PRIZES[i].color;
     ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.05)";
-    ctx.lineWidth = 1;
+    // border
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1.2;
     ctx.stroke();
-
+    // label
     ctx.save();
     ctx.translate(cx, cy);
-    ctx.rotate(start + slice / 2);
-    ctx.textAlign = "right";
-    ctx.fillStyle = PRIZES[i].textColor;
-    ctx.font = "bold 9px Syne";
-    const lines = PRIZES[i].label.split('\n');
-    lines.forEach((l, li) => ctx.fillText(l, r - 8, li * 12 - (lines.length - 1) * 6));
+    ctx.rotate(start + SLICE_RAD / 2);
+    ctx.textAlign = 'right';
+    ctx.font = `700 ${SIZE < 200 ? 7 : 9}px Syne, sans-serif`;
+    ctx.fillStyle = PRIZES[i].tc;
+    ctx.fillText(PRIZES[i].name, r - 10, 4);
     ctx.restore();
   }
-
-  // Center circle
+  // center circle
   ctx.beginPath();
-  ctx.arc(cx, cy, 20, 0, Math.PI * 2);
-  ctx.fillStyle = "#0a0c10";
+  ctx.arc(cx, cy, 22, 0, Math.PI*2);
+  ctx.fillStyle = '#09090f';
   ctx.fill();
-  ctx.strokeStyle = "rgba(245,200,66,0.4)";
+  ctx.strokeStyle = 'rgba(240,180,41,.4)';
   ctx.lineWidth = 2;
   ctx.stroke();
+  // AXC label
+  ctx.fillStyle = '#f0b429';
+  ctx.font = '700 9px Syne, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('AXC', cx, cy + 3.5);
 }
 
-function pickPrize() {
+// Pick prize index using probability table
+function pickPrizeIdx() {
   const roll = Math.random() * 100;
   let cum = 0;
   for (let i = 0; i < PRIZES.length; i++) {
@@ -798,69 +600,93 @@ function pickPrize() {
   return 0;
 }
 
-function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+// Render prize odds table
+function renderPrizeTable() {
+  document.getElementById('prizeTable').innerHTML = PRIZES.map(p =>
+    `<div class="prize-row">
+      <div class="prize-dot" style="background:${p.tc}"></div>
+      <div class="prize-name" style="color:${p.tc}">${p.name}</div>
+      <div class="prize-range">${fmtCoins(p.lo)}–${fmtCoins(p.hi)}</div>
+      <div class="prize-chance">${p.prob}%</div>
+    </div>`
+  ).join('');
+}
+renderPrizeTable();
 
-function doSpin(free = false) {
-  if (!currentUser || spinning) return;
-  const coins = getCoins();
-  const spins = parseInt(userData.spins) || 0;
-  const cost = getSpinCost(spins);
-
-  if (!free && coins < cost) { toast("Not enough coins!", 'error'); return; }
+// ── SPIN ─────────────────────────────────────────────────────
+function doSpin(free) {
+  if (!CU || spinning) return;
+  const coins = getCoins(), spins = getSpins(), cost = spinCost(spins);
+  if (!free && coins < cost) { axToast('Not enough AXC!','error'); return; }
 
   spinning = true;
-  document.getElementById("spinBtn").disabled = true;
-  document.getElementById("freeSpinBtn").disabled = true;
-  document.getElementById("spinResult").textContent = "🎰 Spinning...";
-  document.getElementById("spinResult").style.color = "var(--muted)";
+  document.getElementById('spinBtn').disabled    = true;
+  document.getElementById('adSpinBtn').disabled  = true;
+  document.getElementById('spinResult').textContent = '🎲 Spinning…';
+  document.getElementById('spinResult').style.color = 'var(--t2)';
 
-  const prizeIdx = pickPrize();
-  const totalSlices = PRIZES.length;
-  const slice = (Math.PI * 2) / totalSlices;
-  const targetAngle = -Math.PI / 2 - (prizeIdx * slice + slice / 2);
-  const spins_count = 6 + Math.random() * 4;
-  const finalAngle = targetAngle - spins_count * Math.PI * 2;
-  const duration = 4000;
-  const startAngle = wheelAngle;
-  const startTime = performance.now();
+  const prizeIdx = pickPrizeIdx();
+
+  // We need the wheel to stop so slice[prizeIdx] center faces the pointer.
+  // Pointer is at angle 0 (right). The wheel's rotation is wheelRot.
+  // Slice i occupies angles [wheelRot + i*SLICE_RAD, wheelRot + (i+1)*SLICE_RAD].
+  // We want the center of slice prizeIdx to land at 0 (pointer).
+  // Center of slice i relative to wheel = i * SLICE_RAD + SLICE_RAD/2
+  // After spinning by delta: wheelRot + delta + i*SLICE_RAD + SLICE_RAD/2 = 0 (mod 2π)
+  // => delta = -(wheelRot + i*SLICE_RAD + SLICE_RAD/2)
+  // Add extra full rotations for drama (5–8 full spins).
+
+  const extraSpins  = (5 + Math.random() * 3) * Math.PI * 2;
+  const targetRot   = -(wheelRot + prizeIdx * SLICE_RAD + SLICE_RAD / 2);
+  // Normalize targetRot to [0, 2π] so we always spin forward
+  const normalised  = ((targetRot % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
+  const totalDelta  = extraSpins + normalised;
+
+  const startRot   = wheelRot;
+  const endRot     = startRot + totalDelta;
+  const duration   = 4200;
+  const startTime  = performance.now();
 
   function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
 
   function frame(now) {
     const t = Math.min((now - startTime) / duration, 1);
-    wheelAngle = startAngle + (finalAngle - startAngle) * easeOut(t);
-    drawWheel();
+    drawWheel(startRot + totalDelta * easeOut(t));
     if (t < 1) { requestAnimationFrame(frame); return; }
 
-    // Done
+    // DONE — wheelRot is now exactly pointing at prizeIdx
     spinning = false;
-    const prize = PRIZES[prizeIdx];
-    const amount = rand(prize.range[0], prize.range[1]);
-    const resultEl = document.getElementById("spinResult");
-    resultEl.textContent = `🎉 ${prize.label.split('\n')[0]} — +${amount.toLocaleString()} coins!`;
-    resultEl.style.color = prize.textColor;
+    const P = PRIZES[prizeIdx];
+    const amount = Math.floor(Math.random() * (P.hi - P.lo + 1)) + P.lo;
+
+    const resultEl = document.getElementById('spinResult');
+    resultEl.innerHTML = `<span style="color:${P.tc}">🎉 ${P.name}!</span> <span style="color:var(--text)">+${fmtCoins(amount)} AXC</span>`;
+
+    // Special economy events
+    if (P.name === 'HACKER') applyNudge(-1.5, '🔴 HACKER prize hit! Rate drops.');
+    if (P.name === 'Legendary') applyNudge(-0.5, '🟡 Legendary prize hit.');
 
     const newCoins = (free ? coins : coins - cost) + amount;
-    const updates = {
-      [`users/${currentUser.uid}/coins`]: newCoins,
-      [`users/${currentUser.uid}/spins`]: spins + 1
+    const up = {};
+    up[`users/${CU.uid}/coins`] = newCoins;
+    up[`users/${CU.uid}/spins`]  = spins + 1;
+    up[`users/${CU.uid}/transactions/${Date.now()}`] = {
+      type:'spin', label:`Spin — ${P.name}`, amount: free ? amount : amount - cost, t: Date.now()
     };
-    if (!free) {
-      // mark last ad used if it was ad-spin
-    }
-    db.ref().update(updates).then(() => {
-      document.getElementById("spinBtn").disabled = false;
-      document.getElementById("freeSpinBtn").disabled = false;
-      if (!free) {
-        db.ref(`users/${currentUser.uid}/lastAd`).set(new Date().toISOString());
-      }
+    if (!free) up[`users/${CU.uid}/lastAd`] = new Date().toISOString();
+
+    db.ref().update(up).then(() => {
+      updateTotalCoins(free ? amount : amount - cost);
+      document.getElementById('spinBtn').disabled   = false;
+      document.getElementById('adSpinBtn').disabled = false;
     });
   }
 
   requestAnimationFrame(frame);
 }
 
-drawWheel();
+// draw on load
+drawWheel(0);
 </script>
 </body>
 </html>
