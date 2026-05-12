@@ -1,204 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - Axes Bank</title>
-    <style>
-:root {
-    --primary: #7289da;
-    --secondary: #43b581;
-    --accent: #ff73fa;
-    --background: #1a1a1a;
-    --surface: #2d2d2d;
-    --text: #ffffff;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile — Axes Bank</title>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
+<script src="axesbank.js"></script>
+<style>
+body::before{content:'';position:fixed;top:-150px;left:50%;transform:translateX(-50%);
+  width:600px;height:600px;
+  background:radial-gradient(circle,rgba(139,92,246,.05) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+.pf-page{max-width:700px;margin:0 auto;padding:80px 20px 60px;position:relative;z-index:1;}
+
+/* AVATAR CARD */
+.avatar-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:36px;
+  text-align:center;margin-bottom:16px;
+  animation:fadeUp .4s ease both;position:relative;overflow:hidden;
 }
-body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--background);
-    color: var(--text);
-    margin: 0;
-    height: 100vh;
+.avatar-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(139,92,246,.04),rgba(240,180,41,.04));
+  pointer-events:none;
 }
-.topbar {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%;
-    height: 80px;
-    background: rgba(45, 45, 45, 0.95);
-    box-shadow: 0 4px 30px rgba(0,0,0,0.3);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 40px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    z-index: 10;
+.avatar-ring{
+  width:90px;height:90px;border-radius:50%;margin:0 auto 16px;
+  background:linear-gradient(135deg,var(--purple),var(--gold));
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.2rem;font-weight:800;color:#fff;
+  box-shadow:0 0 0 4px var(--surface),0 0 0 6px rgba(139,92,246,.3);
 }
-.bank-name {
-    font-size: 1.5rem;
-    font-weight: 700;
-    background: linear-gradient(to right, var(--primary), var(--secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: 1px;
+.pf-name{font-size:1.4rem;font-weight:800;letter-spacing:-.4px;margin-bottom:4px;}
+.pf-uid{font-family:var(--fm);font-size:.72rem;color:var(--t3);margin-bottom:16px;word-break:break-all;}
+.pf-badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:24px;}
+.badge{
+  font-size:.72rem;font-weight:700;padding:5px 12px;border-radius:999px;
+  border:1px solid;
 }
-.nav-buttons { display: flex; gap: 20px; }
-.nav-button, .nav-button2 {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    background: rgba(255,255,255,0.07);
-    color: var(--text);
-    cursor: pointer;
-    transition: background 0.2s;
+.badge.gold{background:rgba(240,180,41,.1);color:var(--gold);border-color:rgba(240,180,41,.25);}
+.badge.green{background:rgba(16,212,142,.1);color:var(--green);border-color:rgba(16,212,142,.25);}
+.badge.purple{background:rgba(139,92,246,.1);color:var(--purple);border-color:rgba(139,92,246,.25);}
+.badge.blue{background:rgba(59,130,246,.1);color:var(--blue);border-color:rgba(59,130,246,.25);}
+
+.pf-bal{font-family:var(--fm);font-size:2rem;font-weight:300;color:var(--text);margin-bottom:4px;}
+.pf-bal-label{font-size:.75rem;color:var(--t2);}
+.pf-bal-inr{font-family:var(--fm);font-size:.85rem;color:var(--gold);margin-top:4px;}
+
+/* STATS GRID */
+.pf-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;animation:fadeUp .4s .06s ease both;}
+.pf-stat{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:18px;text-align:center;}
+.pf-stat-ico{font-size:1.3rem;margin-bottom:6px;}
+.pf-stat-val{font-size:1.3rem;font-weight:800;letter-spacing:-.3px;}
+.pf-stat-label{font-size:.7rem;color:var(--t3);margin-top:3px;}
+
+/* ECONOMY CONTRIBUTION */
+.eco-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;
+  margin-bottom:16px;animation:fadeUp .4s .1s ease both;
 }
-.nav-button:hover { background: var(--primary); }
-.main-container {
-    width: 90vw;
-    max-width: 480px;
-    background: rgba(45,45,45,0.9);
-    margin: 140px auto 0 auto;
-    border-radius: 24px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.24);
-    padding: 36px 32px 32px 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.eco-card h3{font-size:.88rem;font-weight:700;margin-bottom:4px;}
+.eco-card p{font-size:.78rem;color:var(--t2);margin-bottom:16px;line-height:1.6;}
+.eco-meter{background:var(--s3);border-radius:99px;height:8px;overflow:hidden;margin-bottom:8px;}
+.eco-meter-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--gold),var(--red));transition:width 1s ease;}
+.eco-note{font-family:var(--fm);font-size:.72rem;color:var(--t3);}
+.eco-impact{
+  display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;
 }
-.profile-title {
-    font-size: 1.6rem;
-    font-weight: bold;
-    color: var(--primary);
-    margin-bottom: 18px;
-    letter-spacing: 0.5px;
+.eco-tag{
+  font-family:var(--fm);font-size:.72rem;padding:5px 11px;border-radius:8px;
+  background:var(--s2);border:1px solid var(--border);color:var(--t2);
 }
-.profile-card {
-    background: var(--surface);
-    border-radius: 16px;
-    padding: 32px 24px;
-    width: 100%;
-    margin-bottom: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.22);
-    border: 1px solid rgba(255,255,255,0.05);
+
+/* ACCOUNT INFO */
+.info-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;
+  margin-bottom:16px;animation:fadeUp .4s .14s ease both;
 }
-.info-label {
-    font-size: 1.07rem;
-    color: var(--secondary);
-    margin-bottom: 3px;
+.info-card h3{font-size:.88rem;font-weight:700;margin-bottom:16px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+.info-row:last-child{border-bottom:none;}
+.info-key{font-size:.78rem;color:var(--t2);}
+.info-val{font-family:var(--fm);font-size:.78rem;color:var(--text);}
+
+/* DANGER */
+.danger-card{
+  background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.12);border-radius:18px;padding:24px;
+  animation:fadeUp .4s .18s ease both;
 }
-.info-value {
-    font-size: 1.16rem;
-    font-weight: 600;
-    color: var(--text);
-    background: rgba(255,255,255,0.035);
-    border-radius: 7px;
-    padding: 5px 16px;
-    margin-top: 2px;
+.danger-card h3{font-size:.88rem;font-weight:700;color:var(--red);margin-bottom:8px;}
+.danger-card p{font-size:.78rem;color:var(--t2);margin-bottom:14px;line-height:1.6;}
+.btn-danger{
+  padding:10px 20px;border:1px solid rgba(239,68,68,.3);border-radius:10px;
+  background:rgba(239,68,68,.08);color:var(--red);font-family:var(--ff);font-size:.82rem;font-weight:700;
+  cursor:pointer;transition:all .2s;
 }
-.profile-buttons {
-    width: 100%;
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 15px;
-}
-.profile-button {
-    padding: 11px 18px;
-    border: none;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.10);
-    color: var(--text);
-    font-weight: 600;
-    font-size: 1.06rem;
-    cursor: pointer;
-    transition: background 0.2s;
-    box-shadow: 0 2px 8px rgba(114,137,218,0.09);
-}
-.profile-button:hover { background: var(--primary); }
-@media (max-width: 600px) {
-    .main-container { margin-top: 100px; padding: 20px 2vw; max-width: 98vw; }
-    .profile-card {padding: 16px 4vw;}
-}
-    </style>
+.btn-danger:hover{background:rgba(239,68,68,.16);border-color:var(--red);}
+
+@media(max-width:500px){.pf-stats{grid-template-columns:1fr 1fr;}}
+</style>
 </head>
 <body>
-    <div class="topbar">
-        <span class="bank-name">Axes Bank</span>
-        <div class="nav-buttons">
-            <button class="nav-button" onclick="window.location.href='dashboard.html'">Dashboard</button>
-            <button class="nav-button" id="logoutButton">Logout</button>
-            <button class="nav-button2"></button>
-            <button class="nav-button2"></button>
-        </div>
+
+<div class="ax-top">
+  <a class="ax-ghost" href="dashboard.html">← Dashboard</a>
+  <div class="ax-logo">⬡ Axes Bank</div>
+  <div class="ax-top-r">
+    <div class="ax-pill" id="ratePill">AXC/INR —</div>
+  </div>
+</div>
+
+<div class="pf-page">
+
+  <!-- AVATAR CARD -->
+  <div class="avatar-card">
+    <div class="avatar-ring" id="avatarRing">?</div>
+    <div class="pf-name" id="pfName">Loading…</div>
+    <div class="pf-uid" id="pfUid">—</div>
+    <div class="pf-badges" id="pfBadges"></div>
+    <div class="pf-bal" id="pfBal">— AXC</div>
+    <div class="pf-bal-label">Current Balance</div>
+    <div class="pf-bal-inr" id="pfBalInr">≈ ₹—</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="pf-stats">
+    <div class="pf-stat">
+      <div class="pf-stat-ico">🔥</div>
+      <div class="pf-stat-val" id="psStreak">0</div>
+      <div class="pf-stat-label">Day Streak</div>
     </div>
-    <div class="main-container">
-        <div class="profile-title">Your Profile</div>
-        <div class="profile-card">
-            <div>
-                <div class="info-label">Full Name:</div>
-                <div class="info-value" id="userName">Loading...</div>
-            </div>
-            <div>
-                <div class="info-label">Email:</div>
-                <div class="info-value" id="emailDisplay">Loading...</div>
-            </div>
-            <div>
-                <div class="info-label">Money:</div>
-                <div class="info-value" id="coinsDisplay">Loading...</div>
-            </div>
-        </div>
-        <div class="profile-buttons">
-            <button class="profile-button" onclick="window.location.href='earn.html'">Earn More</button>
-            <button class="profile-button" onclick="window.location.href='transactions.html'">Transactions</button>
-        </div>
+    <div class="pf-stat">
+      <div class="pf-stat-ico">🎰</div>
+      <div class="pf-stat-val" id="psSpins">0</div>
+      <div class="pf-stat-label">Total Spins</div>
     </div>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-        const firebaseConfig = {
-            apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-            authDomain: "bankdata-fe769.firebaseapp.com",
-            databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "bankdata-fe769",
-            storageBucket: "bankdata-fe769.appspot.com",
-            messagingSenderId: "967507656753",
-            appId: "1:967507656753:web:562c1383dca78d56471510"
-        };
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        const auth = getAuth();
-        function loadProfile() {
-            onAuthStateChanged(auth, (user) => {
-                if (!user) {
-                    window.location.href = "index.html";
-                } else {
-                    document.getElementById("emailDisplay").textContent = user.email || "N/A";
-                    const userRef = ref(database, `users/${user.uid}`);
-                    get(userRef).then((snapshot) => {
-                        if (snapshot.exists()) {
-                            const userData = snapshot.val();
-                            document.getElementById("userName").textContent = userData.name || user.email;
-                            document.getElementById("coinsDisplay").textContent = userData.coins !== undefined ? userData.coins : 0;
-                        } else {
-                            document.getElementById("userName").textContent = user.email;
-                            document.getElementById("coinsDisplay").textContent = "0";
-                        }
-                    }).catch(() => {
-                        document.getElementById("userName").textContent = "Error";
-                        document.getElementById("coinsDisplay").textContent = "Error";
-                    });
-                }
-            });
-        }
-        document.getElementById("logoutButton").addEventListener("click", () => {
-            signOut(auth).then(() => { window.location.href = "index.html"; });
-        });
-        window.onload = loadProfile;
-    </script>
+    <div class="pf-stat">
+      <div class="pf-stat-ico">📊</div>
+      <div class="pf-stat-val" id="psTxns">0</div>
+      <div class="pf-stat-label">Transactions</div>
+    </div>
+  </div>
+
+  <!-- ECONOMY CONTRIBUTION -->
+  <div class="eco-card">
+    <h3>🌐 Your Economy Impact</h3>
+    <p>Your coin balance is part of the global Axes Coin supply. Higher total supply = lower AXC/INR rate. Spending coins helps keep the economy healthy.</p>
+    <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--t3);margin-bottom:6px;">
+      <span>Your contribution to total supply</span>
+      <span id="ecoSharePct">—%</span>
+    </div>
+    <div class="eco-meter"><div class="eco-meter-fill" id="ecoFill" style="width:0%"></div></div>
+    <div class="eco-note" id="ecoNote">Loading economy data…</div>
+    <div class="eco-impact" id="ecoImpact"></div>
+  </div>
+
+  <!-- ACCOUNT INFO -->
+  <div class="info-card">
+    <h3>Account Details</h3>
+    <div class="info-row">
+      <div class="info-key">User ID</div>
+      <div class="info-val" id="infoUid">—</div>
+    </div>
+    <div class="info-row">
+      <div class="info-key">Account Type</div>
+      <div class="info-val">Anonymous</div>
+    </div>
+    <div class="info-row">
+      <div class="info-key">Joined</div>
+      <div class="info-val" id="infoJoined">—</div>
+    </div>
+    <div class="info-row">
+      <div class="info-key">Last Check-in</div>
+      <div class="info-val" id="infoCheckin">—</div>
+    </div>
+    <div class="info-row">
+      <div class="info-key">Current Rate</div>
+      <div class="info-val" id="infoRate">—</div>
+    </div>
+    <div class="info-row">
+      <div class="info-key">Balance in INR</div>
+      <div class="info-val" id="infoInr">—</div>
+    </div>
+  </div>
+
+  <!-- DANGER ZONE -->
+  <div class="danger-card">
+    <h3>Sign Out</h3>
+    <p>Signing out will end your session. Your coins and progress are saved in the cloud — you'll need your account to log back in.</p>
+    <button class="btn-danger" onclick="doSignOut()">Sign Out</button>
+  </div>
+
+</div>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+  authDomain:"bankdata-fe769.firebaseapp.com",
+  databaseURL:"https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"bankdata-fe769",storageBucket:"bankdata-fe769.appspot.com",
+  messagingSenderId:"967507656753",appId:"1:967507656753:web:562c1383dca78d56471510"
+});
+const db = firebase.database(), auth = firebase.auth();
+let liveRate = 95;
+
+auth.onAuthStateChanged(async u => {
+  if (!u) { window.location.href='index.html'; return; }
+
+  // Rate
+  const { rate, totalCoins } = await getLiveRate();
+  liveRate = rate;
+  document.getElementById('ratePill').textContent = 'AXC/INR ' + fmtRate(rate);
+  document.getElementById('infoRate').textContent = fmtRate(rate);
+
+  // User data
+  db.ref('users/'+u.uid).on('value', snap => {
+    const d = snap.val() || {};
+    const coins = Number(d.coins) || 0;
+    const spins = parseInt(d.spins) || 0;
+    const streak = parseInt(d.streak) || 0;
+    const txns = d.transactions ? Object.keys(d.transactions).length : 0;
+
+    // Avatar initial
+    const initials = u.uid.slice(0,2).toUpperCase();
+    document.getElementById('avatarRing').textContent = initials;
+    document.getElementById('pfName').textContent = 'User ' + u.uid.slice(0,8);
+    document.getElementById('pfUid').textContent = u.uid;
+    document.getElementById('infoUid').textContent = u.uid.slice(0,16) + '…';
+
+    // Balance
+    document.getElementById('pfBal').textContent = fmtCoins(coins) + ' AXC';
+    document.getElementById('pfBalInr').textContent = '≈ ' + fmtRate(coins * rate);
+    document.getElementById('infoInr').textContent = fmtRate(coins * rate);
+
+    // Stats
+    document.getElementById('psStreak').textContent = streak;
+    document.getElementById('psSpins').textContent = fmtCoins(spins);
+    document.getElementById('psTxns').textContent = txns;
+
+    // Joined / checkin
+    document.getElementById('infoJoined').textContent = d.joinedAt ? new Date(d.joinedAt).toLocaleDateString() : 'Unknown';
+    document.getElementById('infoCheckin').textContent = d.lastCheckin ? new Date(d.lastCheckin).toLocaleDateString() : 'Never';
+
+    // Badges
+    const badges = [];
+    if (streak >= 7) badges.push({l:'🔥 Week Warrior', c:'gold'});
+    if (spins >= 50)  badges.push({l:'🎰 Spinner', c:'purple'});
+    if (spins >= 100) badges.push({l:'🎰 Addict', c:'purple'});
+    if (coins >= 10000) badges.push({l:'💰 Rich', c:'gold'});
+    if (coins >= 1000000) badges.push({l:'🐳 Whale', c:'gold'});
+    if (txns >= 20) badges.push({l:'📊 Active', c:'blue'});
+    if (!badges.length) badges.push({l:'🌱 Newcomer', c:'green'});
+    document.getElementById('pfBadges').innerHTML = badges.map(b => `<span class="badge ${b.c}">${b.l}</span>`).join('');
+
+    // Economy contribution
+    const sharePct = totalCoins > 0 ? Math.min(100, (coins/totalCoins)*100) : 0;
+    document.getElementById('ecoSharePct').textContent = sharePct.toFixed(4) + '%';
+    document.getElementById('ecoFill').style.width = Math.min(100, sharePct * 100) + '%'; // scaled for visibility
+    document.getElementById('ecoNote').textContent =
+      `Global supply: ${fmtCoins(totalCoins)} AXC · Your share: ${fmtCoins(coins)} AXC · Rate: ${fmtRate(rate)}`;
+
+    // Impact tags
+    const impact = [];
+    if (coins > totalCoins * 0.1) impact.push('⚠️ Major inflation source');
+    else if (coins > totalCoins * 0.01) impact.push('📈 Moderate impact');
+    else impact.push('✅ Low impact');
+    if (streak > 0) impact.push('🔥 Streak active');
+    if (spins > 0) impact.push('🎰 Spinner');
+    document.getElementById('ecoImpact').innerHTML = impact.map(t => `<div class="eco-tag">${t}</div>`).join('');
+  });
+});
+
+function doSignOut() {
+  auth.signOut().then(() => window.location.href = 'index.html');
+}
+</script>
 </body>
 </html>
