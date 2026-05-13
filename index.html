@@ -1,109 +1,560 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - Axes Bank</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: url('image.jpg') no-repeat center center fixed;
-      background-size: cover;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      color: white;
-    }
-    .login-container {
-      background: rgba(0, 0, 0, 0.4);
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5);
-      text-align: center;
-      width: 350px;
-    }
-    input {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #555;
-      background: #222;
-      color: white;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      background-color: royalblue;
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: 0.3s;
-      box-shadow: 0px 0px 5px royalblue;
-    }
-    button:hover {
-      background-color: #4169e1;
-      box-shadow: 0px 0px 15px royalblue;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axes Bank — Login</title>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
+<script src="axesbank.js"></script>
+<style>
+/* ── FULL PAGE LAYOUT ─────────────────────────────────────── */
+html, body { height: 100%; }
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* BACKGROUND ORBS */
+.bg-orb {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(80px);
+}
+.bg-orb-1 {
+  width: 600px; height: 600px;
+  top: -200px; right: -150px;
+  background: radial-gradient(circle, rgba(240,180,41,.07), transparent 70%);
+}
+.bg-orb-2 {
+  width: 500px; height: 500px;
+  bottom: -150px; left: -100px;
+  background: radial-gradient(circle, rgba(16,212,142,.05), transparent 70%);
+}
+.bg-orb-3 {
+  width: 300px; height: 300px;
+  top: 40%; left: 50%;
+  transform: translate(-50%,-50%);
+  background: radial-gradient(circle, rgba(139,92,246,.04), transparent 70%);
+}
+
+/* GRID LINES */
+body::before {
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events:none;z-index:0;
+}
+
+/* ── CARD ─────────────────────────────────────────────────── */
+.card {
+  width: 100%;
+  max-width: 420px;
+  margin: 20px;
+  position: relative;
+  z-index: 1;
+  animation: fadeUp .5s ease both;
+}
+
+/* LOGO AREA */
+.logo-area {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.logo-hex {
+  width: 64px; height: 64px;
+  background: linear-gradient(135deg, rgba(240,180,41,.15), rgba(240,180,41,.05));
+  border: 1px solid rgba(240,180,41,.25);
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin-bottom: 16px;
+  box-shadow: 0 0 40px rgba(240,180,41,.08);
+}
+.logo-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -.6px;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 6px;
+}
+.logo-tag {
+  font-family: var(--fm);
+  font-size: .75rem;
+  color: var(--t3);
+  letter-spacing: .04em;
+}
+
+/* PANEL */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.4);
+}
+
+/* TABS */
+.tabs {
+  display: flex;
+  background: var(--s2);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 28px;
+  gap: 4px;
+}
+.tab {
+  flex: 1;
+  padding: 9px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--t2);
+  font-family: var(--ff);
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+}
+.tab.active {
+  background: var(--s3);
+  color: var(--text);
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+
+/* INPUT GROUP */
+.input-group {
+  margin-bottom: 14px;
+}
+.input-label {
+  display: block;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--t2);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 7px;
+}
+.input-wrap {
+  position: relative;
+}
+.input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: .9rem;
+  pointer-events: none;
+}
+.ax-input {
+  width: 100%;
+  padding: 13px 14px 13px 40px;
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: var(--fm);
+  font-size: .9rem;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
+}
+.ax-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(240,180,41,.08);
+}
+.ax-input::placeholder { color: var(--t3); }
+
+/* TOGGLE PASSWORD */
+.pw-toggle {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--t3);
+  cursor: pointer;
+  font-size: .85rem;
+  padding: 0;
+  transition: color .2s;
+}
+.pw-toggle:hover { color: var(--t2); }
+
+/* ERROR */
+.ax-err {
+  font-family: var(--fm);
+  font-size: .75rem;
+  color: var(--red);
+  min-height: 18px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* SUBMIT BUTTON */
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000;
+  font-family: var(--ff);
+  font-size: .95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+}
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(240,180,41,.35);
+}
+.submit-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  transform: none;
+}
+.submit-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.1), transparent);
+  pointer-events: none;
+}
+
+/* DIVIDER */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.divider-text {
+  font-family: var(--fm);
+  font-size: .7rem;
+  color: var(--t3);
+}
+
+/* GOOGLE BTN */
+.google-btn {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  background: var(--s2);
+  color: var(--text);
+  font-family: var(--ff);
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+.google-btn:hover {
+  background: var(--s3);
+  border-color: var(--b2);
+  transform: translateY(-1px);
+}
+
+/* FOOTER */
+.card-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-family: var(--fm);
+  font-size: .72rem;
+  color: var(--t3);
+  line-height: 1.7;
+}
+
+/* LOADING SPINNER */
+.spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(0,0,0,.3);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* FORM SECTIONS */
+.form-section { display: none; }
+.form-section.active { display: block; }
+</style>
 </head>
 <body>
-  <div class="login-container">
-    <h2>Axes Bank Login</h2>
-    <input type="email" id="email" placeholder="Enter Email" required>
-    <input type="password" id="password" placeholder="Enter Password" required>
-    <button id="loginButton">Login</button>
-    <p id="errorMessage" style="color: red; display: none;">Invalid email or password</p>
-    <div id="accountRequestFooter"
-         style="position: fixed; left: 0; right: 0; bottom: 12px; text-align: center; font-size: 1rem; color: #43b581;">
-      <a href="create.html" style="color:#7289da; text-decoration:none; font-weight:bold;">
-        Contact us to create an account
-      </a>
-    </div>
+
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+<div class="bg-orb bg-orb-3"></div>
+
+<div class="card">
+
+  <!-- LOGO -->
+  <div class="logo-area">
+    <div class="logo-hex">⬡</div>
+    <span class="logo-name">Axes Bank</span>
+    <span class="logo-tag">DECENTRALIZED GAME ECONOMY</span>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+  <!-- PANEL -->
+  <div class="panel">
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
-      authDomain: "bankdata-fe769.firebaseapp.com",
-      databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "bankdata-fe769",
-      storageBucket: "bankdata-fe769.appspot.com",
-      messagingSenderId: "967507656753",
-      appId: "1:967507656753:web:562c1383dca78d56471510",
-      measurementId: "G-9E5XE77RVB"
-    };
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
+      <button class="tab" id="tabRegister" onclick="switchTab('register')">Create Account</button>
+    </div>
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    <!-- LOGIN FORM -->
+    <div class="form-section active" id="formLogin">
+      <div class="input-group">
+        <label class="input-label">Email</label>
+        <div class="input-wrap">
+          <span class="input-icon">✉️</span>
+          <input class="ax-input" id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input class="ax-input" id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
+          <button class="pw-toggle" onclick="togglePw('loginPassword', this)" type="button">👁️</button>
+        </div>
+      </div>
+      <div class="ax-err" id="loginErr"></div>
+      <button class="submit-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
 
-    document.getElementById("loginButton").addEventListener("click", () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const errorMsg = document.getElementById("errorMessage");
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-text">OR</span>
+        <div class="divider-line"></div>
+      </div>
 
-      if (!email || !password) return;
+      <button class="google-btn" onclick="doGoogle()">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+    </div>
 
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          // Login successful
-          window.location.href = "dashboard.html";
-        })
-        .catch((error) => {
-          // Show error message
-          console.error(error);
-          errorMsg.style.display = "block";
-        });
+    <!-- REGISTER FORM -->
+    <div class="form-section" id="formRegister">
+      <div class="input-group">
+        <label class="input-label">Email</label>
+        <div class="input-wrap">
+          <span class="input-icon">✉️</span>
+          <input class="ax-input" id="regEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input class="ax-input" id="regPassword" type="password" placeholder="Min. 6 characters" autocomplete="new-password" />
+          <button class="pw-toggle" onclick="togglePw('regPassword', this)" type="button">👁️</button>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Confirm Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input class="ax-input" id="regConfirm" type="password" placeholder="Repeat password" autocomplete="new-password" />
+        </div>
+      </div>
+      <div class="ax-err" id="regErr"></div>
+      <button class="submit-btn" id="regBtn" onclick="doRegister()">Create Account</button>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-text">OR</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <button class="google-btn" onclick="doGoogle()">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="card-footer">
+    Your coins & progress are saved to the cloud ☁️<br>
+    By signing in you agree to play fair.
+  </div>
+
+</div>
+
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+  authDomain: "bankdata-fe769.firebaseapp.com",
+  databaseURL: "https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "bankdata-fe769",
+  storageBucket: "bankdata-fe769.appspot.com",
+  messagingSenderId: "967507656753",
+  appId: "1:967507656753:web:562c1383dca78d56471510"
+});
+const auth = firebase.auth();
+const db = firebase.database();
+
+// If already logged in, skip straight to dashboard
+auth.onAuthStateChanged(u => {
+  if (u) window.location.href = 'dashboard.html';
+});
+
+// ── TABS ──────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('formLogin').classList.toggle('active', tab === 'login');
+  document.getElementById('formRegister').classList.toggle('active', tab === 'register');
+  document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+  document.getElementById('loginErr').textContent = '';
+  document.getElementById('regErr').textContent = '';
+}
+
+// ── PASSWORD TOGGLE ───────────────────────────────────────────
+function togglePw(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁️'; }
+}
+
+// ── ERROR MESSAGES ────────────────────────────────────────────
+function friendlyError(code) {
+  const map = {
+    'auth/user-not-found': 'No account found with that email.',
+    'auth/wrong-password': 'Incorrect password.',
+    'auth/invalid-email': 'Please enter a valid email.',
+    'auth/email-already-in-use': 'An account with this email already exists.',
+    'auth/weak-password': 'Password must be at least 6 characters.',
+    'auth/too-many-requests': 'Too many attempts. Try again later.',
+    'auth/invalid-credential': 'Incorrect email or password.',
+    'auth/popup-closed-by-user': 'Sign-in popup was closed.',
+  };
+  return map[code] || 'Something went wrong. Try again.';
+}
+
+function setLoading(btnId, loading, defaultText) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? `<span class="spinner"></span> Please wait…`
+    : defaultText;
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.textContent = '';
+
+  if (!email || !password) { errEl.textContent = '⚠ Please fill in all fields.'; return; }
+
+  setLoading('loginBtn', true, 'Sign In');
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => window.location.href = 'dashboard.html')
+    .catch(e => {
+      errEl.textContent = '⚠ ' + friendlyError(e.code);
+      setLoading('loginBtn', false, 'Sign In');
     });
-  </script>
+}
+
+// ── REGISTER ──────────────────────────────────────────────────
+function doRegister() {
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const confirm = document.getElementById('regConfirm').value;
+  const errEl = document.getElementById('regErr');
+  errEl.textContent = '';
+
+  if (!email || !password || !confirm) { errEl.textContent = '⚠ Please fill in all fields.'; return; }
+  if (password !== confirm) { errEl.textContent = '⚠ Passwords do not match.'; return; }
+  if (password.length < 6) { errEl.textContent = '⚠ Password must be at least 6 characters.'; return; }
+
+  setLoading('regBtn', true, 'Create Account');
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(cred => {
+      // Create user record in database
+      return db.ref('users/' + cred.user.uid).set({
+        coins: 100,
+        streak: 0,
+        spins: 0,
+        joinedAt: Date.now(),
+        transactions: {
+          [Date.now()]: { type: 'earn', label: 'Welcome bonus', amount: 100, t: Date.now() }
+        }
+      });
+    })
+    .then(() => window.location.href = 'dashboard.html')
+    .catch(e => {
+      errEl.textContent = '⚠ ' + friendlyError(e.code);
+      setLoading('regBtn', false, 'Create Account');
+    });
+}
+
+// ── GOOGLE ────────────────────────────────────────────────────
+function doGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider)
+    .then(async result => {
+      const user = result.user;
+      // Only set up record if new user
+      if (result.additionalUserInfo && result.additionalUserInfo.isNewUser) {
+        await db.ref('users/' + user.uid).set({
+          coins: 100,
+          streak: 0,
+          spins: 0,
+          joinedAt: Date.now(),
+          transactions: {
+            [Date.now()]: { type: 'earn', label: 'Welcome bonus', amount: 100, t: Date.now() }
+          }
+        });
+      }
+      window.location.href = 'dashboard.html';
+    })
+    .catch(e => {
+      const errEl = document.getElementById('loginErr');
+      errEl.textContent = '⚠ ' + friendlyError(e.code);
+    });
+}
+
+// Allow Enter key to submit
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const loginActive = document.getElementById('formLogin').classList.contains('active');
+  if (loginActive) doLogin();
+  else doRegister();
+});
+</script>
 </body>
 </html>
