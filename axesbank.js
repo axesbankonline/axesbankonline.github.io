@@ -1,5 +1,5 @@
 // ============================================================
-//  AXES BANK — Shared Economy Engine v2.0 
+//  AXES BANK — Shared Economy Engine v2.0
 //  Include on every page AFTER firebase compat scripts
 // ============================================================
 
@@ -14,11 +14,12 @@ const ECONOMY = {
 
 // Rate goes DOWN when total coins are high (inflation)
 // Rate goes UP when total coins are scarce
+// Uses power curve so it stays valid at any supply level
 function calcRate(totalCoins, nudge) {
-  totalCoins = Math.max(totalCoins || ECONOMY.TARGET_SUPPLY, 1);
+  totalCoins = Math.max(totalCoins || 1, 1);
   nudge = nudge || 0;
   const ratio = totalCoins / ECONOMY.TARGET_SUPPLY;
-  const raw = ECONOMY.BASE_RATE / (1 + Math.log(ratio)) + nudge;
+  const raw = ECONOMY.BASE_RATE * Math.pow(ratio, -0.15) + nudge;
   return +Math.min(ECONOMY.CEILING, Math.max(ECONOMY.FLOOR, raw)).toFixed(2);
 }
 
@@ -177,6 +178,41 @@ button{font-family:var(--ff);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
 @keyframes slideIn{from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:none;}}
 .fade-up{animation:fadeUp .45s ease both;}
+/* USERNAME MODAL */
+.ax-modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:5000;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);
+}
+.ax-modal{
+  background:var(--surface);border:1px solid rgba(240,180,41,.2);
+  border-radius:22px;padding:38px 32px;max-width:420px;width:92%;
+  animation:fadeUp .35s ease both;text-align:center;
+}
+.ax-modal h2{font-size:1.3rem;font-weight:800;letter-spacing:-.4px;margin-bottom:8px;}
+.ax-modal p{font-size:.82rem;color:var(--t2);line-height:1.6;margin-bottom:24px;}
+.ax-modal-input{
+  width:100%;padding:13px 16px;border-radius:12px;
+  background:var(--s2);border:1px solid var(--b2);
+  color:var(--text);font-family:var(--fm);font-size:.95rem;
+  outline:none;transition:border-color .2s;margin-bottom:8px;
+}
+.ax-modal-input:focus{border-color:var(--gold);}
+.ax-modal-hint{font-family:var(--fm);font-size:.72rem;color:var(--t3);margin-bottom:20px;text-align:left;}
+.ax-modal-err{font-family:var(--fm);font-size:.75rem;color:var(--red);min-height:18px;margin-bottom:12px;}
+.ax-modal-btn{
+  width:100%;padding:13px;border:none;border-radius:12px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#000;font-family:var(--ff);font-size:.9rem;font-weight:800;
+  cursor:pointer;transition:all .2s;
+}
+.ax-modal-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px rgba(240,180,41,.3);}
+.ax-modal-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.ax-modal-suffix{
+  font-family:var(--fm);font-size:.82rem;color:var(--t3);
+  margin-bottom:20px;text-align:left;
+}
+.ax-modal-suffix span{color:var(--gold);}
   `;
   document.head.appendChild(s);
 })();
