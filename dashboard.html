@@ -9,7 +9,6 @@
 <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
 <script src="axesbank.js"></script>
 <style>
-/* ── PAGE SPECIFIC ─────────────────────────────────────────── */
 body::before {
   content:'';position:fixed;top:-300px;right:-200px;
   width:700px;height:700px;
@@ -22,13 +21,9 @@ body::after {
   background:radial-gradient(circle,rgba(16,212,142,.04) 0%,transparent 65%);
   pointer-events:none;z-index:0;
 }
-
-/* NEWS TICKER */
 .ticker-wrap {
-  background:rgba(240,180,41,.05);
-  border-bottom:1px solid rgba(240,180,41,.1);
-  overflow:hidden;height:32px;
-  display:flex;align-items:center;
+  background:rgba(240,180,41,.05);border-bottom:1px solid rgba(240,180,41,.1);
+  overflow:hidden;height:32px;display:flex;align-items:center;
   position:fixed;top:58px;left:0;right:0;z-index:999;
 }
 .ticker-label {
@@ -46,30 +41,20 @@ body::after {
   border-right:1px solid var(--border);display:flex;align-items:center;gap:8px;
 }
 @keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
-
-/* GRID LAYOUT */
 .dash-grid {
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  grid-template-rows:auto;
-  gap:14px;
-  position:relative;z-index:1;
+  display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto;
+  gap:14px;position:relative;z-index:1;
 }
 .ax-page{padding-top:100px;}
-
-/* BALANCE CARD */
 .balance-card {
   grid-column:1/3;
   background:linear-gradient(135deg,#0f1117 0%,#14161f 100%);
-  border:1px solid rgba(240,180,41,.15);
-  border-radius:20px;padding:28px 32px;
+  border:1px solid rgba(240,180,41,.15);border-radius:20px;padding:28px 32px;
   position:relative;overflow:hidden;
 }
 .balance-card::before {
-  content:'';position:absolute;top:-60px;right:-60px;
-  width:220px;height:220px;
-  background:radial-gradient(circle,rgba(240,180,41,.08),transparent 70%);
-  pointer-events:none;
+  content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;
+  background:radial-gradient(circle,rgba(240,180,41,.08),transparent 70%);pointer-events:none;
 }
 .balance-label{font-size:.78rem;font-weight:600;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;}
 .balance-amount{font-size:3rem;font-weight:800;letter-spacing:-2px;line-height:1;color:var(--text);}
@@ -85,20 +70,16 @@ body::after {
 .bal-btn.primary:hover{background:#ffc93d;transform:translateY(-1px);box-shadow:0 6px 20px rgba(240,180,41,.3);}
 .bal-btn.ghost{background:var(--s2);color:var(--text);border:1px solid var(--b2);}
 .bal-btn.ghost:hover{background:var(--s3);transform:translateY(-1px);}
-
-/* RATE CARD */
 .rate-card {
   grid-column:3/4;grid-row:1/3;
   background:var(--surface);border:1px solid var(--border);
-  border-radius:20px;padding:24px;
-  display:flex;flex-direction:column;gap:16px;
+  border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:16px;
 }
 .rate-header{display:flex;align-items:flex-start;justify-content:space-between;}
 .rate-title{font-size:.75rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;}
 .rate-live-dot{
   width:7px;height:7px;border-radius:50%;background:var(--green);
-  box-shadow:0 0 8px var(--green);
-  animation:pulse 2s infinite;
+  box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;
 }
 .rate-value{font-size:2.2rem;font-weight:800;letter-spacing:-1px;color:var(--text);}
 .rate-pair{font-family:var(--fm);font-size:.75rem;color:var(--t2);margin-top:2px;}
@@ -109,7 +90,6 @@ body::after {
 }
 .rate-change.up{background:rgba(16,212,142,.1);color:var(--green);}
 .rate-change.down{background:rgba(239,68,68,.1);color:var(--red);}
-/* Mini chart */
 #rateChart{width:100%;height:90px;display:block;}
 .rate-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
 .rate-stat{background:var(--s2);border-radius:10px;padding:10px 12px;}
@@ -120,12 +100,9 @@ body::after {
 .eco-bar-bg{height:5px;background:var(--s3);border-radius:99px;overflow:hidden;}
 .eco-bar-fill{height:100%;border-radius:99px;transition:width 1s ease;
   background:linear-gradient(90deg,var(--green),var(--gold),var(--red));}
-
-/* STATS ROW */
 .stat-card{
   background:var(--surface);border:1px solid var(--border);
-  border-radius:16px;padding:20px;
-  display:flex;flex-direction:column;gap:6px;
+  border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:6px;
   transition:border-color .2s,transform .2s;
 }
 .stat-card:hover{border-color:var(--b2);transform:translateY(-2px);}
@@ -133,11 +110,8 @@ body::after {
 .stat-label{font-size:.72rem;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
 .stat-val{font-size:1.5rem;font-weight:800;letter-spacing:-.5px;}
 .stat-sub{font-family:var(--fm);font-size:.72rem;color:var(--t3);}
-
-/* QUICK ACTIONS */
 .actions-card{
-  grid-column:1/3;
-  background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;
+  grid-column:1/3;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;
 }
 .section-title{font-size:.78rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;}
 .actions-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
@@ -150,45 +124,24 @@ body::after {
 .action-icon{font-size:1.6rem;}
 .action-label{font-size:.8rem;font-weight:700;}
 .action-desc{font-size:.7rem;color:var(--t3);}
-
-/* EVENTS FEED */
-.events-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;
-}
-.event-item{
-  display:flex;align-items:flex-start;gap:12px;
-  padding:12px 0;border-bottom:1px solid var(--border);
-}
+.events-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;}
+.event-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
 .event-item:last-child{border-bottom:none;}
-.event-dot{
-  width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;
-}
+.event-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
 .event-text{font-size:.83rem;color:var(--t2);line-height:1.5;}
 .event-time{font-family:var(--fm);font-size:.68rem;color:var(--t3);margin-top:2px;}
-
-/* RECENT TXN */
 .txn-card{
-  grid-column:1/3;
-  background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;
+  grid-column:1/3;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;
 }
-.txn-item{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:12px 0;border-bottom:1px solid var(--border);
-}
+.txn-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
 .txn-item:last-child{border-bottom:none;}
 .txn-left{display:flex;align-items:center;gap:12px;}
-.txn-ico{
-  width:38px;height:38px;border-radius:10px;
-  display:flex;align-items:center;justify-content:center;font-size:1rem;
-  background:var(--s2);
-}
+.txn-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;background:var(--s2);}
 .txn-name{font-size:.88rem;font-weight:600;}
 .txn-date{font-family:var(--fm);font-size:.72rem;color:var(--t3);margin-top:2px;}
 .txn-amount{font-family:var(--fm);font-size:.9rem;font-weight:500;}
 .txn-amount.pos{color:var(--green);}
 .txn-amount.neg{color:var(--red);}
-
-/* RESPONSIVE */
 @media(max-width:768px){
   .dash-grid{grid-template-columns:1fr;}
   .balance-card,.rate-card,.actions-card,.txn-card{grid-column:1/2!important;grid-row:auto!important;}
@@ -198,6 +151,19 @@ body::after {
 </style>
 </head>
 <body>
+
+<!-- USERNAME SETUP MODAL -->
+<div class="ax-modal-bg" id="usernameModal" style="display:none;">
+  <div class="ax-modal">
+    <div style="font-size:2rem;margin-bottom:12px;">⬡</div>
+    <h2>Finish Your Profile</h2>
+    <p>Choose a username to identify yourself on Axes Bank. This is how others will send you coins.</p>
+    <input class="ax-modal-input" id="usernameInput" type="text" placeholder="e.g. naklirajveer" maxlength="24" autocomplete="off" spellcheck="false" />
+    <div class="ax-modal-suffix">Your ID will be: <span id="usernamePreview">@axc</span></div>
+    <div class="ax-modal-err" id="usernameErr"></div>
+    <button class="ax-modal-btn" id="usernameSubmitBtn" onclick="submitUsername()">Set Username</button>
+  </div>
+</div>
 
 <!-- TOPBAR -->
 <div class="ax-top">
@@ -215,9 +181,7 @@ body::after {
 <div class="ticker-wrap">
   <div class="ticker-label">⚡ LIVE</div>
   <div style="overflow:hidden;flex:1;">
-    <div class="ticker-track" id="tickerTrack">
-      <!-- duplicated for seamless loop -->
-    </div>
+    <div class="ticker-track" id="tickerTrack"></div>
   </div>
 </div>
 
@@ -230,11 +194,11 @@ body::after {
     <div class="balance-amount"><span>AXC </span><span id="balanceNum">—</span></div>
     <div class="balance-sub" id="balanceInr">≈ ₹— at current rate</div>
     <div style="margin-top:12px;font-family:var(--fm);font-size:.75rem;color:var(--t3)">
-      Account ID: <span id="userId" style="color:var(--t2)">—</span>
+      Account ID: <span id="userId" style="color:var(--gold)">—</span>
     </div>
     <div class="balance-actions">
       <a href="earn.html" class="bal-btn primary">⚡ Earn Coins</a>
-      <a href="donate.html" class="bal-btn ghost">🎁 Send</a>
+      <a href="send.html" class="bal-btn ghost">🎁 Send</a>
       <a href="transactions.html" class="bal-btn ghost">📋 History</a>
     </div>
   </div>
@@ -254,31 +218,14 @@ body::after {
     </div>
     <canvas id="rateChart"></canvas>
     <div class="rate-stats">
-      <div class="rate-stat">
-        <div class="rate-stat-label">24h High</div>
-        <div class="rate-stat-val" id="rate24h">₹—</div>
-      </div>
-      <div class="rate-stat">
-        <div class="rate-stat-label">Supply</div>
-        <div class="rate-stat-val" id="rateSupply">—</div>
-      </div>
-      <div class="rate-stat">
-        <div class="rate-stat-label">Floor</div>
-        <div class="rate-stat-val">₹40.00</div>
-      </div>
-      <div class="rate-stat">
-        <div class="rate-stat-label">Ceiling</div>
-        <div class="rate-stat-val">₹150.00</div>
-      </div>
+      <div class="rate-stat"><div class="rate-stat-label">24h High</div><div class="rate-stat-val" id="rate24h">₹—</div></div>
+      <div class="rate-stat"><div class="rate-stat-label">Supply</div><div class="rate-stat-val" id="rateSupply">—</div></div>
+      <div class="rate-stat"><div class="rate-stat-label">Floor</div><div class="rate-stat-val">₹40.00</div></div>
+      <div class="rate-stat"><div class="rate-stat-label">Ceiling</div><div class="rate-stat-val">₹150.00</div></div>
     </div>
     <div class="rate-economy-bar">
-      <div class="rate-economy-label">
-        <span>Economy Health</span>
-        <span id="healthLabel">—</span>
-      </div>
-      <div class="eco-bar-bg">
-        <div class="eco-bar-fill" id="ecoBarFill" style="width:50%"></div>
-      </div>
+      <div class="rate-economy-label"><span>Economy Health</span><span id="healthLabel">—</span></div>
+      <div class="eco-bar-bg"><div class="eco-bar-fill" id="ecoBarFill" style="width:50%"></div></div>
     </div>
   </div>
 
@@ -310,7 +257,7 @@ body::after {
         <div class="action-label">Transactions</div>
         <div class="action-desc">View history</div>
       </a>
-      <a href="donate.html" class="action-item">
+      <a href="send.html" class="action-item">
         <div class="action-icon">🎁</div>
         <div class="action-label">Send Coins</div>
         <div class="action-desc">Gift to a friend</div>
@@ -342,11 +289,10 @@ body::after {
     </div>
   </div>
 
-</div><!-- /dash-grid -->
-</div><!-- /ax-page -->
+</div>
+</div>
 
 <script>
-// ── FIREBASE INIT ─────────────────────────────────────────────
 firebase.initializeApp({
   apiKey:"AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
   authDomain:"bankdata-fe769.firebaseapp.com",
@@ -359,18 +305,75 @@ firebase.initializeApp({
 const db = firebase.database();
 const auth = firebase.auth();
 
-let userData = {}, currentRate = 95;
+let userData = {}, currentRate = 95, currentUser = null;
+
+// ── USERNAME MODAL ────────────────────────────────────────────
+const usernameInput = document.getElementById('usernameInput');
+usernameInput.addEventListener('input', () => {
+  // Strip spaces as they type
+  usernameInput.value = usernameInput.value.replace(/\s/g, '');
+  const val = usernameInput.value.trim();
+  document.getElementById('usernamePreview').textContent = val ? val + '@axc' : '@axc';
+  document.getElementById('usernameErr').textContent = '';
+});
+
+async function submitUsername() {
+  const btn = document.getElementById('usernameSubmitBtn');
+  const errEl = document.getElementById('usernameErr');
+  const val = usernameInput.value.trim().toLowerCase();
+
+  if (!val) { errEl.textContent = 'Username cannot be empty.'; return; }
+  if (/\s/.test(val)) { errEl.textContent = 'No spaces allowed.'; return; }
+  if (val.length < 3) { errEl.textContent = 'At least 3 characters required.'; return; }
+  if (!/^[a-z0-9_]+$/.test(val)) { errEl.textContent = 'Only letters, numbers and underscores.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+
+  try {
+    // Check uniqueness
+    const snap = await db.ref('usernames/' + val).get();
+    if (snap.exists()) {
+      errEl.textContent = 'That username is already taken. Try another.';
+      btn.disabled = false; btn.textContent = 'Set Username';
+      return;
+    }
+    // Save username to usernames index and user record atomically
+    const updates = {};
+    updates['usernames/' + val] = currentUser.uid;
+    updates['users/' + currentUser.uid + '/username'] = val;
+    await db.ref().update(updates);
+    document.getElementById('usernameModal').style.display = 'none';
+    document.getElementById('userId').textContent = val + '@axc';
+    axToast('Welcome, ' + val + '@axc! 🎉');
+  } catch (e) {
+    errEl.textContent = 'Something went wrong. Try again.';
+    btn.disabled = false; btn.textContent = 'Set Username';
+  }
+}
 
 // ── AUTH ──────────────────────────────────────────────────────
 auth.onAuthStateChanged(user => {
   if (!user) { window.location.href = 'index.html'; return; }
-  document.getElementById('userId').textContent = user.uid.slice(0,12) + '...';
+  currentUser = user;
+
   db.ref('users/' + user.uid).on('value', snap => {
     userData = snap.val() || {};
+
+    // Show username or prompt
+    if (userData.username) {
+      document.getElementById('userId').textContent = userData.username + '@axc';
+      document.getElementById('usernameModal').style.display = 'none';
+    } else {
+      document.getElementById('usernameModal').style.display = 'flex';
+      document.getElementById('userId').textContent = '—';
+    }
+
     renderBalance();
     renderStats();
     renderRecentTxns();
   });
+
   maybeTickEconomy();
   loadRateWidget();
   buildTicker();
@@ -409,28 +412,22 @@ async function loadRateWidget() {
   changeEl.textContent = (isUp ? '▲ +' : '▼ ') + pct + '%  today';
   changeEl.className = 'rate-change ' + (isUp ? 'up' : 'down');
 
-  // 24h high estimate
   const highs = history.map(h => h.r || h).filter(Boolean);
   const high24 = highs.length ? Math.max(...highs.slice(-24)) : rate;
   document.getElementById('rate24h').textContent = fmtRate(high24);
   document.getElementById('rateSupply').textContent = fmtCoins(totalCoins);
 
-  // Economy health bar (rate relative to 40–150 range)
   const healthPct = ((rate - 40) / 110) * 100;
   document.getElementById('ecoBarFill').style.width = healthPct + '%';
   document.getElementById('healthLabel').textContent =
     rate > 100 ? '🟢 Strong' : rate > 70 ? '🟡 Moderate' : '🔴 Weak';
 
-  // Refresh balance with live rate
   renderBalance();
-
   drawMiniChart(history, isUp);
-
-  // Auto refresh every 5 min
   setTimeout(loadRateWidget, 5 * 60 * 1000);
 }
 
-// ── MINI CHART ─────────────────────────────────────────────────
+// ── MINI CHART ────────────────────────────────────────────────
 function drawMiniChart(history, isUp) {
   const canvas = document.getElementById('rateChart');
   if (!canvas) return;
@@ -443,56 +440,38 @@ function drawMiniChart(history, isUp) {
   ctx.scale(dpr, dpr);
 
   let pts = history.map(h => h.r || h).filter(Boolean);
-  // If no history yet, generate a fake starting line
   if (pts.length < 2) {
     pts = Array.from({length:15}, (_,i) => 90 + Math.sin(i*0.5)*3 + Math.random()*1.5);
     pts.push(currentRate);
   }
-
-  const mn = Math.min(...pts) - 1;
-  const mx = Math.max(...pts) + 1;
+  const mn = Math.min(...pts) - 1, mx = Math.max(...pts) + 1;
   const scaleX = W / (pts.length - 1);
   const scaleY = (H - 16) / (mx - mn);
   const toY = v => H - 8 - (v - mn) * scaleY;
 
-  // Gradient fill
   const grad = ctx.createLinearGradient(0, 0, 0, H);
   const col = isUp ? '16,212,142' : '239,68,68';
   grad.addColorStop(0, `rgba(${col},.18)`);
   grad.addColorStop(1, `rgba(${col},0)`);
 
   ctx.beginPath();
-  pts.forEach((v, i) => {
-    const x = i * scaleX, y = toY(v);
-    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-  });
-  ctx.lineTo((pts.length - 1) * scaleX, H);
-  ctx.lineTo(0, H);
-  ctx.closePath();
-  ctx.fillStyle = grad;
-  ctx.fill();
+  pts.forEach((v, i) => { const x = i*scaleX, y = toY(v); i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
+  ctx.lineTo((pts.length-1)*scaleX, H); ctx.lineTo(0, H); ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
 
-  // Line
   ctx.beginPath();
-  pts.forEach((v, i) => {
-    const x = i * scaleX, y = toY(v);
-    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-  });
+  pts.forEach((v, i) => { const x = i*scaleX, y = toY(v); i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y); });
   ctx.strokeStyle = isUp ? '#10d48e' : '#ef4444';
-  ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  ctx.stroke();
+  ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke();
 
-  // Dot at end
-  const lx = (pts.length - 1) * scaleX, ly = toY(pts[pts.length - 1]);
-  ctx.beginPath();
-  ctx.arc(lx, ly, 4, 0, Math.PI * 2);
-  ctx.fillStyle = isUp ? '#10d48e' : '#ef4444';
-  ctx.fill();
+  const lx = (pts.length-1)*scaleX, ly = toY(pts[pts.length-1]);
+  ctx.beginPath(); ctx.arc(lx, ly, 4, 0, Math.PI*2);
+  ctx.fillStyle = isUp ? '#10d48e' : '#ef4444'; ctx.fill();
 }
 
-// ── MARKET EVENTS FEED ────────────────────────────────────────
+// ── MARKET EVENTS ─────────────────────────────────────────────
 async function buildTicker() {
-  const { events, rate } = await getLiveRate();
+  const { events, rate, totalCoins } = await getLiveRate();
   const defaultEvents = [
     { label:'Market open', delta:0 },
     { label:'Economy drift applied', delta:0.1 },
@@ -501,7 +480,6 @@ async function buildTicker() {
   const all = [...(events || []), ...defaultEvents].slice(0, 10);
 
   const feedEl = document.getElementById('eventsFeed');
-  const colors = ['var(--green)', 'var(--red)', 'var(--gold)', 'var(--blue)'];
   if (all.length) {
     feedEl.innerHTML = all.map(e => `
       <div class="event-item">
@@ -513,10 +491,9 @@ async function buildTicker() {
       </div>`).join('');
   }
 
-  // Ticker bar
   const tickerItems = [
     `⬡ AXC/INR ${fmtRate(rate)}`,
-    `💰 Total Supply: ${fmtCoins((await getLiveRate()).totalCoins)} AXC`,
+    `💰 Total Supply: ${fmtCoins(totalCoins)} AXC`,
     `🔥 Inflation drives rate DOWN — spend or stake!`,
     `🎰 Spin the wheel to earn AXC`,
     `📈 Economy: ${rate > 100 ? 'Strong' : rate > 70 ? 'Moderate' : 'Weak'}`,
@@ -525,7 +502,7 @@ async function buildTicker() {
     `🔗 Refer friends = +500 AXC each`,
     ...(all.map(e => `${e.delta > 0 ? '▲' : e.delta < 0 ? '▼' : '•'} ${e.label}`)),
   ];
-  const doubled = [...tickerItems, ...tickerItems]; // duplicate for seamless loop
+  const doubled = [...tickerItems, ...tickerItems];
   document.getElementById('tickerTrack').innerHTML = doubled.map(t =>
     `<div class="ticker-item"><span style="color:var(--gold);margin-right:6px">⬡</span>${t}</div>`
   ).join('');
@@ -560,7 +537,6 @@ function renderRecentTxns() {
     </div>`).join('');
 }
 
-// ── HELPERS ───────────────────────────────────────────────────
 function timeAgo(ts) {
   const s = Math.floor((Date.now() - ts) / 1000);
   if (s < 60) return s + 's ago';
