@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send Coins — Axes Bank</title>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth-compat.js"></script>
+<script src="axesbank.js"></script>
+<style>
+body::before{
+  content:'';position:fixed;top:-200px;right:-150px;width:600px;height:600px;
+  background:radial-gradient(circle,rgba(16,212,142,.04) 0%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+.send-page{max-width:520px;margin:0 auto;padding:80px 20px 60px;position:relative;z-index:1;}
+
+/* BALANCE BAR */
+.bal-bar{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:18px 22px;margin-bottom:20px;
+  display:flex;justify-content:space-between;align-items:center;
+  animation:fadeUp .35s ease both;
+}
+.bal-bar-label{font-size:.75rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.bal-bar-val{font-family:var(--fm);font-size:1.1rem;font-weight:500;color:var(--text);}
+.bal-bar-inr{font-family:var(--fm);font-size:.75rem;color:var(--gold);margin-top:2px;text-align:right;}
+
+/* SEND CARD */
+.send-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:22px;
+  padding:32px;animation:fadeUp .4s .05s ease both;
+}
+.send-card h2{font-size:1.2rem;font-weight:800;letter-spacing:-.4px;margin-bottom:6px;}
+.send-card p{font-size:.8rem;color:var(--t2);margin-bottom:28px;line-height:1.6;}
+
+.send-label{font-size:.75rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:block;}
+
+/* RECIPIENT INPUT */
+.recipient-wrap{position:relative;margin-bottom:8px;}
+.recipient-input{
+  width:100%;padding:14px 16px 14px 44px;border-radius:13px;
+  background:var(--s2);border:1px solid var(--b2);
+  color:var(--text);font-family:var(--fm);font-size:.95rem;
+  outline:none;transition:border-color .2s;
+}
+.recipient-input:focus{border-color:var(--green);}
+.recipient-at{
+  position:absolute;left:16px;top:50%;transform:translateY(-50%);
+  font-family:var(--fm);font-size:.9rem;color:var(--t3);pointer-events:none;
+}
+.recipient-suffix{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  font-family:var(--fm);font-size:.78rem;color:var(--t3);pointer-events:none;
+}
+.recipient-hint{font-family:var(--fm);font-size:.72rem;color:var(--t3);margin-bottom:22px;}
+.recipient-ok{color:var(--green);}
+.recipient-err{color:var(--red);}
+
+/* AMOUNT INPUT */
+.amount-wrap{position:relative;margin-bottom:8px;}
+.amount-input{
+  width:100%;padding:14px 60px 14px 16px;border-radius:13px;
+  background:var(--s2);border:1px solid var(--b2);
+  color:var(--text);font-family:var(--fm);font-size:1.1rem;
+  outline:none;transition:border-color .2s;
+}
+.amount-input:focus{border-color:var(--gold);}
+.amount-suffix{
+  position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  font-family:var(--fm);font-size:.78rem;color:var(--gold);pointer-events:none;
+  font-weight:500;
+}
+.amount-hint{font-family:var(--fm);font-size:.72rem;color:var(--t3);margin-bottom:28px;}
+
+/* QUICK AMOUNTS */
+.quick-amounts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+.quick-btn{
+  padding:6px 14px;border-radius:8px;border:1px solid var(--b2);
+  background:var(--s2);color:var(--t2);font-family:var(--fm);font-size:.75rem;
+  cursor:pointer;transition:all .18s;
+}
+.quick-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* PREVIEW */
+.send-preview{
+  background:var(--s2);border:1px solid var(--border);border-radius:14px;
+  padding:16px 18px;margin-bottom:24px;display:none;
+}
+.send-preview.show{display:block;}
+.preview-row{display:flex;justify-content:space-between;font-size:.8rem;padding:5px 0;}
+.preview-key{color:var(--t2);}
+.preview-val{font-family:var(--fm);color:var(--text);}
+.preview-divider{border:none;border-top:1px solid var(--border);margin:8px 0;}
+.preview-total{font-size:.9rem;font-weight:700;}
+
+/* SEND BUTTON */
+.send-btn{
+  width:100%;padding:14px;border:none;border-radius:13px;
+  background:linear-gradient(135deg,var(--green),var(--green2));
+  color:#000;font-family:var(--ff);font-size:.95rem;font-weight:800;
+  cursor:pointer;transition:all .2s;
+}
+.send-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(16,212,142,.3);}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+/* SUCCESS STATE */
+.send-success{
+  display:none;text-align:center;padding:16px 0;
+}
+.send-success.show{display:block;}
+.send-success-icon{font-size:3rem;margin-bottom:12px;}
+.send-success h3{font-size:1.1rem;font-weight:800;margin-bottom:6px;}
+.send-success p{font-size:.82rem;color:var(--t2);margin-bottom:20px;}
+.back-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:11px 22px;border-radius:11px;border:1px solid var(--b2);
+  background:var(--s2);color:var(--text);font-family:var(--ff);font-size:.85rem;font-weight:700;
+  cursor:pointer;transition:all .2s;text-decoration:none;
+}
+.back-btn:hover{background:var(--s3);}
+
+/* RECENT SENDS */
+.recent-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:24px;margin-top:20px;animation:fadeUp .4s .1s ease both;
+}
+.recent-card h3{font-size:.78rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;}
+.recent-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+.recent-item:last-child{border-bottom:none;}
+.recent-to{font-family:var(--fm);font-size:.82rem;color:var(--gold);}
+.recent-amt{font-family:var(--fm);font-size:.82rem;color:var(--red);}
+.recent-time{font-family:var(--fm);font-size:.68rem;color:var(--t3);margin-top:2px;}
+</style>
+</head>
+<body>
+
+<div class="ax-top">
+  <a class="ax-ghost" href="dashboard.html">← Back</a>
+  <div class="ax-logo">⬡ Axes Bank</div>
+  <div class="ax-top-r">
+    <div class="ax-pill" id="ratePill">AXC/INR —</div>
+  </div>
+</div>
+
+<div class="send-page">
+
+  <!-- BALANCE BAR -->
+  <div class="bal-bar">
+    <div>
+      <div class="bal-bar-label">Your Balance</div>
+      <div class="bal-bar-val" id="myBalance">— AXC</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="bal-bar-inr" id="myBalanceInr">≈ ₹—</div>
+      <div style="font-family:var(--fm);font-size:.68rem;color:var(--t3);margin-top:2px;" id="myAxcId">—</div>
+    </div>
+  </div>
+
+  <!-- SEND FORM -->
+  <div class="send-card">
+    <h2>🎁 Send Coins</h2>
+    <p>Transfer AXC to any Axes Bank user instantly. Enter their username to get started.</p>
+
+    <!-- RECIPIENT -->
+    <label class="send-label">Recipient</label>
+    <div class="recipient-wrap">
+      <span class="recipient-at">@</span>
+      <input class="recipient-input" id="recipientInput" type="text"
+        placeholder="username" maxlength="24" autocomplete="off" spellcheck="false" />
+      <span class="recipient-suffix">@axc</span>
+    </div>
+    <div class="recipient-hint" id="recipientHint">Enter the recipient's username</div>
+
+    <!-- AMOUNT -->
+    <label class="send-label">Amount</label>
+    <div class="amount-wrap">
+      <input class="amount-input" id="amountInput" type="number" min="1" placeholder="0" />
+      <span class="amount-suffix">AXC</span>
+    </div>
+    <div class="amount-hint" id="amountHint">How many coins do you want to send?</div>
+
+    <!-- QUICK AMOUNTS -->
+    <div class="quick-amounts">
+      <button class="quick-btn" onclick="setAmount(10)">10</button>
+      <button class="quick-btn" onclick="setAmount(50)">50</button>
+      <button class="quick-btn" onclick="setAmount(100)">100</button>
+      <button class="quick-btn" onclick="setAmount(500)">500</button>
+      <button class="quick-btn" onclick="setAmount(1000)">1K</button>
+      <button class="quick-btn" onclick="setAmountMax()">Max</button>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="send-preview" id="sendPreview">
+      <div class="preview-row">
+        <span class="preview-key">To</span>
+        <span class="preview-val" id="previewTo">—</span>
+      </div>
+      <div class="preview-row">
+        <span class="preview-key">Amount</span>
+        <span class="preview-val" id="previewAmount">—</span>
+      </div>
+      <div class="preview-row">
+        <span class="preview-key">≈ Value</span>
+        <span class="preview-val" id="previewInr">—</span>
+      </div>
+      <hr class="preview-divider">
+      <div class="preview-row preview-total">
+        <span class="preview-key">Your new balance</span>
+        <span class="preview-val" id="previewNewBal">—</span>
+      </div>
+    </div>
+
+    <!-- SEND BUTTON -->
+    <button class="send-btn" id="sendBtn" disabled onclick="doSend()">Send Coins</button>
+
+    <!-- SUCCESS STATE -->
+    <div class="send-success" id="sendSuccess">
+      <div class="send-success-icon">✅</div>
+      <h3>Sent!</h3>
+      <p id="successMsg">—</p>
+      <a href="dashboard.html" class="back-btn">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <!-- RECENT SENDS -->
+  <div class="recent-card" id="recentCard" style="display:none;">
+    <h3>Recent Sends</h3>
+    <div id="recentSends"></div>
+  </div>
+
+</div>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBjkyVHbax09W9viyKmBH-MXQXqyfizJws",
+  authDomain:"bankdata-fe769.firebaseapp.com",
+  databaseURL:"https://bankdata-fe769-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"bankdata-fe769",storageBucket:"bankdata-fe769.appspot.com",
+  messagingSenderId:"967507656753",appId:"1:967507656753:web:562c1383dca78d56471510"
+});
+const db = firebase.database(), auth = firebase.auth();
+
+let CU = null, myCoins = 0, myUsername = '', liveRate = 95;
+let recipientUID = null, recipientUsername = '';
+let lookupTimeout = null;
+
+// ── AUTH ──────────────────────────────────────────────────────
+auth.onAuthStateChanged(async u => {
+  if (!u) { window.location.href = 'index.html'; return; }
+  CU = u;
+
+  const { rate } = await getLiveRate();
+  liveRate = rate;
+  document.getElementById('ratePill').textContent = 'AXC/INR ' + fmtRate(rate);
+
+  db.ref('users/' + u.uid).on('value', snap => {
+    const d = snap.val() || {};
+    myCoins = Number(d.coins) || 0;
+    myUsername = d.username || '';
+    document.getElementById('myBalance').textContent = fmtCoins(myCoins) + ' AXC';
+    document.getElementById('myBalanceInr').textContent = '≈ ' + fmtRate(myCoins * liveRate);
+    document.getElementById('myAxcId').textContent = myUsername ? myUsername + '@axc' : '';
+    updatePreview();
+    renderRecentSends(d.transactions || {});
+  });
+});
+
+// ── RECIPIENT LOOKUP ──────────────────────────────────────────
+const recipientInput = document.getElementById('recipientInput');
+recipientInput.addEventListener('input', () => {
+  recipientInput.value = recipientInput.value.replace(/\s/g, '').toLowerCase();
+  const val = recipientInput.value.trim();
+  recipientUID = null;
+  recipientUsername = '';
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('sendPreview').classList.remove('show');
+
+  clearTimeout(lookupTimeout);
+  if (!val) {
+    document.getElementById('recipientHint').textContent = 'Enter the recipient\'s username';
+    document.getElementById('recipientHint').className = 'recipient-hint';
+    return;
+  }
+  document.getElementById('recipientHint').textContent = 'Looking up ' + val + '@axc…';
+  document.getElementById('recipientHint').className = 'recipient-hint';
+
+  lookupTimeout = setTimeout(() => lookupUser(val), 600);
+});
+
+async function lookupUser(username) {
+  const hintEl = document.getElementById('recipientHint');
+  try {
+    const snap = await db.ref('usernames/' + username).get();
+    if (!snap.exists()) {
+      hintEl.textContent = '✗ No user found with username "' + username + '"';
+      hintEl.className = 'recipient-hint recipient-err';
+      return;
+    }
+    const uid = snap.val();
+    if (uid === CU.uid) {
+      hintEl.textContent = '✗ You can\'t send coins to yourself.';
+      hintEl.className = 'recipient-hint recipient-err';
+      return;
+    }
+    recipientUID = uid;
+    recipientUsername = username;
+    hintEl.textContent = '✓ Found: ' + username + '@axc';
+    hintEl.className = 'recipient-hint recipient-ok';
+    updatePreview();
+  } catch(e) {
+    hintEl.textContent = 'Lookup failed. Try again.';
+    hintEl.className = 'recipient-hint recipient-err';
+  }
+}
+
+// ── AMOUNT ────────────────────────────────────────────────────
+const amountInput = document.getElementById('amountInput');
+amountInput.addEventListener('input', () => {
+  updateAmountHint();
+  updatePreview();
+});
+
+function setAmount(n) {
+  amountInput.value = n;
+  updateAmountHint();
+  updatePreview();
+}
+
+function setAmountMax() {
+  amountInput.value = Math.max(0, myCoins);
+  updateAmountHint();
+  updatePreview();
+}
+
+function updateAmountHint() {
+  const amt = parseInt(amountInput.value) || 0;
+  const hintEl = document.getElementById('amountHint');
+  if (amt <= 0) {
+    hintEl.textContent = 'How many coins do you want to send?';
+    hintEl.style.color = '';
+    return;
+  }
+  if (amt > myCoins) {
+    hintEl.textContent = '✗ Not enough AXC. You have ' + fmtCoins(myCoins) + ' AXC.';
+    hintEl.style.color = 'var(--red)';
+  } else {
+    hintEl.textContent = '≈ ' + fmtRate(amt * liveRate) + ' at current rate';
+    hintEl.style.color = 'var(--t3)';
+  }
+}
+
+function updatePreview() {
+  const amt = parseInt(amountInput.value) || 0;
+  const sendBtn = document.getElementById('sendBtn');
+  const preview = document.getElementById('sendPreview');
+
+  if (recipientUID && amt > 0 && amt <= myCoins) {
+    preview.classList.add('show');
+    document.getElementById('previewTo').textContent = recipientUsername + '@axc';
+    document.getElementById('previewAmount').textContent = fmtCoins(amt) + ' AXC';
+    document.getElementById('previewInr').textContent = fmtRate(amt * liveRate);
+    document.getElementById('previewNewBal').textContent = fmtCoins(myCoins - amt) + ' AXC';
+    sendBtn.disabled = false;
+  } else {
+    preview.classList.remove('show');
+    sendBtn.disabled = true;
+  }
+}
+
+// ── SEND ──────────────────────────────────────────────────────
+async function doSend() {
+  const amt = parseInt(amountInput.value) || 0;
+  if (!CU || !recipientUID || amt <= 0 || amt > myCoins) return;
+
+  const sendBtn = document.getElementById('sendBtn');
+  sendBtn.disabled = true;
+  sendBtn.textContent = 'Sending…';
+
+  try {
+    const ts = Date.now();
+    const updates = {};
+
+    // Deduct from sender
+    updates['users/' + CU.uid + '/coins'] = myCoins - amt;
+    updates['users/' + CU.uid + '/transactions/' + ts] = {
+      type: 'send',
+      label: 'Sent to ' + recipientUsername + '@axc',
+      amount: -amt,
+      t: ts
+    };
+
+    // Credit recipient — get their current coins first
+    const recipSnap = await db.ref('users/' + recipientUID + '/coins').get();
+    const recipCoins = Number(recipSnap.val()) || 0;
+    updates['users/' + recipientUID + '/coins'] = recipCoins + amt;
+    updates['users/' + recipientUID + '/transactions/' + (ts + 1)] = {
+      type: 'receive',
+      label: 'Received from ' + (myUsername ? myUsername + '@axc' : 'someone'),
+      amount: amt,
+      t: ts + 1
+    };
+
+    await db.ref().update(updates);
+
+    // Show success
+    document.getElementById('sendBtn').style.display = 'none';
+    document.getElementById('sendPreview').classList.remove('show');
+    recipientInput.disabled = true;
+    amountInput.disabled = true;
+    document.getElementById('sendSuccess').classList.add('show');
+    document.getElementById('successMsg').textContent =
+      fmtCoins(amt) + ' AXC sent to ' + recipientUsername + '@axc successfully!';
+
+    axToast('Sent ' + fmtCoins(amt) + ' AXC to ' + recipientUsername + '@axc');
+  } catch(e) {
+    axToast('Send failed. Try again.', 'error');
+    sendBtn.disabled = false;
+    sendBtn.textContent = 'Send Coins';
+  }
+}
+
+// ── RECENT SENDS ──────────────────────────────────────────────
+function renderRecentSends(transactions) {
+  const sends = Object.values(transactions)
+    .filter(t => t.type === 'send')
+    .reverse()
+    .slice(0, 5);
+
+  const card = document.getElementById('recentCard');
+  if (!sends.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+
+  document.getElementById('recentSends').innerHTML = sends.map(t => `
+    <div class="recent-item">
+      <div>
+        <div class="recent-to">${t.label || 'Send'}</div>
+        <div class="recent-time">${t.t ? timeAgo(t.t) : '—'}</div>
+      </div>
+      <div class="recent-amt">${fmtCoins(Math.abs(t.amount))} AXC</div>
+    </div>`).join('');
+}
+
+function timeAgo(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+</script>
+</body>
+</html>
